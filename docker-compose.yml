@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  app:
+    image: nefentus
+    network_mode: "host"
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - DATABASE_USER_NAME=${DATABASE_USER_NAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_NAME=${DATABASE_NAME}
+    ports:
+      - 8080:8080
+
