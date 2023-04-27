@@ -35,6 +35,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableMethodSecurity
 public class WebSecurityConfig {
 
+    private static final String[] SWAGGER_PATHS = {"/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**", "/webjars/swagger-ui/**"};
+
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
 
@@ -52,8 +54,6 @@ public class WebSecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
@@ -64,6 +64,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/reset-password-email").authenticated()
                         .requestMatchers("/api/auth/checkJWTCookie").authenticated()
                         .requestMatchers("/api/clicks/").permitAll()
+                        .requestMatchers(SWAGGER_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
