@@ -11,8 +11,7 @@ on:
   push:
     branches: [ "dev" ]
 
-permissions:
-  contents: read
+permissions: write-all
 
 jobs:
   build-and-push:
@@ -42,7 +41,7 @@ jobs:
       - name: Automatic Tagging of Releases
         id: increment-git-tag
         run: |
-          bash ./tag/git_update.sh -v major
+          bash ./tag/git_update.sh -v patch
       - name: Build, Tag, and Push the Image to Amazon ECR
         id: build-image
         env:
@@ -52,5 +51,18 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
-          untaggedImages=$(aws ecr list-images --repository-name $ECR_REPOSITORY --filter "tagStatus=UNTAGGED" --query 'imageIds[0:7]' --output json)
-          aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids "$untaggedImages"
+
+      - name: Deploy to Kubernetes cluster
+        uses: kodermax/kubectl-aws-eks@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          RELEASE_IMAGE: ${{ secrets.KUBE_RELEASE_IMAGE}}:${{ steps.increment-git-tag.outputs.git-tag }}
+        with:
+          args: set image deployment/nefentus-app nefentus-container=${{ env.RELEASE_IMAGE }} -n nefentus
+      - name: Verify Kubernetes deployment
+        uses: kodermax/kubectl-aws-eks@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        with:
+          args: rollout status deploy nefentus-app -n nefentus
+
