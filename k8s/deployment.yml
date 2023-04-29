@@ -9,7 +9,7 @@ spec:
   selector:
     matchLabels:
       app: nefentus-app
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: nefentus-container
-        image: 798065433500.dkr.ecr.eu-central-1.amazonaws.com/nefentus-image:latest
+        image: 798065433500.dkr.ecr.eu-central-1.amazonaws.com/nefentus-image:v0.1.6
         env:
         - name: DATABASE_PASSWORD
           value: m5DzIxMWARhZ1lzvHSev
