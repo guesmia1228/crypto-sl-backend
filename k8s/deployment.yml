@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nefentus-app
+  namespace: nefentus
+  labels:
+    app: nefentus-app
+spec:
+  selector:
+    matchLabels:
+      app: nefentus-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nefentus-app
+    spec:
+      containers:
+      - name: nefentus-container
+        image: 798065433500.dkr.ecr.eu-central-1.amazonaws.com/nefentus-image:latest
+        env:
+        - name: DATABASE_PASSWORD
+          value: m5DzIxMWARhZ1lzvHSev
+        ports:
+          - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "300m"
