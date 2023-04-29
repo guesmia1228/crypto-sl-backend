@@ -1,0 +1,81 @@
+# deployment.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nefentus
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nefentus-app
+  namespace: nefentus
+  labels:
+    app: nefentus-app
+spec:
+  selector:
+    matchLabels:
+      app: nefentus-app
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nefentus-app
+    spec:
+      containers:
+      - name: nefentus-container
+        image: 798065433500.dkr.ecr.eu-central-1.amazonaws.com/nefentus-image:latest
+        env:
+        - name: DATABASE_PASSWORD
+          value: m5DzIxMWARhZ1lzvHSev
+        ports:
+          - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: nefentus
+  name: nefentus-service
+  labels:
+    app: nefentus-app
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+spec:
+  type: NodePort
+  selector:
+    app: nefentus-app
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nefentus-ingress
+  namespace: nefentus
+  labels:
+    app: nefentus
+  annotations:
+    #kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nefentus-service
+                port:
+                  number: 80                        
