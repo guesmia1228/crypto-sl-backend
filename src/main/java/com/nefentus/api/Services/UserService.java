@@ -699,12 +699,12 @@ public class UserService {
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(affRole);
                     }
-                    case "Gold-Partner" -> {
+                    case "Gold-Partner", "Gold Partner" -> {
                         Role goldP = roleRepository.findByName(ERole.ROLE_AFFILIATE_VENDOR)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(goldP);
                     }
-                    case "Diamond-Partner" -> {
+                    case "Diamond-Partner", "Diamond Partner" -> {
                         Role diaP = roleRepository.findByName(ERole.ROLE_DIAMOND_PARTNER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(diaP);
