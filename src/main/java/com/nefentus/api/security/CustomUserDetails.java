@@ -19,8 +19,7 @@ import java.util.stream.Collectors;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustomUserDetails implements UserDetails
-{
+public class CustomUserDetails implements UserDetails {
 
     private Long id;
 

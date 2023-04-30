@@ -1,18 +1,18 @@
 package com.nefentus.api.Services;
 
-import ch.qos.logback.core.encoder.EchoEncoder;
 import com.nefentus.api.Errors.*;
 import com.nefentus.api.entities.*;
 import com.nefentus.api.payload.request.*;
-import com.nefentus.api.payload.response.*;
+import com.nefentus.api.payload.response.DashboardNumberResponse;
+import com.nefentus.api.payload.response.LoginResponse;
+import com.nefentus.api.payload.response.UpdateResponse;
+import com.nefentus.api.payload.response.UserDisplayAdminResponse;
 import com.nefentus.api.repositories.*;
 import com.nefentus.api.security.CustomUserDetails;
 import com.nefentus.api.security.JwtTokenProvider;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,9 +26,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -73,7 +70,7 @@ public class UserService {
         return totalClicksDto;
     }
 
-    public String getProfilePicture(String email){
+    public String getProfilePicture(String email) {
         var user = userRepository.findUserByEmail(email).get();
         return Base64.getEncoder().encodeToString(user.getProfilepic());
     }
@@ -280,7 +277,7 @@ public class UserService {
         User created = userRepository.save(user);
 
         try {
-        //    sendConfirmationEmail(created.getEmail(), created.getToken());
+            //    sendConfirmationEmail(created.getEmail(), created.getToken());
         } catch (Exception e) {
             userRepository.delete(created);
             throw new RuntimeException("Failed to send Confirmation email. Please try again.", e);
@@ -385,7 +382,7 @@ public class UserService {
 
         // Bestätigungsemail senden
         try {
-           // sendConfirmationEmail(created.getEmail(), created.getToken());
+            // sendConfirmationEmail(created.getEmail(), created.getToken());
         } catch (Exception e) {
             userRepository.delete(created);
             throw new RuntimeException("Failed to send Confirmation email. Please try again.", e);

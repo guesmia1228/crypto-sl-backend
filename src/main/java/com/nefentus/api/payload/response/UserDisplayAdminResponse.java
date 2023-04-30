@@ -1,6 +1,5 @@
 package com.nefentus.api.payload.response;
 
-import com.nefentus.api.entities.Role;
 import com.nefentus.api.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

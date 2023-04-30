@@ -1,6 +1,5 @@
 package com.nefentus.api.security;
 
-import com.nefentus.api.entities.User;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +20,9 @@ public class JwtTokenProvider {
     public String generateToken(String userEmail, boolean longToken) {
         Instant now = Instant.now();
         Instant expiration;
-        if(!longToken) {
+        if (!longToken) {
             expiration = now.plus(1, ChronoUnit.DAYS);
-        }else{
+        } else {
             expiration = now.plus(30, ChronoUnit.DAYS);
         }
         return Jwts.builder()

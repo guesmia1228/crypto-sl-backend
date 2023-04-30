@@ -4,9 +4,7 @@ package com.nefentus.api.controller;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.ClickService;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +19,7 @@ public class ClickController {
     private ClickService clickService;
 
     @GetMapping("/")
-    public ResponseEntity<?> addNewClick(String affLink){
+    public ResponseEntity<?> addNewClick(String affLink) {
         try {
             clickService.addClick(affLink);
             return ResponseEntity.ok("Click added.");

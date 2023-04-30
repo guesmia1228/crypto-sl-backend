@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Component
@@ -26,7 +23,7 @@ public class InitDataGenerator implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if(roleRepository.findAll().size() == 0){
+        if (roleRepository.findAll().size() == 0) {
             var roleU = new Role(null, ERole.ROLE_USER);
             var roleA = new Role(null, ERole.ROLE_ADMIN);
             var roleAff = new Role(null, ERole.ROLE_AFFILIATE);
@@ -41,7 +38,7 @@ public class InitDataGenerator implements CommandLineRunner {
             roleRepository.save(roleGP);
             roleRepository.save(roleDP);
         }
-        if(userRepository.findByRoleName(ERole.ROLE_ADMIN).isEmpty()){
+        if (userRepository.findByRoleName(ERole.ROLE_ADMIN).isEmpty()) {
             var adminRole = roleRepository.findByName(ERole.ROLE_ADMIN);
             User admin = new User(null,
                     "steven@nefentus.com",
@@ -90,7 +87,7 @@ public class InitDataGenerator implements CommandLineRunner {
             userRepository.save(admin2);
         }
 
-        if(userRepository.findByRoleName(ERole.ROLE_DIAMOND_PARTNER).isEmpty()){
+        if (userRepository.findByRoleName(ERole.ROLE_DIAMOND_PARTNER).isEmpty()) {
             var diamondRole = roleRepository.findByName(ERole.ROLE_DIAMOND_PARTNER);
             User diamondUser = new User(null,
                     "diamond@example.com",
@@ -109,7 +106,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(),null
+                    Set.of(), null
             );
 
             var goldRole = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER);
@@ -130,13 +127,13 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(),null
+                    Set.of(), null
             );
             userRepository.save(diamondUser);
             userRepository.save(goldUser);
 
         }
-        if(hierarchyRepository.count() == 0){
+        if (hierarchyRepository.count() == 0) {
             var user1 = userRepository.findUserByEmail("diamond@example.com").get();
             var user2 = userRepository.findUserByEmail("gold@example.com").get();
             Hierarchy hierarchy = new Hierarchy();
