@@ -700,7 +700,7 @@ public class UserService {
                         roles.add(affRole);
                     }
                     case "Gold-Partner", "Gold Partner" -> {
-                        Role goldP = roleRepository.findByName(ERole.ROLE_AFFILIATE_VENDOR)
+                        Role goldP = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(goldP);
                     }
