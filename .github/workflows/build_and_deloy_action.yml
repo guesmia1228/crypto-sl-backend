@@ -41,7 +41,7 @@ jobs:
       - name: Automatic Tagging of Releases
         id: increment-git-tag
         run: |
-          bash ./tag/git_update.sh -v patch
+          bash ./tag/git_update_tag_dev.sh -v patch
       - name: Build, Tag, and Push the Image to Amazon ECR
         id: build-image
         env:
@@ -65,4 +65,3 @@ jobs:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
         with:
           args: rollout status deploy nefentus-app -n nefentus
-

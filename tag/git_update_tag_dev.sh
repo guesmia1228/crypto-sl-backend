@@ -10,13 +10,16 @@ do
   esac
 done
 
-# get highest tag number, and add v0.1.0 if doesn't exist
+# get highest tag number, and add dev0.1.0 if doesn't exist
 git fetch --prune --unshallow 2>/dev/null
 CURRENT_VERSION=`git describe --abbrev=0 --tags 2>/dev/null`
 
 if [[ $CURRENT_VERSION == '' ]]
 then
-  CURRENT_VERSION='v0.1.0'
+  CURRENT_VERSION='dev0.1.0'
+elif [[ $CURRENT_VERSION == v* ]]
+then
+  CURRENT_VERSION="dev${CURRENT_VERSION#v}"
 fi
 echo "Current Version: $CURRENT_VERSION"
 
@@ -30,7 +33,7 @@ VNUM3=${CURRENT_VERSION_PARTS[2]}
 
 if [[ $VERSION == 'major' ]]
 then
-  VNUM1=v$((VNUM1+1))
+  VNUM1=dev$((VNUM1+1))
 elif [[ $VERSION == 'minor' ]]
 then
   VNUM2=$((VNUM2+1))
