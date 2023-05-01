@@ -37,3 +37,5 @@ out/
 .vscode/
 .data
 .env
+
+deployment-prod.yml
