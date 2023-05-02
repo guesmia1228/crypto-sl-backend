@@ -10,13 +10,16 @@ do
   esac
 done
 
-# get highest tag number, and add ver0.1.0 if doesn't exist
+# get highest tag number, and add ver0.0.1 if doesn't exist
 git fetch --prune --unshallow 2>/dev/null
 CURRENT_VERSION=`git describe --abbrev=0 --tags 2>/dev/null`
 
 if [[ $CURRENT_VERSION == '' ]]
 then
   CURRENT_VERSION='ver0.0.1'
+elif [[ $CURRENT_VERSION == dev* ]]
+then
+  CURRENT_VERSION="ver${CURRENT_VERSION#dev}"
 fi
 echo "Current Version: $CURRENT_VERSION"
 
