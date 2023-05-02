@@ -16,7 +16,7 @@ public class VendorDashboardController {
 
     //TODO READ DATA
     @GetMapping()
-    public ResponseEntity<?> authorize(){
+    public ResponseEntity<?> authorize() {
         return ResponseEntity.ok("successfully authorized!");
     }
 

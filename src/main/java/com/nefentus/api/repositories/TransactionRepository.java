@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findAllByCreatedAtAfter(Timestamp timestamp);
+
     List<Transaction> findAllByUserEmail(String email);
+
     List<Transaction> findAllByUserIn(List<User> users);
 }

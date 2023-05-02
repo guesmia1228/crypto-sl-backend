@@ -4,22 +4,18 @@ import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.entities.Hierarchy;
 import com.nefentus.api.entities.Transaction;
 import com.nefentus.api.entities.User;
-import com.nefentus.api.payload.response.DashboardDataResponse;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
 import com.nefentus.api.repositories.HierarchyRepository;
 import com.nefentus.api.repositories.TransactionRepository;
 import com.nefentus.api.repositories.UserRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -54,9 +50,9 @@ public class TransactionService {
 
         List<Hierarchy> hierarchies = hierarchyRepository.findAllByParent(user);
 
-        for(var hierarchy : hierarchies){
+        for (var hierarchy : hierarchies) {
             List<Transaction> transactions = transactionRepository.findAllByUserEmail(hierarchy.getChild().getEmail());
-            for (Transaction transaction : transactions){
+            for (Transaction transaction : transactions) {
                 String date = transaction.getCreatedAt().toLocalDateTime().toLocalDate().toString();
                 double price = transaction.getTotalPrice() * hierarchy.getCommissionRate();
                 double total = totalPriceByDay.getOrDefault(date, 0.0);
@@ -127,7 +123,7 @@ public class TransactionService {
         return totalPrice;
     }
 
-    public double calculateIncomeForUserLast30Days(User user){
+    public double calculateIncomeForUserLast30Days(User user) {
         double totalIncome = 0.0;
 
         // Calculate the total income for the user's transactions
@@ -148,7 +144,7 @@ public class TransactionService {
         return totalIncome;
     }
 
-    public double calculateTotalIncomeForUser(User user){
+    public double calculateTotalIncomeForUser(User user) {
         double totalIncome = 0.0;
 
         // Calculate the total income for the user's transactions

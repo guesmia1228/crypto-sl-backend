@@ -1,11 +1,8 @@
 package com.nefentus.api.payload.response;
 
-import com.nefentus.api.entities.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Set;
 
 @AllArgsConstructor
 @Getter

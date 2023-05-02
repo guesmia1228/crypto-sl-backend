@@ -7,7 +7,6 @@ import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.payload.request.AddUserRequest;
 import com.nefentus.api.payload.response.MessageResponse;
-import com.nefentus.api.repositories.AffiliateCounterRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,13 +25,13 @@ public class GoldDashboardController {
     ClickService clickService;
 
     @GetMapping("/")
-    public ResponseEntity<?> checkPermission(){
+    public ResponseEntity<?> checkPermission() {
         return ResponseEntity.ok("permission granted!");
     }
 
     //get income for users below him and calculate the percentage
     @GetMapping("/income")
-    public ResponseEntity<?> getTotalIncome(Principal principal){
+    public ResponseEntity<?> getTotalIncome(Principal principal) {
         try {
             return ResponseEntity.ok(transactionService.calculateTotalIncome(principal.getName()));
         } catch (UserNotFoundException e) {
@@ -42,7 +41,7 @@ public class GoldDashboardController {
 
     //same as above but per day
     @GetMapping("/totalIncomesPerDay")
-    public ResponseEntity<?> getTotalIncomesPerDay(Principal principal){
+    public ResponseEntity<?> getTotalIncomesPerDay(Principal principal) {
         try {
             return ResponseEntity.ok(transactionService.getTotalPriceByDay(principal.getName()));
         } catch (UserNotFoundException e) {
@@ -52,19 +51,19 @@ public class GoldDashboardController {
 
     //get all users below him in count
     @GetMapping("/usersCount")
-    public ResponseEntity<?> getTotalUserCount(Principal principal){
+    public ResponseEntity<?> getTotalUserCount(Principal principal) {
         return ResponseEntity.ok(userService.calculateTotalClicks(principal.getName()));
     }
 
     //get all clicks by the aff links below him
     @GetMapping("/clicks")
-    public ResponseEntity<?> getClicks(Principal principal){
+    public ResponseEntity<?> getClicks(Principal principal) {
         return ResponseEntity.ok(clickService.calculateTotalClicks(principal.getName()));
     }
 
     //create a new user below him
     @PostMapping("/users")
-    public ResponseEntity<?> getClicks(@RequestBody AddUserRequest addUserRequest, Principal principal){
+    public ResponseEntity<?> getClicks(@RequestBody AddUserRequest addUserRequest, Principal principal) {
         try {
             return ResponseEntity.ok(userService.addUser(addUserRequest, principal.getName()));
         } catch (UserAlreadyExistsException e) {
@@ -73,7 +72,7 @@ public class GoldDashboardController {
     }
 
     @GetMapping("/userroles")
-    public ResponseEntity<?> getRoles(Principal principal){
+    public ResponseEntity<?> getRoles(Principal principal) {
         return ResponseEntity.ok(userService.getRolesStatus(principal.getName()));
     }
 

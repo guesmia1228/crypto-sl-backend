@@ -17,14 +17,14 @@ public interface AffiliateRepository extends JpaRepository<Affiliate, Integer> {
 
     default double calculateNewAffiliatesPercentageInLast30Days(String affiliateLink) {
         Timestamp startDate = new Timestamp(System.currentTimeMillis() - 30L * 24L * 60L * 60L * 1000L);
-        Timestamp begin = Timestamp.valueOf(LocalDateTime.of(2022,1,1,1,1,1));
+        Timestamp begin = Timestamp.valueOf(LocalDateTime.of(2022, 1, 1, 1, 1, 1));
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         Long totalAffiliates = countAffiliatesByLinkSinceDate(affiliateLink, begin, startDate);
         Long newAffiliates = countAffiliatesByLinkSinceDate(affiliateLink, startDate, now);
         double clickPercentage = 0.0;
-        if(totalAffiliates == 0 && newAffiliates > 0){
+        if (totalAffiliates == 0 && newAffiliates > 0) {
             clickPercentage = newAffiliates * 100;
-        }else{
+        } else {
             clickPercentage = ((double) newAffiliates - totalAffiliates) / totalAffiliates * 100.0;
         }
         return Math.round(clickPercentage * 100.0) / 100.0; // Round to two decimal places

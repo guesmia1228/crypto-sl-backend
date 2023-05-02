@@ -1,7 +1,10 @@
 package com.nefentus.api.entities;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -18,7 +21,7 @@ public class KycImage {
     private Boolean confirmed = false;
 
     @Lob
-    @Column(columnDefinition="BLOB")
+    @Column(columnDefinition = "BLOB")
     private byte[] data;
 
     @ManyToOne
