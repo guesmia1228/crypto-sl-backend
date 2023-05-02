@@ -21,7 +21,6 @@ elif [[ $CURRENT_VERSION == dev* ]]
 then
   CURRENT_VERSION="ver${CURRENT_VERSION#dev}"
 fi
-echo "Current Version: $CURRENT_VERSION"
 
 # replace . with space so can split into an array
 CURRENT_VERSION_PARTS=(${CURRENT_VERSION//./ })
@@ -33,13 +32,13 @@ VNUM3=${CURRENT_VERSION_PARTS[2]}
 
 if [[ $VERSION == 'major' ]]
 then
-  VNUM1=ver$((VNUM1+1))
+  VNUM1=ver$((VNUM1))
 elif [[ $VERSION == 'minor' ]]
 then
-  VNUM2=$((VNUM2+1))
+  VNUM2=$((VNUM2))
 elif [[ $VERSION == 'patch' ]]
 then
-  VNUM3=$((VNUM3+1))
+  VNUM3=$((VNUM3))
 else
   echo "No version type (https://semver.org/) or incorrect type specified, try: -v [major, minor, patch]"
   exit 1
@@ -47,7 +46,7 @@ fi
 
 # create new tag
 NEW_TAG="$VNUM1.$VNUM2.$VNUM3"
-echo "($VERSION) updating $CURRENT_VERSION to $NEW_TAG"
+echo "($VERSION) create new $NEW_TAG"
 
 # get current hash and see if it already has a tag
 GIT_COMMIT=`git rev-parse HEAD`
