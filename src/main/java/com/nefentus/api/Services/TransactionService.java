@@ -9,6 +9,8 @@ import com.nefentus.api.repositories.HierarchyRepository;
 import com.nefentus.api.repositories.TransactionRepository;
 import com.nefentus.api.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TransactionService {
 
     private TransactionRepository transactionRepository;
@@ -35,6 +38,7 @@ public class TransactionService {
             double total = totalPriceByDay.getOrDefault(date, 0.0);
             totalPriceByDay.put(date, total + price);
         }
+        log.info("Query successful total income per day!");
         return totalPriceByDay;
     }
 
@@ -42,7 +46,8 @@ public class TransactionService {
         Optional<User> optUser = userRepository.findUserByEmail(email);
 
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("User not found");
+            log.error("User not found ");
+            throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
         }
 
         User user = optUser.get();
@@ -59,7 +64,7 @@ public class TransactionService {
                 totalPriceByDay.put(date, total + price);
             }
         }
-
+        log.info("Successful to get total income per day for user with email= {}", user.getEmail());
         return totalPriceByDay;
     }
 
@@ -71,6 +76,7 @@ public class TransactionService {
         DashboardNumberResponse totalIncomeDto = new DashboardNumberResponse();
         totalIncomeDto.setNumber(totalIncome);
         totalIncomeDto.setPercentage(Math.round(percentageIncrease));
+        log.info("Success calculate total income totalIncome:{}",totalIncome);
         return totalIncomeDto;
     }
 
@@ -78,7 +84,8 @@ public class TransactionService {
         Optional<User> optUser = userRepository.findUserByEmail(email);
 
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("User not found");
+            log.error("User not found");
+            throw new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST);
         }
         var user = optUser.get();
         double totalIncome = calculateTotalIncomeForUser(user);
@@ -89,6 +96,7 @@ public class TransactionService {
         DashboardNumberResponse totalIncomeDto = new DashboardNumberResponse();
         totalIncomeDto.setNumber(totalIncome);
         totalIncomeDto.setPercentage(Math.round(percentageIncrease));
+        log.info("Successful calculateTotalIncome for user= {} ", user.getEmail());
         return totalIncomeDto;
 
     }
