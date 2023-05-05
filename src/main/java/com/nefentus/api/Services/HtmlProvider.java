@@ -8,22 +8,21 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 
 public class HtmlProvider {
-
-    public static String loadHtmlFile(String token) throws IOException {
+    public static String loadHtmlFile(String token, String appUrl) throws IOException {
         ClassPathResource resource = new ClassPathResource("verify-account.html");
         InputStream inputStream = resource.getInputStream();
         try {
-            return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replace("/StaticLoginLinkToChange", "https://nefentus.com/login?token=" + token);
+            return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replace("/StaticLoginLinkToChange", appUrl + token);
         } finally {
             inputStream.close();
         }
     }
 
-    public static String loadHtmlFileReset(String token) throws IOException {
+    public static String loadHtmlFileReset(String token, String appUrl) throws IOException {
         ClassPathResource resource = new ClassPathResource("resetPassword.html");
         InputStream inputStream = resource.getInputStream();
         try {
-            return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replace("/StaticLoginLinkToChange", "https://nefentus.com/reset-password?token=" + token);
+            return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replace("/StaticLoginLinkToChange", appUrl + token);
         } finally {
             inputStream.close();
         }

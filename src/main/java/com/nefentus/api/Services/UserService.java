@@ -12,8 +12,9 @@ import com.nefentus.api.security.CustomUserDetails;
 import com.nefentus.api.security.JwtTokenProvider;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -34,22 +35,27 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class UserService {
-    private UserRepository userRepository;
-    private AffiliateRepository affiliateRepository;
-    private PasswordEncoder passwordEncoder;
-    private JavaMailSender mailSender;
-    private JwtTokenProvider jwtTokenProvider;
-    private AuthenticationManager authenticationManager;
-    private RoleRepository roleRepository;
-    private PasswordResetTokenService resetTokenService;
-    private PasswordResetTokenRepository resetTokenRepository;
-    private TotpManager totpManager;
-    private KycImageRepository kycImageRepository;
-    private TransactionService transactionService;
-    private HierarchyRepository hierarchyRepository;
+    @Value("${app.name.url-confirmation-email}")
+    private String appUrlConfirmationEmail;
+    @Value("${app.name.url-reset-password-email}")
+    private String appUrlPasswordResetEmail;
+
+    private final UserRepository userRepository;
+    private final AffiliateRepository affiliateRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
+    private final RoleRepository roleRepository;
+    private final PasswordResetTokenService resetTokenService;
+    private final PasswordResetTokenRepository resetTokenRepository;
+    private final TotpManager totpManager;
+    private final KycImageRepository kycImageRepository;
+    private final TransactionService transactionService;
+    private final HierarchyRepository hierarchyRepository;
 
     public DashboardNumberResponse calculateTotalClicks() {
         long totalClicks = userRepository.count();
@@ -695,7 +701,7 @@ public class UserService {
     private void sendResetPasswordEmail(String email,
                                         String token)
             throws Exception {
-        var html = HtmlProvider.loadHtmlFileReset(token);
+        var html = HtmlProvider.loadHtmlFileReset(token, appUrlPasswordResetEmail);
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setFrom("noreply@nefentus.com");
@@ -709,7 +715,7 @@ public class UserService {
                                        String token)
             throws Exception {
 
-        var html = HtmlProvider.loadHtmlFile(token);
+        var html = HtmlProvider.loadHtmlFile(token, appUrlConfirmationEmail);
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setFrom("noreply@nefentus.com");
