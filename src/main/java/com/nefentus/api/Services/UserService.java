@@ -394,7 +394,8 @@ public class UserService {
 
         // Bestätigungsemail senden
         try {
-            // sendConfirmationEmail(created.getEmail(), created.getToken());
+            log.info("Send mail to confirmation register with email= {}", authRequest.getEmail());
+            sendConfirmationEmail(created.getEmail(), created.getToken());
         } catch (Exception e) {
             userRepository.delete(created);
             log.error("Failed to send Confirmation email. Please try again.");
