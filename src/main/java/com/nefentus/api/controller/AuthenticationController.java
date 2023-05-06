@@ -6,14 +6,12 @@ import com.nefentus.api.Services.UserService;
 import com.nefentus.api.entities.KycImageType;
 import com.nefentus.api.entities.User;
 import com.nefentus.api.payload.request.*;
-import com.nefentus.api.payload.response.LoginResponse;
-import com.nefentus.api.payload.response.MessageResponse;
-import com.nefentus.api.payload.response.UpdateResponse;
-import com.nefentus.api.payload.response.twoFAResponse;
+import com.nefentus.api.payload.response.*;
 import com.nefentus.api.repositories.KycImageRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -85,16 +83,31 @@ public class AuthenticationController {
         return ResponseEntity.ok(loginResponse);
     }
 
-    @PostMapping("/upload_kyc")
+    @PostMapping("/{userId}/upload_kyc")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> saveKycImage(@PathVariable Long userId,
                                           @RequestParam("type") KycImageType type,
-                                          @RequestParam("file") MultipartFile file,
+                                          @RequestPart("file") MultipartFile file,
                                           Principal principal) throws UserNotFoundException, IOException{
         log.info("Request to save upload KYC");
         userService.uploadKYCImage(type, principal.getName(), file);
         return ResponseEntity.ok(new MessageResponse("successfull!"));
 
+    }
+
+    @GetMapping("/{userId}/kyc-image-url")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResultObjectInfo<String>> getKycImage(@PathVariable Long userId,
+                                                                @RequestParam("type") KycImageType type,
+                                                                Principal principal) throws UserNotFoundException, IOException{
+        log.info("Request to save upload KYC");
+        String url = userService.getKycUrl(type, userId);
+        return new ResponseEntity<>(
+                ResultObjectInfo.<String>builder()
+                        .data(url)
+                        .message("success")
+                        .build()
+                , HttpStatus.OK);
     }
 
 

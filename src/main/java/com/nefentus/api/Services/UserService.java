@@ -1,6 +1,7 @@
 package com.nefentus.api.Services;
 
 import com.nefentus.api.Errors.*;
+import com.nefentus.api.config.AWSProperties;
 import com.nefentus.api.entities.*;
 import com.nefentus.api.payload.request.*;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
@@ -14,6 +15,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -56,6 +59,8 @@ public class UserService {
     private final KycImageRepository kycImageRepository;
     private final TransactionService transactionService;
     private final HierarchyRepository hierarchyRepository;
+    @Autowired
+    private S3Service s3Service;
 
     public DashboardNumberResponse calculateTotalClicks() {
         long totalClicks = userRepository.count();
@@ -485,11 +490,35 @@ public class UserService {
     public void uploadKYCImage(KycImageType type, String email, MultipartFile file) throws UserNotFoundException, IOException {
         User user = userRepository.findUserByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
-        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        Optional<KycImage> kycImgOpt = Optional.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, user.getId()));
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename())).replace(" ","");
+        String s3Key = UUID.randomUUID().toString().concat("_").concat(filename);
         byte[] data = file.getBytes();
-        KycImage kycImage = new KycImage(null, type, false, data, user);
+        s3Service.uploadToS3Bucket(new ByteArrayInputStream(data), s3Key);
+        if (kycImgOpt.isPresent()) {
+            kycImgOpt.get().setS3Key(s3Key);
+            kycImageRepository.save(kycImgOpt.get());
+        } else {
+            KycImage kycImage  = KycImage.builder()
+                    .confirmed(false)
+                    .user(user)
+                    .type(type)
+                    .s3Key(s3Key)
+                    .build();
+            kycImageRepository.save(kycImage);
+        }
+
         log.info("Upload KYC image from user with email= {}", email);
-        kycImageRepository.save(kycImage);
+
+    }
+    public String getKycUrl(KycImageType type, Long userId) {
+        Optional<KycImage> kycImageOpt = Optional.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, userId));
+        if(kycImageOpt.isPresent()) {
+            return s3Service.presignedURL(kycImageOpt.get().getS3Key());
+        }
+        return "";
+
+
     }
 
     public String uploadProfilePicture(MultipartFile file,

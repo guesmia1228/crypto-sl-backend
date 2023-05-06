@@ -42,6 +42,9 @@ dependencies {
     // swagger ui
     implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.0.2'
 
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.463'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor:3.0.6'
+
 }
 
 tasks.named('test') {
