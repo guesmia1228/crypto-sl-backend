@@ -468,7 +468,8 @@ public class UserService {
                             .map(Role::getName)
                             .map(Enum::name)
                             .toArray(String[]::new),
-                    user.isMfa()
+                    user.isMfa(),
+                    user.getId(),
             );
         } else {
             log.info("login success without return jwt");
