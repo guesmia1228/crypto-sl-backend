@@ -19,6 +19,6 @@ public class LoginResponse {
     public String[] roles;
     public boolean isMfa;
 
-    public Long userId
+    public Long userId;
     //pic data
 }

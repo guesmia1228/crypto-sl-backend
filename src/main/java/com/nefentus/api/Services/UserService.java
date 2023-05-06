@@ -469,7 +469,7 @@ public class UserService {
                             .map(Enum::name)
                             .toArray(String[]::new),
                     user.isMfa(),
-                    user.getId(),
+                    user.getId()
             );
         } else {
             log.info("login success without return jwt");
@@ -483,7 +483,8 @@ public class UserService {
                     "",
                     "",
                     new String[]{},
-                    user.isMfa()
+                    user.isMfa(),
+                    null
             );
         }
     }
@@ -710,7 +711,8 @@ public class UserService {
                         .map(Role::getName)
                         .map(Enum::name)
                         .toArray(String[]::new),
-                user.isMfa()
+                user.isMfa(),
+                user.getId()
         );
 
     }
