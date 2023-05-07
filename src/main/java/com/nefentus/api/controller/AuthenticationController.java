@@ -60,13 +60,6 @@ public class AuthenticationController {
     public void checkJwt() {
     }
 
-    @GetMapping("/profilePic")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getProfilePicture(Principal principal) {
-        log.info("Request to get profile picture");
-        var profilePicture = userService.getProfilePicture(principal.getName());
-        return ResponseEntity.ok(profilePicture);
-    }
 
 
     @PostMapping(value = "/register")
@@ -111,7 +104,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("/upload")
+    @PostMapping("/{userId}/upload_profile_pic")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file,
                                               @RequestHeader("Authorization") String authorization,
@@ -119,8 +112,23 @@ public class AuthenticationController {
 
             String email = principal.getName();
             log.info("Request upload file KYC from user with email= {}",email);
-            String profilePictureUrl = userService.uploadProfilePicture(file, email);
-            return ResponseEntity.ok(profilePictureUrl);
+            userService.uploadProfilePicture(file, email);
+            return ResponseEntity.ok(new MessageResponse("successfull!"));
+    }
+
+    @GetMapping("/{userId}/profile-image-url")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResultObjectInfo<String>> getProfileImage(@PathVariable Long userId,
+                                                                Principal principal) throws UserNotFoundException, IOException{
+
+        log.info("Request to get profile picture");
+        String url = userService.getProfilePicUrl(userId);
+        return new ResponseEntity<>(
+                ResultObjectInfo.<String>builder()
+                        .data(url)
+                        .message("success")
+                        .build()
+                , HttpStatus.OK);
     }
 
     @GetMapping("/getBlob")

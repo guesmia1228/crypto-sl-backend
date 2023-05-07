@@ -5,4 +5,8 @@ import java.io.InputStream;
 public interface S3Service {
     String presignedURL(String key);
     String uploadToS3Bucket(InputStream inputStream, String key);
+
+    String presignedProfilePicURL(String key);
+
+    String uploadToS3BucketProfilePic(InputStream inputStream, String key);
 }

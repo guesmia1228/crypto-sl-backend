@@ -58,6 +58,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     false,
                     "AAABSDACBASDDD",
                     Set.of(),
+                    null,
                     null
             );
 
@@ -79,6 +80,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     false,
                     "ASDASDASDFFJIQWLEKDMDFA",
                     Set.of(),
+                    null,
                     null
             );
 
@@ -106,7 +108,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(), null
+                    Set.of(), null, null
             );
 
             var goldRole = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER);
@@ -127,7 +129,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(), null
+                    Set.of(), null, null
             );
             userRepository.save(diamondUser);
             userRepository.save(goldUser);

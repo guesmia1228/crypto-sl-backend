@@ -31,6 +31,7 @@ public class S3ServiceImpl implements S3Service {
         this.awsProperties = awsProperties;
         this.s3client = AmazonS3ClientBuilder.standard().withRegion(awsProperties.getS3().getRegions()).build();
     }
+
     @Override
     public String presignedURL(String key) {
         try {
@@ -43,7 +44,7 @@ public class S3ServiceImpl implements S3Service {
             // Generate the presigned URL.
             log.info("Generating pre-signed URL.");
             GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                    new GeneratePresignedUrlRequest(awsProperties.getS3().getBucketName(), key)
+                    new GeneratePresignedUrlRequest(awsProperties.getS3Value(), key)
                             .withMethod(HttpMethod.GET)
                             .withExpiration(expiration);
             URL url = s3client.generatePresignedUrl(generatePresignedUrlRequest);
@@ -63,8 +64,52 @@ public class S3ServiceImpl implements S3Service {
         try {
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentType("image/png");
-            s3client.putObject(new PutObjectRequest(awsProperties.getS3().getBucketName(), key, inputStream, null));
-            URL uri = s3client.getUrl(awsProperties.getS3().getBucketName(), key);
+            s3client.putObject(new PutObjectRequest(awsProperties.getS3Value(), key, inputStream, null));
+            URL uri = s3client.getUrl(awsProperties.getS3Value(), key);
+            log.info(uri.toString());
+            return uri.toString();
+        } catch (SdkClientException e) {
+            log.error("uploadToS3Bucket: upload to S3 is failure.", e);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    public String presignedProfilePicURL(String key) {
+        try {
+            // Set the presigned URL to expire after one hour.
+            java.util.Date expiration = new java.util.Date();
+            long expTimeMillis = expiration.getTime();
+            expTimeMillis += 1000 * 3600; // 60 minute
+            expiration.setTime(expTimeMillis);
+
+            // Generate the presigned URL.
+            log.info("Generating pre-signed URL.");
+            GeneratePresignedUrlRequest generatePresignedUrlRequest =
+                    new GeneratePresignedUrlRequest(awsProperties.getS3ValueProfilePic(), key)
+                            .withMethod(HttpMethod.GET)
+                            .withExpiration(expiration);
+            URL url = s3client.generatePresignedUrl(generatePresignedUrlRequest);
+
+            log.info("Pre-Signed URL: " + url.toString());
+            return url.toString();
+        } catch (SdkClientException e) {
+            // The call was transmitted successfully, but Amazon S3 couldn't process
+            // it, so it returned an error response.
+            log.error("generatePresignedURL error", e);
+        }// Amazon S3 couldn't be contacted for a response, or the client
+
+        // couldn't parse the response from Amazon S3.
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    public String uploadToS3BucketProfilePic(InputStream inputStream, String key) {
+        try {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType("image/png");
+            s3client.putObject(new PutObjectRequest(awsProperties.getS3ValueProfilePic(), key, inputStream, null));
+            URL uri = s3client.getUrl(awsProperties.getS3ValueProfilePic(), key);
             log.info(uri.toString());
             return uri.toString();
         } catch (SdkClientException e) {
