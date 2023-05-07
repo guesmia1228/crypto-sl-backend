@@ -67,6 +67,12 @@ public class GoldDashboardController {
         return ResponseEntity.ok(userService.addUser(addUserRequest, principal.getName()));
     }
 
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(Principal principal) {
+        log.info("Diamond user request to get all users with email= {}", principal.getName());
+        return ResponseEntity.ok(userService.getAllUsers(principal.getName()));
+    }
+
     @GetMapping("/userroles")
     public ResponseEntity<?> getRoles(Principal principal) {
         return ResponseEntity.ok(userService.getRolesStatus(principal.getName()));
