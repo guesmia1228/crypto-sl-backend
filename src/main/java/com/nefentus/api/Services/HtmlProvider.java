@@ -10,11 +10,8 @@ import java.nio.charset.Charset;
 public class HtmlProvider {
     public static String loadHtmlFile(String token, String appUrl) throws IOException {
         ClassPathResource resource = new ClassPathResource("verify-account.html");
-        InputStream inputStream = resource.getInputStream();
-        try {
+        try (InputStream inputStream = resource.getInputStream()) {
             return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replace("/StaticLoginLinkToChange", appUrl + token);
-        } finally {
-            inputStream.close();
         }
     }
 

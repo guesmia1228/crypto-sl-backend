@@ -1,7 +1,6 @@
 package com.nefentus.api.Services;
 
 import com.nefentus.api.Errors.*;
-import com.nefentus.api.config.AWSProperties;
 import com.nefentus.api.entities.*;
 import com.nefentus.api.payload.request.*;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
@@ -46,10 +45,12 @@ public class UserService {
     @Value("${app.name.url-reset-password-email}")
     private String appUrlPasswordResetEmail;
 
+    @Autowired
+    private EmailService emailService;
+
     private final UserRepository userRepository;
     private final AffiliateRepository affiliateRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
@@ -406,7 +407,7 @@ public class UserService {
         // Bestätigungsemail senden
         try {
             log.info("Send mail to confirmation register with email= {}", authRequest.getEmail());
-            // sendConfirmationEmail(created.getEmail(), created.getToken());
+            sendConfirmationEmail(created.getEmail(), created.getToken());
         } catch (Exception e) {
             userRepository.delete(created);
             log.error("Failed to send Confirmation email. Please try again.");
@@ -718,43 +719,33 @@ public class UserService {
     }
 
     private void sendResetEmail(String email,
-                                String token)
-            throws Exception {
-        var html = HtmlProvider.loadResetTokenMail(token);
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setFrom("noreply@nefentus.com");
-        helper.setTo(email);
-        helper.setSubject("Please activate your account");
-        helper.setText(html, true);
-        mailSender.send(message);
+                                String token) {
+        try {
+            var html = HtmlProvider.loadResetTokenMail(token);
+            emailService.sendEmail(email, "Please activate your account", html);
+        } catch (IOException e) {
+           log.error("sendResetEmail", e);
+        }
     }
-
     private void sendResetPasswordEmail(String email,
-                                        String token)
-            throws Exception {
-        var html = HtmlProvider.loadHtmlFileReset(token, appUrlPasswordResetEmail);
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setFrom("noreply@nefentus.com");
-        helper.setTo(email);
-        helper.setSubject("Reset your password!");
-        helper.setText(html, true);
-        mailSender.send(message);
+                                        String token) {
+
+        try {
+           var html = HtmlProvider.loadHtmlFileReset(token, appUrlPasswordResetEmail);
+            emailService.sendEmail(email, "Reset your password!", html);
+        } catch (IOException e) {
+            log.error("sendResetPasswordEmail", e);        }
     }
 
     private void sendConfirmationEmail(String email,
-                                       String token)
-            throws Exception {
+                                       String token) {
 
-        var html = HtmlProvider.loadHtmlFile(token, appUrlConfirmationEmail);
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setFrom("noreply@nefentus.com");
-        helper.setTo(email);
-        helper.setSubject("Please activate your account");
-        helper.setText(html, true);
-        mailSender.send(message);
+        try {
+           var html = HtmlProvider.loadHtmlFile(token, appUrlConfirmationEmail);
+            emailService.sendEmail(email, "Please activate your account", html);
+        } catch (IOException e) {
+           log.error("sendConfirmationEmail", e);
+        }
     }
 
     public Set<Role> setRoles(Set<String> strRoles) {
