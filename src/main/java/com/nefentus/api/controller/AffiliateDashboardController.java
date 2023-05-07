@@ -5,6 +5,7 @@ import com.nefentus.api.Services.ClickService;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +20,7 @@ import java.security.Principal;
 @PreAuthorize("hasRole('AFFILIATE')")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @AllArgsConstructor
+@Slf4j
 public class AffiliateDashboardController {
     UserService userService;
     TransactionService transactionService;
@@ -26,38 +28,35 @@ public class AffiliateDashboardController {
 
     @GetMapping("/")
     public ResponseEntity<?> checkPermission() {
+        log.info("Start check Affiliate permission! ");
         return ResponseEntity.ok("permission granted!");
     }
 
     //get income for users below him and calculate the percentage
     @GetMapping("/income")
-    public ResponseEntity<?> getTotalIncome(Principal principal) {
-        try {
-            return ResponseEntity.ok(transactionService.calculateTotalIncome(principal.getName()));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> getTotalIncome(Principal principal) throws UserNotFoundException {
+        log.info("Affiliate request to get total income! ");
+        return ResponseEntity.ok(transactionService.calculateTotalIncome(principal.getName()));
     }
 
     //same as above but per day
     @GetMapping("/totalIncomesPerDay")
-    public ResponseEntity<?> getTotalIncomesPerDay(Principal principal) {
-        try {
-            return ResponseEntity.ok(transactionService.getTotalPriceByDay(principal.getName()));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> getTotalIncomesPerDay(Principal principal) throws UserNotFoundException {
+        log.info("Affiliate request to get total income per day! ");
+        return ResponseEntity.ok(transactionService.getTotalPriceByDay(principal.getName()));
     }
 
     //get all users below him in count
     @GetMapping("/usersCount")
     public ResponseEntity<?> getTotalUserCount(Principal principal) {
+        log.info("Affiliate request to count total users! ");
         return ResponseEntity.ok(userService.calculateTotalClicks(principal.getName()));
     }
 
     //get all clicks by the aff links below him
     @GetMapping("/clicks")
     public ResponseEntity<?> getClicks(Principal principal) {
+        log.info("Affiliate request to count total clicks! ");
         return ResponseEntity.ok(clickService.calculateTotalClicks(principal.getName()));
     }
 }

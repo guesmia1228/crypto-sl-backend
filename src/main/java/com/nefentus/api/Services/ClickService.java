@@ -7,6 +7,8 @@ import com.nefentus.api.repositories.AffiliateCounterRepository;
 import com.nefentus.api.repositories.LinkCounterRepository;
 import com.nefentus.api.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ClickService {
     private AffiliateCounterRepository clickRepository;
     private LinkCounterRepository linkCounterRepository;
@@ -27,6 +30,7 @@ public class ClickService {
         DashboardNumberResponse totalClicksDto = new DashboardNumberResponse();
         totalClicksDto.setNumber(totalClicks);
         totalClicksDto.setPercentage(percentageIncrease);
+        log.info("Success calculate total clicks total= {} ",totalClicks);
         return totalClicksDto;
     }
 
@@ -38,18 +42,21 @@ public class ClickService {
         DashboardNumberResponse totalClicksDto = new DashboardNumberResponse();
         totalClicksDto.setNumber(totalClicks);
         totalClicksDto.setPercentage(percentageIncrease);
+        log.info("Success calculate total clicks total= {} with email= {} ",totalClicks,email);
         return totalClicksDto;
     }
 
     public void addClick(String afflink) throws UserNotFoundException {
         var optUser = userRepository.findByAffiliateLink(afflink);
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("User not found");
+            log.error("User not found ");
+            throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
         }
         var user = optUser.get();
         LinkCounter click = new LinkCounter();
         click.setUser(user);
         click.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
+        log.info("Successful add click");
         linkCounterRepository.save(click);
     }
 }

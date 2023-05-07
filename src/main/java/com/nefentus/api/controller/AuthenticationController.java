@@ -6,13 +6,11 @@ import com.nefentus.api.Services.UserService;
 import com.nefentus.api.entities.KycImageType;
 import com.nefentus.api.entities.User;
 import com.nefentus.api.payload.request.*;
-import com.nefentus.api.payload.response.LoginResponse;
-import com.nefentus.api.payload.response.MessageResponse;
-import com.nefentus.api.payload.response.UpdateResponse;
-import com.nefentus.api.payload.response.twoFAResponse;
+import com.nefentus.api.payload.response.*;
 import com.nefentus.api.repositories.KycImageRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +49,7 @@ setRoles(Set<String> strRoles): This method takes a set of string roles and retu
 @RequestMapping("/api/auth")
 @AllArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
+@Slf4j
 public class AuthenticationController {
 
     UserService userService;
@@ -64,53 +63,51 @@ public class AuthenticationController {
     @GetMapping("/profilePic")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getProfilePicture(Principal principal) {
+        log.info("Request to get profile picture");
         var profilePicture = userService.getProfilePicture(principal.getName());
         return ResponseEntity.ok(profilePicture);
     }
 
 
     @PostMapping(value = "/register")
-    public ResponseEntity<?> register(@RequestBody SignUpRequest authRequest) {
-        try {
-            User created = userService.registerNewUser(authRequest);
-            return ResponseEntity.ok(created);
-        } catch (UserAlreadyExistsException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("User with this email already exists."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Failed to register user. Please try again."));
-        }
+    public ResponseEntity<?> register(@RequestBody SignUpRequest authRequest) throws UserAlreadyExistsException, AuthenticationException {
+        log.info("Request to register new user! ");
+        User created = userService.registerNewUser(authRequest);
+        return ResponseEntity.ok(created);
     }
 
     @PostMapping(value = "/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest,
-                                   HttpServletResponse response) {
-        try {
-            LoginResponse loginResponse = userService.loginUser(authRequest, response);
-            return ResponseEntity.ok(loginResponse);
-        } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Invalid email or password."));
-        } catch (InactiveUserException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Failed to login. Please try again."));
-        }
+                                   HttpServletResponse response) throws InactiveUserException, AuthenticationException {
+        LoginResponse loginResponse = userService.loginUser(authRequest, response);
+        return ResponseEntity.ok(loginResponse);
     }
 
-    @PostMapping("/upload_kyc")
+    @PostMapping("/{userId}/upload_kyc")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> saveKycImage(@PathVariable Long userId,
                                           @RequestParam("type") KycImageType type,
-                                          @RequestParam("file") MultipartFile file,
-                                          Principal principal) {
-        try {
-            userService.uploadKYCImage(type, principal.getName(), file);
-            return ResponseEntity.ok(new MessageResponse("successfull!"));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+                                          @RequestPart("file") MultipartFile file,
+                                          Principal principal) throws UserNotFoundException, IOException{
+        log.info("Request to save upload KYC");
+        userService.uploadKYCImage(type, principal.getName(), file);
+        return ResponseEntity.ok(new MessageResponse("successfull!"));
 
-        }
+    }
+
+    @GetMapping("/{userId}/kyc-image-url")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResultObjectInfo<String>> getKycImage(@PathVariable Long userId,
+                                                                @RequestParam("type") KycImageType type,
+                                                                Principal principal) throws UserNotFoundException, IOException{
+        log.info("Request to save upload KYC");
+        String url = userService.getKycUrl(type, userId);
+        return new ResponseEntity<>(
+                ResultObjectInfo.<String>builder()
+                        .data(url)
+                        .message("success")
+                        .build()
+                , HttpStatus.OK);
     }
 
 
@@ -118,16 +115,12 @@ public class AuthenticationController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file,
                                               @RequestHeader("Authorization") String authorization,
-                                              Principal principal) {
-        try {
+                                              Principal principal) throws UserNotFoundException, IOException{
+
             String email = principal.getName();
+            log.info("Request upload file KYC from user with email= {}",email);
             String profilePictureUrl = userService.uploadProfilePicture(file, email);
             return ResponseEntity.ok(profilePictureUrl);
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
-        } catch (IOException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Error on uploading the file"));
-        }
     }
 
     @GetMapping("/getBlob")
@@ -136,22 +129,19 @@ public class AuthenticationController {
         var image = imageRepository.findById(1L).get();
         byte[] blobData = image.getData();
         String base64Data = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(blobData);
+        log.info("Handle request get blobData");
         return ResponseEntity.ok(base64Data);
     }
 
     @PatchMapping("/update")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updateUser(@RequestBody UpdatetUserRequest updatetUserRequest,
-                                        Principal principal) {
-        try {
+                                        Principal principal) throws UserNotFoundException{
             String email = principal.getName();
+            log.info("Request update user from email= {}", email);
             UpdateResponse updateResponse = userService.updateUser(updatetUserRequest, email);
             return ResponseEntity.ok(updateResponse);
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Failed to update user. Please try again."));
-        }
+
     }
 
     @PostMapping("/signout")
@@ -162,89 +152,54 @@ public class AuthenticationController {
     }
 
     @PatchMapping("/activate")
-    public ResponseEntity<?> activate(@RequestBody String token) {
-        try {
-            User activatedUser = userService.activateUser(token);
-            return ResponseEntity.ok().body(new MessageResponse("Your account has been activated!"));
-        } catch (TokenNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Failed to activate account. Please try again."));
-        }
+    public ResponseEntity<?> activate(@RequestBody String token) throws TokenNotFoundException {
+        log.info("Request to activate user");
+        userService.activateUser(token);
+        return ResponseEntity.ok().body(new MessageResponse("Your account has been activated!"));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody String email) {
-        try {
-            userService.forgotPassword(email);
-            return ResponseEntity.ok(new MessageResponse("Password reset email sent!"));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (EmailSendException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    public ResponseEntity<?> forgotPassword(@RequestBody String email) throws UserNotFoundException, EmailSendException{
+        log.info("Handle request forgot password from user with email= {}", email);
+        userService.forgotPassword(email);
+        return ResponseEntity.ok(new MessageResponse("Password reset email sent!"));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        try {
-            userService.resetPassword(request.getToken(), request.getNewPassword());
-            return ResponseEntity.ok(new MessageResponse("Password reset successful!"));
-        } catch (InvalidTokenException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) throws InvalidTokenException {
+        log.info("Handle request reset password ");
+        userService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(new MessageResponse("Password reset successful!"));
     }
 
     @PostMapping("/reset-password-email")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> setResetEmail(@RequestBody DashboardPasswordReset request, Principal principal) {
-        try {
-            userService.resetEmail(principal.getName(), request.getOldPassword(), request.getNewPassword());
-            return ResponseEntity.ok(new MessageResponse("Password reset email sent!"));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (IncorrectPasswordException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (EmailSendException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    public ResponseEntity<?> setResetEmail(@RequestBody DashboardPasswordReset request, Principal principal) throws UserNotFoundException, IncorrectPasswordException, EmailSendException {
+        log.info("Request to reset email");
+        userService.resetEmail(principal.getName(), request.getOldPassword(), request.getNewPassword());
+        return ResponseEntity.ok(new MessageResponse("Password reset email sent!"));
     }
 
     @PostMapping("/reset-password-auth")
-    public ResponseEntity<?> setNewPassword(@RequestBody DashboardPasswordRequestAuth requestAuth, Principal principal) {
-        try {
-            userService.setNewPassword(principal.getName(), requestAuth.getToken());
-            return ResponseEntity.ok(new MessageResponse("Password reset successful!"));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (InvalidTokenException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    public ResponseEntity<?> setNewPassword(@RequestBody DashboardPasswordRequestAuth requestAuth, Principal principal) throws UserNotFoundException, InvalidTokenException {
+        log.info("Request to set new password from email= {}", principal.getName());
+        userService.setNewPassword(principal.getName(), requestAuth.getToken());
+        return ResponseEntity.ok(new MessageResponse("Password reset successful!"));
     }
 
     @PostMapping(value = "/2fa", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> add2fa(@RequestBody twoFARequest payload, Principal principal) {
-        try {
-            var Uri = userService.setMfa(principal.getName(), payload.isActive());
-            return ResponseEntity.ok().body(new twoFAResponse(Uri));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    public ResponseEntity<?> add2fa(@RequestBody twoFARequest payload, Principal principal) throws UserNotFoundException {
+        log.info("Handle request two factor from email= {} ", principal.getName());
+        var Uri = userService.setMfa(principal.getName(), payload.isActive());
+        return ResponseEntity.ok().body(new twoFAResponse(Uri));
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyCode(@RequestBody VerifyCodeRequest verifyCodeRequest) {
-        try {
-            var loginResponse = userService.verify(verifyCodeRequest.getEmail(), verifyCodeRequest.getToken(), verifyCodeRequest.isRememberMe());
-            return ResponseEntity.ok(loginResponse);
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (BadRequestException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        } catch (InternalServerException e) {
-            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
-        }
+    public ResponseEntity<?> verifyCode(@RequestBody VerifyCodeRequest verifyCodeRequest) throws UserNotFoundException, BadRequestException, InternalServerException {
+        log.info("Request to verify code from email= {} ",verifyCodeRequest.getEmail());
+        var loginResponse = userService.verify(verifyCodeRequest.getEmail(), verifyCodeRequest.getToken(), verifyCodeRequest.isRememberMe());
+        return ResponseEntity.ok(loginResponse);
     }
 
 

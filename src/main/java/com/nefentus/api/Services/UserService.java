@@ -1,6 +1,7 @@
 package com.nefentus.api.Services;
 
 import com.nefentus.api.Errors.*;
+import com.nefentus.api.config.AWSProperties;
 import com.nefentus.api.entities.*;
 import com.nefentus.api.payload.request.*;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
@@ -12,7 +13,11 @@ import com.nefentus.api.security.CustomUserDetails;
 import com.nefentus.api.security.JwtTokenProvider;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -32,21 +38,29 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 public class UserService {
-    private UserRepository userRepository;
-    private AffiliateRepository affiliateRepository;
-    private PasswordEncoder passwordEncoder;
-    private JavaMailSender mailSender;
-    private JwtTokenProvider jwtTokenProvider;
-    private AuthenticationManager authenticationManager;
-    private RoleRepository roleRepository;
-    private PasswordResetTokenService resetTokenService;
-    private PasswordResetTokenRepository resetTokenRepository;
-    private TotpManager totpManager;
-    private KycImageRepository kycImageRepository;
-    private TransactionService transactionService;
-    private HierarchyRepository hierarchyRepository;
+    @Value("${app.name.url-confirmation-email}")
+    private String appUrlConfirmationEmail;
+    @Value("${app.name.url-reset-password-email}")
+    private String appUrlPasswordResetEmail;
+
+    private final UserRepository userRepository;
+    private final AffiliateRepository affiliateRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
+    private final RoleRepository roleRepository;
+    private final PasswordResetTokenService resetTokenService;
+    private final PasswordResetTokenRepository resetTokenRepository;
+    private final TotpManager totpManager;
+    private final KycImageRepository kycImageRepository;
+    private final TransactionService transactionService;
+    private final HierarchyRepository hierarchyRepository;
+    @Autowired
+    private S3Service s3Service;
 
     public DashboardNumberResponse calculateTotalClicks() {
         long totalClicks = userRepository.count();
@@ -56,6 +70,7 @@ public class UserService {
         DashboardNumberResponse totalClicksDto = new DashboardNumberResponse();
         totalClicksDto.setNumber(totalClicks);
         totalClicksDto.setPercentage(percentageIncrease);
+        log.info("Success calculate total users total= {} ",totalClicks);
         return totalClicksDto;
     }
 
@@ -67,11 +82,13 @@ public class UserService {
         DashboardNumberResponse totalClicksDto = new DashboardNumberResponse();
         totalClicksDto.setNumber(totalClicks);
         totalClicksDto.setPercentage(percentageIncrease);
+        log.info("Success to count total users total= {} ",totalClicks);
         return totalClicksDto;
     }
 
     public String getProfilePicture(String email) {
         var user = userRepository.findUserByEmail(email).get();
+        log.info("Get profile picture from email= {}", email);
         return Base64.getEncoder().encodeToString(user.getProfilepic());
     }
 
@@ -131,6 +148,7 @@ public class UserService {
 
         // Calculate the total percentages and add the report data to the list
         if (totalUsers > 0) {
+            log.info("Start process to calculate the total percentages and add the report data to the list! ");
             vendorData.put("percentage", ((Integer) vendorData.get("count") * 100) / totalUsers);
             affiliateData.put("percentage", ((Integer) affiliateData.get("count") * 100) / totalUsers);
             diamondData.put("percentage", ((Integer) diamondData.get("count") * 100) / totalUsers);
@@ -143,7 +161,7 @@ public class UserService {
         report.add(diamondData);
         report.add(goldData);
         report.add(others);
-
+        log.info("Successful to make a report with totalUser= {} ", totalUsers);
         return report;
     }
 
@@ -231,6 +249,7 @@ public class UserService {
 
     public List<UserDisplayAdminResponse> getAllUsers(String email) {
         var users = hierarchyRepository.findChildByParentEmail(email);
+        log.info("Successful query all users");
         return users.stream()
                 .map(user -> {
                     UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
@@ -247,17 +266,20 @@ public class UserService {
     public User changeUserState(ChangeUserStateRequest changeUserStateRequest) throws UserNotFoundException {
         var optUser = userRepository.findUserByEmail(changeUserStateRequest.getUseremail());
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("User with email +  " + changeUserStateRequest.getUseremail() + " is not found");
+            log.error("User with email +  " + changeUserStateRequest.getUseremail() + " is not found");
+            throw new UserNotFoundException("User with email +  " + changeUserStateRequest.getUseremail() + " is not found", HttpStatus.BAD_REQUEST);
         }
         var user = optUser.get();
         user.setActive(!user.getActive());
+        log.info("Change user state success with email= {} ",changeUserStateRequest.getUseremail());
         return userRepository.save(user);
     }
 
     public User addUser(AddUserRequest addUserRequest) throws UserAlreadyExistsException {
         Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
         if (userOptional.isPresent()) {
-            throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists.");
+            log.error("User with email " + addUserRequest.getEmail() + " already exists!");
+            throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists. ", HttpStatus.BAD_REQUEST);
         }
 
         var user = new User();
@@ -282,7 +304,7 @@ public class UserService {
             userRepository.delete(created);
             throw new RuntimeException("Failed to send Confirmation email. Please try again.", e);
         }
-
+        log.info("Create new user with email= {}", addUserRequest.getEmail());
         return created;
     }
 
@@ -290,7 +312,7 @@ public class UserService {
     public User addUser(AddUserRequest addUserRequest, String email) throws UserAlreadyExistsException {
         Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
         if (userOptional.isPresent()) {
-            throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists.");
+            throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists.", HttpStatus.BAD_REQUEST);
         }
 
         var admin = userRepository.findUserByEmail(email).get();
@@ -351,11 +373,12 @@ public class UserService {
     }
 
     public User registerNewUser(SignUpRequest authRequest)
-            throws UserAlreadyExistsException {
+            throws UserAlreadyExistsException , AuthenticationException {
         // Überprüfen, ob ein Benutzer mit der angegebenen E-Mail-Adresse bereits existiert
         Optional<User> userOptional = userRepository.findUserByEmail(authRequest.getEmail());
         if (userOptional.isPresent()) {
-            throw new UserAlreadyExistsException("User with email " + authRequest.getEmail() + " already exists.");
+            log.error("User with email " + authRequest.getEmail() + " already exists.");
+            throw new UserAlreadyExistsException("User with email " + authRequest.getEmail() + " already exists.", HttpStatus.BAD_REQUEST);
         }
         // Benutzer erstellen und speichern
         User user = new User();
@@ -382,12 +405,15 @@ public class UserService {
 
         // Bestätigungsemail senden
         try {
-            // sendConfirmationEmail(created.getEmail(), created.getToken());
+            log.info("Send mail to confirmation register with email= {}", authRequest.getEmail());
+            sendConfirmationEmail(created.getEmail(), created.getToken());
         } catch (Exception e) {
             userRepository.delete(created);
+            log.error("Failed to send Confirmation email. Please try again.");
             throw new RuntimeException("Failed to send Confirmation email. Please try again.", e);
         }
 
+        log.info("Successful to register new user with email= {}", authRequest.getEmail());
         return created;
     }
 
@@ -398,9 +424,11 @@ public class UserService {
             User user = userOptional.get();
             user.setActive(true);
             userRepository.save(user);
+            log.info("Activate user Successful");
             return user;
         } else {
-            throw new TokenNotFoundException("Token is not found!");
+            log.error("Can not found user with this token! ");
+            throw new TokenNotFoundException("Token is not found!", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -408,6 +436,7 @@ public class UserService {
                                    HttpServletResponse response)
             throws AuthenticationException, InactiveUserException {
         // Authentifizierung des Benutzers
+        log.info("Request to Login with email= {}", authRequest.getEmail());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         authRequest.getEmail(),
@@ -418,11 +447,14 @@ public class UserService {
         // Überprüfen, ob der Benutzer aktiv ist
         User user = userRepository.findUserByEmail(authRequest.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (!user.getActive()) {
-            throw new InactiveUserException("Please activate your account!");
+            log.error("Login fail with status account is not activate");
+            throw new InactiveUserException("Please activate your account!", HttpStatus.BAD_REQUEST);
         }
 
+        log.info("Found user with email= {}", authRequest.getEmail());
         // LoginResponse erstellen
         if (!user.isMfa()) {
+            log.info("login success with return jwt");
             return new LoginResponse(
                     jwtTokenProvider.generateToken(authentication, authRequest.rememberMe),
                     authRequest.getEmail(),
@@ -436,9 +468,11 @@ public class UserService {
                             .map(Role::getName)
                             .map(Enum::name)
                             .toArray(String[]::new),
-                    user.isMfa()
+                    user.isMfa(),
+                    user.getId()
             );
         } else {
+            log.info("login success without return jwt");
             return new LoginResponse(
                     "",
                     user.getEmail(),
@@ -449,18 +483,44 @@ public class UserService {
                     "",
                     "",
                     new String[]{},
-                    user.isMfa()
+                    user.isMfa(),
+                    null
             );
         }
     }
 
     public void uploadKYCImage(KycImageType type, String email, MultipartFile file) throws UserNotFoundException, IOException {
         User user = userRepository.findUserByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+                .orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
+        Optional<KycImage> kycImgOpt = Optional.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, user.getId()));
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename())).replace(" ","");
+        String s3Key = UUID.randomUUID().toString().concat("_").concat(filename);
         byte[] data = file.getBytes();
-        KycImage kycImage = new KycImage(null, type, false, data, user);
-        kycImageRepository.save(kycImage);
+        s3Service.uploadToS3Bucket(new ByteArrayInputStream(data), s3Key);
+        if (kycImgOpt.isPresent()) {
+            kycImgOpt.get().setS3Key(s3Key);
+            kycImageRepository.save(kycImgOpt.get());
+        } else {
+            KycImage kycImage  = KycImage.builder()
+                    .confirmed(false)
+                    .user(user)
+                    .type(type)
+                    .s3Key(s3Key)
+                    .build();
+            kycImageRepository.save(kycImage);
+        }
+
+        log.info("Upload KYC image from user with email= {}", email);
+
+    }
+    public String getKycUrl(KycImageType type, Long userId) {
+        Optional<KycImage> kycImageOpt = Optional.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, userId));
+        if(kycImageOpt.isPresent()) {
+            return s3Service.presignedURL(kycImageOpt.get().getS3Key());
+        }
+        return "";
+
+
     }
 
     public String uploadProfilePicture(MultipartFile file,
@@ -468,9 +528,10 @@ public class UserService {
             throws IOException,
             UserNotFoundException {
         // Benutzer suchen
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
         user.setProfilepic(file.getBytes());
         userRepository.save(user);
+        log.info("Successful upload profile KYC");
         return Base64.getEncoder().encodeToString(file.getBytes());
     }
 
@@ -478,7 +539,7 @@ public class UserService {
                                      String email)
             throws UserNotFoundException {
         // Benutzer suchen
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
 
         // Benutzer aktualisieren
         user.setBusiness(updatetUserRequest.getBusiness());
@@ -495,6 +556,7 @@ public class UserService {
         user.setEmail(updatetUserRequest.getEmail());
         // Benutzer speichern und UpdateResponse zurückgeben
         User savedUser = userRepository.save(user);
+        log.info("Successful update User from user with email= {}",savedUser.getEmail());
         return new UpdateResponse(
                 savedUser.getEmail(),
                 savedUser.getEmail(),
@@ -511,18 +573,21 @@ public class UserService {
             throws UserNotFoundException,
             EmailSendException {
         // Benutzer suchen
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
 
         // Reset-Token generieren und in der Datenbank speichern
         String resetToken = passwordEncoder.encode(user.getEmail() + LocalDateTime.now().toString());
         user.setResetToken(resetToken);
+        log.info("Found user with email= {}", email);
         userRepository.save(user);
 
         // Reset-Passwort-Email senden
         try {
+            log.info("password reset email send to user");
             sendResetPasswordEmail(user.getEmail(), resetToken);
         } catch (Exception e) {
-            throw new EmailSendException("Failed to send reset password email");
+            log.error("Failed to send reset password email={}", email);
+            throw new EmailSendException("Failed to send reset password email", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -530,11 +595,12 @@ public class UserService {
                               String newPassword)
             throws InvalidTokenException {
         // Benutzer suchen
-        User user = userRepository.findByResetToken(token).orElseThrow(() -> new InvalidTokenException("Invalid reset token"));
+        User user = userRepository.findByResetToken(token).orElseThrow(() -> new InvalidTokenException("Invalid reset token", HttpStatus.BAD_REQUEST));
 
         // Passwort aktualisieren und Reset-Token entfernen
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setResetToken(null);
+        log.info("Successful reset password!");
         userRepository.save(user);
     }
 
@@ -545,22 +611,25 @@ public class UserService {
             IncorrectPasswordException,
             EmailSendException {
         // Benutzer suchen
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
 
         // Überprüfen, ob das alte Passwort korrekt ist
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new IncorrectPasswordException("Old password is not correct");
+            throw new IncorrectPasswordException("Old password is not correct", HttpStatus.BAD_REQUEST);
         }
 
+        log.info("Found user with email= {}", email);
         // Passwort-Reset-Token erstellen und in der Datenbank speichern
         String resetToken = passwordEncoder.encode(user.getEmail() + LocalDateTime.now().toString());
         PasswordResetToken createdToken = resetTokenService.createPasswordResetTokenForUser(user, passwordEncoder.encode(newPassword));
 
-        // Reset-Passwort-Email senden
+        // Reset-Password-Email senden
         try {
+            log.info("Send reset password to email= {}",email);
             sendResetEmail(user.getEmail(), createdToken.getToken());
         } catch (Exception e) {
-            throw new EmailSendException("Failed to send reset password email");
+            log.error("Failed to send reset password email= {}", email);
+            throw new EmailSendException("Failed to send reset password email", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -569,18 +638,20 @@ public class UserService {
             throws UserNotFoundException,
             InvalidTokenException {
         // Benutzer suchen
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
 
         // Überprüfen, ob das Token vorhanden und noch gültig ist
         Optional<PasswordResetToken> tokenOptional = resetTokenRepository.findByToken(token);
         if (tokenOptional.isEmpty() || tokenOptional.get().getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new InvalidTokenException("Invalid reset token");
+            throw new InvalidTokenException("Invalid reset token", HttpStatus.BAD_REQUEST);
         }
 
+        log.info("Found user with email= {}", email);
         // Passwort aktualisieren und Reset-Token entfernen
         PasswordResetToken resetToken = tokenOptional.get();
         user.setPassword(resetToken.getNewPassword());
         userRepository.save(user);
+        log.info("Successful to set new password");
         resetTokenRepository.delete(resetToken);
     }
 
@@ -588,14 +659,16 @@ public class UserService {
                          boolean isActive)
             throws UserNotFoundException {
         // Benutzer suchen
-        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
         // 2FA-Status und geheimes Schlüssel aktualisieren, falls aktiviert
+
+        log.info("Found user with email= {}", email);
         user.setMfa(isActive);
         if (isActive) {
             user.setSecret(totpManager.generateSecret());
         }
         userRepository.save(user);
-
+        log.info("Successful set Mfa");
         return totpManager.getUriForImage(user.getSecret(), user.getFirstName() + " " + user.getLastName());
     }
 
@@ -607,9 +680,10 @@ public class UserService {
             InternalServerException {
         User user = userRepository
                 .findUserByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(String.format("email %s", email)));
+                .orElseThrow(() -> new UserNotFoundException(String.format("email %s", email), HttpStatus.BAD_REQUEST));
         if (!totpManager.verifyCode(code, user.getSecret())) {
-            throw new BadRequestException("Code is incorrect");
+            log.error("Code is incorrect");
+            throw new BadRequestException("Code is incorrect", HttpStatus.BAD_REQUEST);
         }
         var optUser = Optional.of(user)
                 .map(CustomUserDetails::build)
@@ -620,9 +694,10 @@ public class UserService {
                         new InternalServerException("unable to generate access token"));
 
         if (optUser.isEmpty()) {
-            throw new UserNotFoundException("User not found");
+            log.error("User not found");
+            throw new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST);
         }
-
+        log.info("Found user with email= {}", email);
         return new LoginResponse(
                 optUser,
                 user.getEmail(),
@@ -636,7 +711,8 @@ public class UserService {
                         .map(Role::getName)
                         .map(Enum::name)
                         .toArray(String[]::new),
-                user.isMfa()
+                user.isMfa(),
+                user.getId()
         );
 
     }
@@ -657,7 +733,7 @@ public class UserService {
     private void sendResetPasswordEmail(String email,
                                         String token)
             throws Exception {
-        var html = HtmlProvider.loadHtmlFileReset(token);
+        var html = HtmlProvider.loadHtmlFileReset(token, appUrlPasswordResetEmail);
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setFrom("noreply@nefentus.com");
@@ -671,7 +747,7 @@ public class UserService {
                                        String token)
             throws Exception {
 
-        var html = HtmlProvider.loadHtmlFile(token);
+        var html = HtmlProvider.loadHtmlFile(token, appUrlConfirmationEmail);
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setFrom("noreply@nefentus.com");

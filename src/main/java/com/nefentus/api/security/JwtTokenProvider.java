@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -17,7 +19,7 @@ public class JwtTokenProvider {
     @Value("${app.jwtSecret}")
     private String jwtSecret;
 
-    public String generateToken(String userEmail, boolean longToken) {
+    public String generateToken(String userEmail, boolean longToken, CustomUserDetails user) {
         Instant now = Instant.now();
         Instant expiration;
         if (!longToken) {
@@ -26,6 +28,7 @@ public class JwtTokenProvider {
             expiration = now.plus(30, ChronoUnit.DAYS);
         }
         return Jwts.builder()
+                .setClaims(generatePayload(user))
                 .setSubject(userEmail)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiration))
@@ -35,7 +38,7 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication, boolean longToken) {
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-        return generateToken(user.getEmail(), longToken);
+        return generateToken(user.getEmail(), longToken, user);
     }
 
     public String getUserMailFromToken(String token) {
@@ -46,6 +49,15 @@ public class JwtTokenProvider {
                 .getBody();
 
         return claims.getSubject();
+    }
+
+
+    private Map<String, Object> generatePayload(CustomUserDetails userDetail) {
+        Map<String, Object> payload = new HashMap<>();
+
+        payload.put("userId", userDetail.getId());
+        payload.put("isEnabled", userDetail.isEnabled());
+        return payload;
     }
 
     public boolean validateToken(String token) {

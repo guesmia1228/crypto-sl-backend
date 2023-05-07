@@ -1,14 +1,12 @@
 package com.nefentus.api.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class KycImage {
@@ -23,6 +21,9 @@ public class KycImage {
     @Lob
     @Column(columnDefinition = "BLOB")
     private byte[] data;
+
+    @Column(name = "s3_key")
+    private String s3Key;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
