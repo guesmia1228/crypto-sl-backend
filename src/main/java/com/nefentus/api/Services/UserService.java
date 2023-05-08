@@ -105,12 +105,12 @@ public class UserService {
         affiliateData.put("count", 0);
 
         Map<String, Object> diamondData = new HashMap<>();
-        diamondData.put("role", "Diamond");
+        diamondData.put("role", "Senior IB");
         diamondData.put("percentage", 0);
         diamondData.put("count", 0);
 
         Map<String, Object> goldData = new HashMap<>();
-        goldData.put("role", "Gold");
+        goldData.put("role", "IB");
         goldData.put("percentage", 0);
         goldData.put("count", 0);
 
@@ -124,17 +124,17 @@ public class UserService {
             Set<Role> roles = user.getRoles();
             totalUsers += user.getRoles().size() - 1;
             for (Role role : roles) {
-                switch (role.getName()) {
-                    case ROLE_VENDOR:
+                switch (role.getName().label) {
+                    case "ROLE_VENDOR":
                         vendorData.put("count", (Integer) vendorData.get("count") + 1);
                         break;
-                    case ROLE_AFFILIATE:
+                    case "ROLE_AFFILIATE":
                         affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
                         break;
-                    case ROLE_DIAMOND_PARTNER:
+                    case "ROLE_SENIOR_IB":
                         diamondData.put("count", (Integer) diamondData.get("count") + 1);
                         break;
-                    case ROLE_GOLD_PARTNER:
+                    case "ROLE_IB":
                         goldData.put("count", (Integer) goldData.get("count") + 1);
                         break;
                     default:
@@ -178,12 +178,12 @@ public class UserService {
         affiliateData.put("count", 0);
 
         Map<String, Object> diamondData = new HashMap<>();
-        diamondData.put("role", "Diamond");
+        diamondData.put("role", "Senior IB");
         diamondData.put("percentage", 0);
         diamondData.put("count", 0);
 
         Map<String, Object> goldData = new HashMap<>();
-        goldData.put("role", "Gold");
+        goldData.put("role", "IB");
         goldData.put("percentage", 0);
         goldData.put("count", 0);
 
@@ -197,17 +197,17 @@ public class UserService {
             Set<Role> roles = user.getRoles();
             totalUsers += user.getRoles().size() - 1;
             for (Role role : roles) {
-                switch (role.getName()) {
-                    case ROLE_VENDOR:
+                switch (role.getName().label) {
+                    case "ROLE_VENDOR":
                         vendorData.put("count", (Integer) vendorData.get("count") + 1);
                         break;
-                    case ROLE_AFFILIATE:
+                    case "ROLE_AFFILIATE":
                         affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
                         break;
-                    case ROLE_DIAMOND_PARTNER:
+                    case "ROLE_SENIOR_IB":
                         diamondData.put("count", (Integer) diamondData.get("count") + 1);
                         break;
-                    case ROLE_GOLD_PARTNER:
+                    case "ROLE_IB":
                         goldData.put("count", (Integer) goldData.get("count") + 1);
                         break;
                     default:
