@@ -3,10 +3,7 @@ package com.nefentus.api.Services;
 import com.nefentus.api.Errors.*;
 import com.nefentus.api.entities.*;
 import com.nefentus.api.payload.request.*;
-import com.nefentus.api.payload.response.DashboardNumberResponse;
-import com.nefentus.api.payload.response.LoginResponse;
-import com.nefentus.api.payload.response.UpdateResponse;
-import com.nefentus.api.payload.response.UserDisplayAdminResponse;
+import com.nefentus.api.payload.response.*;
 import com.nefentus.api.repositories.*;
 import com.nefentus.api.security.CustomUserDetails;
 import com.nefentus.api.security.JwtTokenProvider;
@@ -517,12 +514,16 @@ public class UserService {
         log.info("Upload KYC image from user with email= {}", email);
 
     }
-    public String getKycUrl(KycImageType type, Long userId) {
+    public KycResponse getKycUrl(KycImageType type, Long userId) {
         Optional<KycImage> kycImageOpt = Optional.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, userId));
         if(kycImageOpt.isPresent()) {
-            return s3Service.presignedURL(kycImageOpt.get().getS3Key());
+            String url = s3Service.presignedURL(kycImageOpt.get().getS3Key());
+            return KycResponse.builder()
+                    .isVerify(kycImageOpt.get().getConfirmed())
+                    .url(url)
+                    .build();
         }
-        return "";
+        return KycResponse.builder().build();
 
 
     }

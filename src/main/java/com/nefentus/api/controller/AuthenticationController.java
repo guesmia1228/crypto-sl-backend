@@ -97,14 +97,14 @@ public class AuthenticationController {
 
     @GetMapping("/{userId}/kyc-image-url")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ResultObjectInfo<String>> getKycImage(@PathVariable Long userId,
+    public ResponseEntity<ResultObjectInfo<KycResponse>> getKycImage(@PathVariable Long userId,
                                                                 @RequestParam("type") KycImageType type,
                                                                 Principal principal) throws UserNotFoundException, IOException{
         log.info("Request to save upload KYC");
-        String url = userService.getKycUrl(type, userId);
+        KycResponse kyc = userService.getKycUrl(type, userId);
         return new ResponseEntity<>(
-                ResultObjectInfo.<String>builder()
-                        .data(url)
+                ResultObjectInfo.<KycResponse>builder()
+                        .data(kyc)
                         .message("success")
                         .build()
                 , HttpStatus.OK);
