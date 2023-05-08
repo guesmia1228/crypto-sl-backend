@@ -111,7 +111,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("/{userId}/upload_profile_pic")
+    @PostMapping("/upload")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file,
                                               @RequestHeader("Authorization") String authorization,
