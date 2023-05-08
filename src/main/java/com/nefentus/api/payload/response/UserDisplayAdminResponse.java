@@ -26,7 +26,7 @@ public class UserDisplayAdminResponse {
         UserDisplayAdminResponse response = new UserDisplayAdminResponse();
         response.setFullname(user.getFirstName() + " " + user.getLastName());
         response.setRoles(user.getRoles().stream()
-                .map(role -> role.getName().toString().replace("ROLE_", "").toLowerCase())
+                .map(role -> role.getName().label.replace("ROLE_", "").toLowerCase())
                 .collect(Collectors.toSet()));
         response.setEmail(user.getEmail());
         response.setStatus(user.getActive());
