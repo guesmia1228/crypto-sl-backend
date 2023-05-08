@@ -31,6 +31,7 @@ public class S3ServiceImpl implements S3Service {
         this.awsProperties = awsProperties;
         this.s3client = AmazonS3ClientBuilder.standard().withRegion(awsProperties.getS3().getRegions()).build();
     }
+
     @Override
     public String presignedURL(String key) {
         try {
@@ -43,7 +44,7 @@ public class S3ServiceImpl implements S3Service {
             // Generate the presigned URL.
             log.info("Generating pre-signed URL.");
             GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                    new GeneratePresignedUrlRequest(awsProperties.getS3().getBucketName(), key)
+                    new GeneratePresignedUrlRequest(awsProperties.getS3Value(), key)
                             .withMethod(HttpMethod.GET)
                             .withExpiration(expiration);
             URL url = s3client.generatePresignedUrl(generatePresignedUrlRequest);
@@ -63,8 +64,23 @@ public class S3ServiceImpl implements S3Service {
         try {
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentType("image/png");
-            s3client.putObject(new PutObjectRequest(awsProperties.getS3().getBucketName(), key, inputStream, null));
-            URL uri = s3client.getUrl(awsProperties.getS3().getBucketName(), key);
+            s3client.putObject(new PutObjectRequest(awsProperties.getS3Value(), key, inputStream, null));
+            URL uri = s3client.getUrl(awsProperties.getS3Value(), key);
+            log.info(uri.toString());
+            return uri.toString();
+        } catch (SdkClientException e) {
+            log.error("uploadToS3Bucket: upload to S3 is failure.", e);
+        }
+        return StringUtils.EMPTY;
+    }
+
+    @Override
+    public String uploadToS3BucketProfilePic(InputStream inputStream, String key) {
+        try {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType("image/png");
+            s3client.putObject(new PutObjectRequest(awsProperties.getS3ValueProfilePic(), key, inputStream, null));
+            URL uri = s3client.getUrl(awsProperties.getS3ValueProfilePic(), key);
             log.info(uri.toString());
             return uri.toString();
         } catch (SdkClientException e) {

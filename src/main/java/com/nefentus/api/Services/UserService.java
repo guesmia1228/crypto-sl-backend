@@ -470,7 +470,9 @@ public class UserService {
                             .map(Enum::name)
                             .toArray(String[]::new),
                     user.isMfa(),
+                    user.getS3Url(),
                     user.getId()
+
             );
         } else {
             log.info("login success without return jwt");
@@ -485,6 +487,7 @@ public class UserService {
                     "",
                     new String[]{},
                     user.isMfa(),
+                    user.getS3Url(),
                     null
             );
         }
@@ -524,16 +527,17 @@ public class UserService {
 
     }
 
-    public String uploadProfilePicture(MultipartFile file,
-                                       String email)
-            throws IOException,
-            UserNotFoundException {
+    public void uploadProfilePicture(MultipartFile file, String email) throws IOException, UserNotFoundException {
         // Benutzer suchen
         User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
-        user.setProfilepic(file.getBytes());
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename())).replace(" ", "");
+        String s3Key = UUID.randomUUID().toString().concat("_").concat(filename);
+        byte[] data = file.getBytes();
+        String url = s3Service.uploadToS3BucketProfilePic(new ByteArrayInputStream(data), s3Key);
+
+        user.setS3Url(url);
         userRepository.save(user);
-        log.info("Successful upload profile KYC");
-        return Base64.getEncoder().encodeToString(file.getBytes());
+        log.info("Successful upload profile Picture");
     }
 
     public UpdateResponse updateUser(UpdatetUserRequest updatetUserRequest,
@@ -713,6 +717,7 @@ public class UserService {
                         .map(Enum::name)
                         .toArray(String[]::new),
                 user.isMfa(),
+                user.getS3Url(),
                 user.getId()
         );
 

@@ -88,4 +88,8 @@ public class User {
     @Column(columnDefinition = "MEDIUMBLOB")
     @JsonIgnore
     private byte[] profilepic;
+
+    @Column(name = "s3_url")
+    private String s3Url;
+
 }
