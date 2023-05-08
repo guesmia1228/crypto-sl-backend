@@ -119,8 +119,8 @@ public class AuthenticationController {
 
             String email = principal.getName();
             log.info("Request upload file KYC from user with email= {}",email);
-            userService.uploadProfilePicture(file, email);
-            return ResponseEntity.ok(new MessageResponse("successfull!"));
+            String url = userService.uploadProfilePicture(file, email);
+            return ResponseEntity.ok(new MessageResponse(url));
     }
 
     @GetMapping("/getBlob")
