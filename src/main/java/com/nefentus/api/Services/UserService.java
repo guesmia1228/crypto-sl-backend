@@ -527,7 +527,7 @@ public class UserService {
 
     }
 
-    public void uploadProfilePicture(MultipartFile file, String email) throws IOException, UserNotFoundException {
+    public String uploadProfilePicture(MultipartFile file, String email) throws IOException, UserNotFoundException {
         // Benutzer suchen
         User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
         String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename())).replace(" ", "");
@@ -538,6 +538,7 @@ public class UserService {
         user.setS3Url(url);
         userRepository.save(user);
         log.info("Successful upload profile Picture");
+        return url;
     }
 
     public UpdateResponse updateUser(UpdatetUserRequest updatetUserRequest,
