@@ -18,6 +18,7 @@ public class LoginResponse {
     public String phoneNumber;
     public String[] roles;
     public boolean isMfa;
+    public String profileImage;
 
     public Long userId;
     //pic data

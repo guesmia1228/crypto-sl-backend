@@ -116,21 +116,6 @@ public class AuthenticationController {
             return ResponseEntity.ok(new MessageResponse("successfull!"));
     }
 
-    @GetMapping("/{userId}/profile-image-url")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ResultObjectInfo<String>> getProfileImage(@PathVariable Long userId,
-                                                                Principal principal) throws UserNotFoundException, IOException{
-
-        log.info("Request to get profile picture");
-        String url = userService.getProfilePicUrl(userId);
-        return new ResponseEntity<>(
-                ResultObjectInfo.<String>builder()
-                        .data(url)
-                        .message("success")
-                        .build()
-                , HttpStatus.OK);
-    }
-
     @GetMapping("/getBlob")
     @PreAuthorize("permitAll()")
     public ResponseEntity<?> getBlob() {

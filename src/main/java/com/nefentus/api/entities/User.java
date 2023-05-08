@@ -89,7 +89,7 @@ public class User {
     @JsonIgnore
     private byte[] profilepic;
 
-    @Column(name = "s3_key")
-    private String s3Key;
+    @Column(name = "s3_url")
+    private String s3Url;
 
 }
