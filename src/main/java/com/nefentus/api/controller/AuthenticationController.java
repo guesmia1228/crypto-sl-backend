@@ -60,6 +60,13 @@ public class AuthenticationController {
     public void checkJwt() {
     }
 
+    @GetMapping("/profilePic")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getProfilePicture(Principal principal) {
+        log.info("Request to get profile picture");
+        var profilePicture = userService.getProfilePicture(principal.getName());
+        return ResponseEntity.ok(profilePicture);
+    }
 
 
     @PostMapping(value = "/register")
