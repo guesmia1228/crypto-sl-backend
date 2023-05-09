@@ -3,10 +3,7 @@ package com.nefentus.api.Services;
 import com.nefentus.api.Errors.*;
 import com.nefentus.api.entities.*;
 import com.nefentus.api.payload.request.*;
-import com.nefentus.api.payload.response.DashboardNumberResponse;
-import com.nefentus.api.payload.response.LoginResponse;
-import com.nefentus.api.payload.response.UpdateResponse;
-import com.nefentus.api.payload.response.UserDisplayAdminResponse;
+import com.nefentus.api.payload.response.*;
 import com.nefentus.api.repositories.*;
 import com.nefentus.api.security.CustomUserDetails;
 import com.nefentus.api.security.JwtTokenProvider;
@@ -108,12 +105,12 @@ public class UserService {
         affiliateData.put("count", 0);
 
         Map<String, Object> diamondData = new HashMap<>();
-        diamondData.put("role", "Diamond");
+        diamondData.put("role", "Senior IB");
         diamondData.put("percentage", 0);
         diamondData.put("count", 0);
 
         Map<String, Object> goldData = new HashMap<>();
-        goldData.put("role", "Gold");
+        goldData.put("role", "IB");
         goldData.put("percentage", 0);
         goldData.put("count", 0);
 
@@ -122,24 +119,31 @@ public class UserService {
         others.put("percentage", 0);
         others.put("count", 0);
 
+        Map<String, Object> ibLeaderData = new HashMap<>();
+        ibLeaderData.put("role", "IB Leader");
+        ibLeaderData.put("percentage", 0);
+        ibLeaderData.put("count", 0);
+
         int totalUsers = users.size();
         for (User user : users) {
             Set<Role> roles = user.getRoles();
             totalUsers += user.getRoles().size() - 1;
             for (Role role : roles) {
-                switch (role.getName()) {
-                    case ROLE_VENDOR:
+                switch (role.getName().label) {
+                    case "ROLE_VENDOR":
                         vendorData.put("count", (Integer) vendorData.get("count") + 1);
                         break;
-                    case ROLE_AFFILIATE:
+                    case "ROLE_AFFILIATE":
                         affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
                         break;
-                    case ROLE_DIAMOND_PARTNER:
+                    case "ROLE_SENIOR_IB":
                         diamondData.put("count", (Integer) diamondData.get("count") + 1);
                         break;
-                    case ROLE_GOLD_PARTNER:
+                    case "ROLE_IB":
                         goldData.put("count", (Integer) goldData.get("count") + 1);
                         break;
+                    case "ROLE_IB_LEADER":
+                        ibLeaderData.put("count", (Integer) ibLeaderData.get("count") + 1);
                     default:
                         others.put("count", (Integer) others.get("count") + 1);
                         break;
@@ -155,12 +159,14 @@ public class UserService {
             diamondData.put("percentage", ((Integer) diamondData.get("count") * 100) / totalUsers);
             goldData.put("percentage", ((Integer) goldData.get("count") * 100) / totalUsers);
             others.put("percentage", ((Integer) others.get("count") * 100) / totalUsers);
+            ibLeaderData.put("percentage", ((Integer) ibLeaderData.get("count") * 100) / totalUsers);
         }
 
         report.add(vendorData);
         report.add(affiliateData);
         report.add(diamondData);
         report.add(goldData);
+        report.add(ibLeaderData);
         report.add(others);
         log.info("Successful to make a report with totalUser= {} ", totalUsers);
         return report;
@@ -181,12 +187,12 @@ public class UserService {
         affiliateData.put("count", 0);
 
         Map<String, Object> diamondData = new HashMap<>();
-        diamondData.put("role", "Diamond");
+        diamondData.put("role", "Senior IB");
         diamondData.put("percentage", 0);
         diamondData.put("count", 0);
 
         Map<String, Object> goldData = new HashMap<>();
-        goldData.put("role", "Gold");
+        goldData.put("role", "IB");
         goldData.put("percentage", 0);
         goldData.put("count", 0);
 
@@ -200,17 +206,17 @@ public class UserService {
             Set<Role> roles = user.getRoles();
             totalUsers += user.getRoles().size() - 1;
             for (Role role : roles) {
-                switch (role.getName()) {
-                    case ROLE_VENDOR:
+                switch (role.getName().label) {
+                    case "ROLE_VENDOR":
                         vendorData.put("count", (Integer) vendorData.get("count") + 1);
                         break;
-                    case ROLE_AFFILIATE:
+                    case "ROLE_AFFILIATE":
                         affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
                         break;
-                    case ROLE_DIAMOND_PARTNER:
+                    case "ROLE_SENIOR_IB":
                         diamondData.put("count", (Integer) diamondData.get("count") + 1);
                         break;
-                    case ROLE_GOLD_PARTNER:
+                    case "ROLE_IB":
                         goldData.put("count", (Integer) goldData.get("count") + 1);
                         break;
                     default:
@@ -234,7 +240,7 @@ public class UserService {
         report.add(diamondData);
         report.add(goldData);
         report.add(others);
-
+        log.info("Successful to make a report with totalUser= {} ", totalUsers);
         return report;
     }
 
@@ -470,7 +476,9 @@ public class UserService {
                             .map(Enum::name)
                             .toArray(String[]::new),
                     user.isMfa(),
+                    user.getS3Url(),
                     user.getId()
+
             );
         } else {
             log.info("login success without return jwt");
@@ -485,6 +493,7 @@ public class UserService {
                     "",
                     new String[]{},
                     user.isMfa(),
+                    user.getS3Url(),
                     null
             );
         }
@@ -514,26 +523,32 @@ public class UserService {
         log.info("Upload KYC image from user with email= {}", email);
 
     }
-    public String getKycUrl(KycImageType type, Long userId) {
+    public KycResponse getKycUrl(KycImageType type, Long userId) {
         Optional<KycImage> kycImageOpt = Optional.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, userId));
         if(kycImageOpt.isPresent()) {
-            return s3Service.presignedURL(kycImageOpt.get().getS3Key());
+            String url = s3Service.presignedURL(kycImageOpt.get().getS3Key());
+            return KycResponse.builder()
+                    .isVerify(kycImageOpt.get().getConfirmed())
+                    .url(url)
+                    .build();
         }
-        return "";
+        return KycResponse.builder().build();
 
 
     }
 
-    public String uploadProfilePicture(MultipartFile file,
-                                       String email)
-            throws IOException,
-            UserNotFoundException {
+    public String uploadProfilePicture(MultipartFile file, String email) throws IOException, UserNotFoundException {
         // Benutzer suchen
         User user = userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
-        user.setProfilepic(file.getBytes());
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename())).replace(" ", "");
+        String s3Key = UUID.randomUUID().toString().concat("_").concat(filename);
+        byte[] data = file.getBytes();
+        String url = s3Service.uploadToS3BucketProfilePic(new ByteArrayInputStream(data), s3Key);
+
+        user.setS3Url(url);
         userRepository.save(user);
-        log.info("Successful upload profile KYC");
-        return Base64.getEncoder().encodeToString(file.getBytes());
+        log.info("Successful upload profile Picture");
+        return url;
     }
 
     public UpdateResponse updateUser(UpdatetUserRequest updatetUserRequest,
@@ -713,6 +728,7 @@ public class UserService {
                         .map(Enum::name)
                         .toArray(String[]::new),
                 user.isMfa(),
+                user.getS3Url(),
                 user.getId()
         );
 
@@ -763,17 +779,22 @@ public class UserService {
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(affRole);
                     }
-                    case "Gold-Partner", "Gold Partner" -> {
+                    case "Gold-Partner", "Gold Partner", "IB" -> {
                         Role goldP = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(goldP);
                     }
-                    case "Diamond-Partner", "Diamond Partner" -> {
+                    case "Diamond-Partner", "Diamond Partner","Senior IB" -> {
                         Role diaP = roleRepository.findByName(ERole.ROLE_DIAMOND_PARTNER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(diaP);
                     }
-                    default -> {
+                    case "IB-Leader",  "IB Leader" -> {
+                        Role IblP = roleRepository.findByName(ERole.ROLE_IB_LEADER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(IblP);
+                    }
+                        default -> {
                         Role userRole = roleRepository.findByName(ERole.ROLE_VENDOR)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);

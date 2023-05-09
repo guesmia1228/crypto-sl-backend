@@ -23,4 +23,14 @@ public class AWSProperties {
         private String dateFormatPattern;
         private String folder;
     }
+
+    public String getS3Value() {
+        String[] bucketName = s3.getBucketName().split(",");
+        return bucketName[0];
+    }
+
+    public  String getS3ValueProfilePic(){
+        String[] bucketName = s3.getBucketName().split(",");
+        return bucketName[1];
+    }
 }

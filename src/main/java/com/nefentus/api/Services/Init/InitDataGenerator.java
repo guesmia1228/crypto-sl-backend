@@ -30,6 +30,7 @@ public class InitDataGenerator implements CommandLineRunner {
             var roleV = new Role(null, ERole.ROLE_VENDOR);
             var roleGP = new Role(null, ERole.ROLE_GOLD_PARTNER);
             var roleDP = new Role(null, ERole.ROLE_DIAMOND_PARTNER);
+            var roleIBL = new Role(null, ERole.ROLE_IB_LEADER);
 
             roleRepository.save(roleU);
             roleRepository.save(roleA);
@@ -37,7 +38,9 @@ public class InitDataGenerator implements CommandLineRunner {
             roleRepository.save(roleV);
             roleRepository.save(roleGP);
             roleRepository.save(roleDP);
+            roleRepository.save(roleIBL);
         }
+
         if (userRepository.findByRoleName(ERole.ROLE_ADMIN).isEmpty()) {
             var adminRole = roleRepository.findByName(ERole.ROLE_ADMIN);
             User admin = new User(null,
@@ -58,6 +61,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     false,
                     "AAABSDACBASDDD",
                     Set.of(),
+                    null,
                     null
             );
 
@@ -79,6 +83,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     false,
                     "ASDASDASDFFJIQWLEKDMDFA",
                     Set.of(),
+                    null,
                     null
             );
 
@@ -106,7 +111,7 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(), null
+                    Set.of(), null, null
             );
 
             var goldRole = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER);
@@ -127,12 +132,13 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(), null
+                    Set.of(), null, null
             );
             userRepository.save(diamondUser);
             userRepository.save(goldUser);
 
         }
+
         if (hierarchyRepository.count() == 0) {
             var user1 = userRepository.findUserByEmail("diamond@example.com").get();
             var user2 = userRepository.findUserByEmail("gold@example.com").get();
