@@ -119,6 +119,11 @@ public class UserService {
         others.put("percentage", 0);
         others.put("count", 0);
 
+        Map<String, Object> ibLeaderData = new HashMap<>();
+        ibLeaderData.put("role", "IB Leader");
+        ibLeaderData.put("percentage", 0);
+        ibLeaderData.put("count", 0);
+
         int totalUsers = users.size();
         for (User user : users) {
             Set<Role> roles = user.getRoles();
@@ -137,6 +142,8 @@ public class UserService {
                     case "ROLE_IB":
                         goldData.put("count", (Integer) goldData.get("count") + 1);
                         break;
+                    case "ROLE_IB_LEADER":
+                        ibLeaderData.put("count", (Integer) ibLeaderData.get("count") + 1);
                     default:
                         others.put("count", (Integer) others.get("count") + 1);
                         break;
@@ -152,12 +159,14 @@ public class UserService {
             diamondData.put("percentage", ((Integer) diamondData.get("count") * 100) / totalUsers);
             goldData.put("percentage", ((Integer) goldData.get("count") * 100) / totalUsers);
             others.put("percentage", ((Integer) others.get("count") * 100) / totalUsers);
+            ibLeaderData.put("percentage", ((Integer) ibLeaderData.get("count") * 100) / totalUsers);
         }
 
         report.add(vendorData);
         report.add(affiliateData);
         report.add(diamondData);
         report.add(goldData);
+        report.add(ibLeaderData);
         report.add(others);
         log.info("Successful to make a report with totalUser= {} ", totalUsers);
         return report;
@@ -231,7 +240,7 @@ public class UserService {
         report.add(diamondData);
         report.add(goldData);
         report.add(others);
-
+        log.info("Successful to make a report with totalUser= {} ", totalUsers);
         return report;
     }
 
@@ -775,12 +784,17 @@ public class UserService {
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(goldP);
                     }
-                    case "Diamond-Partner", "Diamond Partner","Senior IB", "IB Leader" -> {
+                    case "Diamond-Partner", "Diamond Partner","Senior IB" -> {
                         Role diaP = roleRepository.findByName(ERole.ROLE_DIAMOND_PARTNER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(diaP);
                     }
-                    default -> {
+                    case "IB-Leader",  "IB Leader" -> {
+                        Role IblP = roleRepository.findByName(ERole.ROLE_IB_LEADER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(IblP);
+                    }
+                        default -> {
                         Role userRole = roleRepository.findByName(ERole.ROLE_VENDOR)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);
