@@ -41,11 +41,6 @@ public class InitDataGenerator implements CommandLineRunner {
             roleRepository.save(roleIBL);
         }
 
-        if (roleRepository.findByName(ERole.ROLE_IB_LEADER).isEmpty()){
-            var roleIBL = new Role(null, ERole.ROLE_IB_LEADER);
-            roleRepository.save(roleIBL);
-        }
-
         if (userRepository.findByRoleName(ERole.ROLE_ADMIN).isEmpty()) {
             var adminRole = roleRepository.findByName(ERole.ROLE_ADMIN);
             User admin = new User(null,
@@ -142,30 +137,6 @@ public class InitDataGenerator implements CommandLineRunner {
             userRepository.save(diamondUser);
             userRepository.save(goldUser);
 
-        }
-        if (userRepository.findByRoleName(ERole.ROLE_IB_LEADER).isEmpty()) {
-            var diamondPlusRole = roleRepository.findByName(ERole.ROLE_IB_LEADER);
-            User diamondPlusUser = new User(null,
-                    "diamondplus@example.com",
-                    encoder.encode("password"),
-                    "Diamondplus",
-                    "UserPlus",
-                    "+12345678911",
-                    Set.of(diamondPlusRole.get()),
-                    true,
-                    "",
-                    Timestamp.valueOf(LocalDateTime.now()),
-                    Timestamp.valueOf(LocalDateTime.now()),
-                    "888998",
-                    "http://localhost:80/images/test1.png",
-                    "diamondplus@example.com",
-                    "Nefentus",
-                    false,
-                    "AAABSDACBASDDDCCCC",
-                    Set.of(), null, null
-            );
-
-            userRepository.save(diamondPlusUser);
         }
 
         if (hierarchyRepository.count() == 0) {

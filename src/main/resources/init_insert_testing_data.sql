@@ -1,3 +1,8 @@
+
+INSERT INTO users (usr_active, usr_affiliate_link, business, usr_created_at, email, first_name, last_name, mfa, password, profile_picturepath, profilepic, usr_reset_tokem, secret, tel, usr_token, usr_updated_at)
+VALUES (1, '88889990', 'Example Corp', NOW(), 'diamondplus@example.com', 'John', 'Doe', 0, '$2a$10$3vVPnvEICwoGxYsIAI5tjeHDuebhIIEFlYu/I6So3Qy9V6RrZQemC', '/images/profiles/johndoe.jpg', NULL, NULL, NULL, '555-1234', 'abcd1234', NOW());
+
+
 INSERT INTO tra_transaction(tra_created_at, tra_payment_method, tra_total_price, tra_user_id) VALUES
 ('2023-04-29 15:23:59.000000', 'QR', 12, 3 ),
 ('2023-04-29 15:24:59.000000', 'QR', 28, 3 ),

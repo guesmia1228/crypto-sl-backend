@@ -166,8 +166,8 @@ public class UserService {
         report.add(affiliateData);
         report.add(diamondData);
         report.add(goldData);
-        report.add(others);
         report.add(ibLeaderData);
+        report.add(others);
         log.info("Successful to make a report with totalUser= {} ", totalUsers);
         return report;
     }
