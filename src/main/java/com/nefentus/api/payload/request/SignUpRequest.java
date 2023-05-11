@@ -37,4 +37,7 @@ public class SignUpRequest {
 
     private String affiliate;
 
+    @NotBlank
+    private String country;
+
 }
