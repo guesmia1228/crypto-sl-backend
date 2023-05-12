@@ -19,7 +19,8 @@ public class LoginResponse {
     public String[] roles;
     public boolean isMfa;
     public String profileImage;
-
+    public String country;
+    public boolean isRequireKyc;
     public Long userId;
     //pic data
 }

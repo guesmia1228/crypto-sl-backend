@@ -387,7 +387,11 @@ public class UserService {
             log.error("User with email " + authRequest.getEmail() + " already exists.");
             throw new UserAlreadyExistsException("User with email " + authRequest.getEmail() + " already exists.", HttpStatus.BAD_REQUEST);
         }
-        // Benutzer erstellen und speichern
+
+
+        List<String> countryList = Arrays.stream(ECountry.values())
+                .map(it -> it.name().replace("_"," "))
+                .toList();
         User user = new User();
         user.setEmail(authRequest.getEmail());
         user.setFirstName(authRequest.getFirstName());
@@ -402,7 +406,14 @@ public class UserService {
         user.setAffiliateLink(EmailHashGenerator.generateHash(user.getEmail()));
         user.setBusiness("");
         user.setProfilePicturepath("");
+        user.setCountry(authRequest.getCountry());
+        if (countryList.contains(authRequest.getCountry().toUpperCase())){
+            user.setRequireKYC(true);
+        } else {
+            user.setRequireKYC(false);
+        }
         User created = userRepository.save(user);
+
 
         // Affiliate erstellen und speichern, falls vorhanden
         if (authRequest.getAffiliate() != null && !authRequest.getAffiliate().isEmpty()) {
@@ -477,6 +488,8 @@ public class UserService {
                             .toArray(String[]::new),
                     user.isMfa(),
                     user.getS3Url(),
+                    user.getCountry(),
+                    user.isRequireKYC(),
                     user.getId()
 
             );
@@ -494,6 +507,8 @@ public class UserService {
                     new String[]{},
                     user.isMfa(),
                     user.getS3Url(),
+                    user.getCountry(),
+                    user.isRequireKYC(),
                     null
             );
         }
@@ -729,6 +744,8 @@ public class UserService {
                         .toArray(String[]::new),
                 user.isMfa(),
                 user.getS3Url(),
+                user.getCountry(),
+                user.isRequireKYC(),
                 user.getId()
         );
 

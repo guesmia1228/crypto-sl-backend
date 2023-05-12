@@ -92,4 +92,10 @@ public class User {
     @Column(name = "s3_url")
     private String s3Url;
 
+    @Column(name = "is_require_kyc")
+    @JsonIgnore
+    private boolean isRequireKYC;
+
+    @Column(name = "country")
+    private String country;
 }

@@ -62,7 +62,10 @@ public class InitDataGenerator implements CommandLineRunner {
                     "AAABSDACBASDDD",
                     Set.of(),
                     null,
-                    null
+                    null,
+                    false,
+                    "GERMANY"
+
             );
 
             User admin2 = new User(null,
@@ -84,7 +87,9 @@ public class InitDataGenerator implements CommandLineRunner {
                     "ASDASDASDFFJIQWLEKDMDFA",
                     Set.of(),
                     null,
-                    null
+                    null,
+                    false,
+                    "GERMANY"
             );
 
 
@@ -111,7 +116,9 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(), null, null
+                    Set.of(), null, null,
+                    false,
+                    "GERMANY"
             );
 
             var goldRole = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER);
@@ -132,7 +139,9 @@ public class InitDataGenerator implements CommandLineRunner {
                     "Nefentus",
                     false,
                     "AAABSDACBASDDD",
-                    Set.of(), null, null
+                    Set.of(), null, null,
+                    true,
+                    "GERMANY"
             );
             userRepository.save(diamondUser);
             userRepository.save(goldUser);
