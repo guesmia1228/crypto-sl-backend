@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: nefentus-container
-        image: 798065433500.dkr.ecr.eu-central-1.amazonaws.com/nefentus-image:latest
+        image: 119850375808.dkr.ecr.eu-central-1.amazonaws.com/nefentus-image:dever0.1.33
         env:
         - name: DATABASE_PASSWORD
           value: m5DzIxMWARhZ1lzvHSev
