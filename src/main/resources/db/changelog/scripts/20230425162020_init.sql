@@ -57,6 +57,20 @@ create table  if not exists  clicks
         foreign key (prd_user_id) references  users (id)
 );
 
+ create table if not exists wlt_wallet
+(
+    wlt_id           bigint auto_increment
+        primary key,
+	wlt_owner_id     bigint        null,
+	wlt_type         varchar(50)   null,
+	wlt_address      varchar(255)  null,
+	wlt_private_key  varchar(255)  null,
+	wlt_nonce        varbinary(50) null,
+    wlt_created_at   datetime(6)   null,
+	constraint wlt_user_match
+        foreign key (wlt_owner_id) references  users (id)
+);
+
  create table if not exists aff_affiliate
 (
     aff_id              bigint auto_increment

@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.0.5'
     id 'io.spring.dependency-management' version '1.1.0'
+	id "org.web3j" version "4.10.1"
 }
 
 group = 'com.nefentus'
@@ -47,7 +48,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.microsoft.ews-java-api/ews-java-api
     implementation 'com.microsoft.ews-java-api:ews-java-api:2.0'
     implementation 'javax.xml.ws:jaxws-api:2.3.1'
-
+	// implementation 'org.web3j:web3j-spring-boot-starter:1.6.0'
 
 }
 
