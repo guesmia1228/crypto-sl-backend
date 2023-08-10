@@ -1,11 +1,19 @@
-# nefentus_api
+# Nefentus API
 
-# To run this project (This project run on java 17)
-1 -> Install docker 
-2 -> pull docker mysql
-3 -> create file .env local
-4 -> at source root run command: "docker-compose --env-file \.env up"
-5 -> database is ready go to main file run the project at localhost:8080
+## Requirements
 
-# To run test and create jar file
-run  command: "./gradlew clean build" 
+- Java 17
+- Docker
+
+
+## Test and build
+
+Build with gradle using: `./gradlew clean build` 
+
+This creates a jar file.
+
+## Run
+
+1. Create file .env locally with the same variables as in `.env_example`
+2. Start Nefentus API in docker compose: `docker compose up --build`
+	The first time it runs, the API may fail because the database (localted in ./db) is still being created.

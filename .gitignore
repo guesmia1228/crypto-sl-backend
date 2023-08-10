@@ -39,3 +39,7 @@ out/
 .env
 
 deployment-prod.yml
+/db*
+
+hs_err*.log
+replay_pid*.log

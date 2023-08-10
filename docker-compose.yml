@@ -1,14 +1,44 @@
 version: '3.9'
 services:
-  app:
-    image: nefentus
-    network_mode: "host"
+  db:
+    image: mysql:latest
     environment:
-      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
+    # network_mode: host
+    volumes:
+      - type: bind
+        source: ./db
+        target: /var/lib/mysql
+  pma:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8090:80
+    depends_on:
+      - db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    # network_mode: "host"
+    environment:
+      - MYSQL_HOST=db
       - DATABASE_USER_NAME=${DATABASE_USER_NAME}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_PORT=${DATABASE_PORT}
       - DATABASE_NAME=${DATABASE_NAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - ENDPOINT_ETHEREUM=${ENDPOINT_ETHEREUM}
     ports:
       - 8080:8080
-
