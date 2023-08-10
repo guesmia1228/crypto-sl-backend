@@ -17,9 +17,9 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 public class Clicks {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private Timestamp createdAt;
+	private Timestamp createdAt;
 }

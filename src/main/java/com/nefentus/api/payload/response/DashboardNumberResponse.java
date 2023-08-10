@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class DashboardNumberResponse {
-    public double number;
-    public double percentage;
+	public BigDecimal number;
+	public BigDecimal percentage;
 }

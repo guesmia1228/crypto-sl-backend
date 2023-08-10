@@ -2,39 +2,50 @@ package com.nefentus.api.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import com.nefentus.api.entities.User;
 
 import java.sql.Timestamp;
+import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "prd_product")
 public class Product {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "prd_id")
+	private Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "prd_id")
-    private Integer id;
+	@Column(name = "prd_name")
+	private String name;
 
-    @Column(name = "prd_name")
-    private String name;
+	@Column(name = "prd_description")
+	private String description;
 
-    @Column(name = "prd_description")
-    private String description;
+	@Column(name = "prd_price")
+	private BigDecimal price;
 
-    @Column(name = "prd_price")
-    private Float price;
+	// @Column(name = "prd_user_id")
+	// private Long user_id;
+	@ManyToOne
+	@JoinColumn(name = "prd_user_id", referencedColumnName = "id")
+	private User user;
 
-    @Column(name = "prd_picture_path")
-    private String picturePath;
+	@Column(name = "prd_image_path")
+	private String imagePath;
 
-    @Column(name = "prd_stock")
-    private Integer stock;
+	@Column(name = "prd_stock")
+	private Integer stock;
 
-    @Column(name = "prd_created_at")
-    private Timestamp createdAt;
+	@Column(name = "prd_created_at")
+	private Timestamp createdAt;
 
-    @Column(name = "prd_updated_at")
-    private Timestamp updatedAt;
+	@Column(name = "prd_updated_at")
+	private Timestamp updatedAt;
 }

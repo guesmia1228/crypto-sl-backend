@@ -9,20 +9,21 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDisplayAdminResponse {
-    private String fullname;
-    private Set<String> roles;
-    private String email;
-    private boolean status;
-    private double Income;
-    private LocalDate joinedOn;
+	private String fullname;
+	private Set<String> roles;
+	private String email;
+	private boolean status;
+	private BigDecimal Income;
+	private LocalDate joinedOn;
 
-    public static UserDisplayAdminResponse fromUser(User user) {
+	public static UserDisplayAdminResponse fromUser(User user) {
         UserDisplayAdminResponse response = new UserDisplayAdminResponse();
         response.setFullname(user.getFirstName() + " " + user.getLastName());
         response.setRoles(user.getRoles().stream()
@@ -31,7 +32,7 @@ public class UserDisplayAdminResponse {
         response.setEmail(user.getEmail());
         response.setStatus(user.getActive());
         // Set the income field here based on your business logic
-        response.setIncome(0);
+        response.setIncome(BigDecimal.valueOf(0));
         response.setJoinedOn(user.getCreatedAt().toLocalDateTime().toLocalDate());
         return response;
     }

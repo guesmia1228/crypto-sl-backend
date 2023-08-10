@@ -8,19 +8,6 @@ create table  if not exists  clicks
     created_at datetime(6) null
 );
 
- create table if not exists prd_product
-(
-    prd_id           int auto_increment
-        primary key,
-    prd_created_at   datetime(6)  null,
-    prd_description  varchar(255) null,
-    prd_name         varchar(255) null,
-    prd_picture_path varchar(255) null,
-    prd_price        float        null,
-    prd_stock        int          null,
-    prd_updated_at   datetime(6)  null
-);
-
  create table if not exists roles
 (
     id   int auto_increment
@@ -54,12 +41,28 @@ create table  if not exists  clicks
         unique (usr_affiliate_link)
 );
 
+ create table if not exists prd_product
+(
+    prd_id           bigint auto_increment
+        primary key,
+    prd_created_at   datetime(6)   null,
+    prd_description  varchar(255)  null,
+    prd_name         varchar(255)  null,
+	prd_user_id      bigint        null,
+    prd_image_path   varchar(255)  null,
+    prd_price        decimal(12,2) null,
+    prd_stock        int           null,
+    prd_updated_at   datetime(6)   null,
+	constraint prd_user_id_match
+        foreign key (prd_user_id) references  users (id)
+);
+
  create table if not exists aff_affiliate
 (
-    aff_id              int auto_increment
+    aff_id              bigint auto_increment
         primary key,
     aff_affiliate_link  varchar(255) null,
-    aff_commission_rate float        null,
+    aff_commission_rate decimal(7,6) null,
     aff_created_at      datetime(6)  null,
     aff_user_id         bigint       null,
     constraint FKieaocf1jfed9sb556tuo5hy2q
@@ -80,7 +83,7 @@ create table  if not exists  clicks
 (
     id                bigint auto_increment
         primary key,
-    commission_rate   float        null,
+    commission_rate   decimal(7,6) null,
     created_at        datetime(6)  null,
     relationship_type varchar(255) null,
     child_id          bigint       null,
@@ -131,27 +134,27 @@ create table  if not exists  clicks
 (
     tra_id             bigint auto_increment
         primary key,
-    tra_created_at     datetime(6)  null,
-    tra_payment_method varchar(255) null,
-    tra_total_price    float        null,
-    tra_user_id        bigint       null,
+    tra_created_at     datetime(6)   null,
+    tra_payment_method varchar(255)  null,
+    tra_total_price    decimal(12,2) null,
+    tra_user_id        bigint        null,
     constraint FKl7b0rhm4c4thxmwan7ftbwoj2
         foreign key (tra_user_id) references  users (id)
 );
 
  create table if not exists ord_order
 (
-    ord_id             int auto_increment
+    ord_id             bigint auto_increment
         primary key,
-    ord_billing_email  varchar(255) null,
-    ord_created_at     datetime(6)  null,
-    ord_date           date         null,
-    ord_earnings       float        null,
-    ord_quantity       int          null,
-    ord_time           time         null,
-    ord_transaction_id bigint       null,
-    ord_updated_at     datetime(6)  null,
-    ord_product_id     int          null,
+    ord_billing_email  varchar(255)  null,
+    ord_created_at     datetime(6)   null,
+    ord_date           date          null,
+    ord_earnings       decimal(12,8) null,
+    ord_quantity       int           null,
+    ord_time           time          null,
+    ord_transaction_id bigint        null,
+    ord_updated_at     datetime(6)   null,
+    ord_product_id     bigint        null,
     constraint FK633expfjam6i63rxdi6gbc3sa
         foreign key (ord_product_id) references  prd_product (prd_id),
     constraint FKtqbdgy9bddjrivf868bncuf2n
@@ -160,12 +163,12 @@ create table  if not exists  clicks
 
  create table if not exists prv_provision
 (
-    prv_id                int auto_increment
+    prv_id                bigint auto_increment
         primary key,
-    prv_affiliate_id      int         null,
-    prv_commission_amount float       null,
-    prv_created_at        datetime(6) null,
-    prv_transaction_id    bigint      null,
+    prv_affiliate_id      bigint        null,
+    prv_commission_amount decimal(12,8) null,
+    prv_created_at        datetime(6)   null,
+    prv_transaction_id    bigint        null,
     constraint FK8l4qppuwtre9rejfmcqrqv1f1
         foreign key (prv_transaction_id) references  tra_transaction (tra_id),
     constraint FKj2r7iy6s6sklxsxdmpkxqbuky
