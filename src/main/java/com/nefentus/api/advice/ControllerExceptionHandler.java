@@ -23,170 +23,155 @@ import java.util.Map;
 @Slf4j
 public class ControllerExceptionHandler {
 
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public Map<String, String> handleInvalidArgument(MethodArgumentNotValidException ex) {
+		Map<String, String> errorMap = new HashMap<>();
+		ex.getBindingResult().getFieldErrors().forEach(error -> {
+			errorMap.put(error.getField(), error.getDefaultMessage());
+		});
+		return errorMap;
+	}
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleInvalidArgument(MethodArgumentNotValidException ex) {
-        Map<String, String> errorMap = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errorMap.put(error.getField(), error.getDefaultMessage());
-        });
-        return errorMap;
-    }
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<Object> handleException(Exception ex) {
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST; // default to 400
+		if (ex instanceof AccessDeniedException) {
+			httpStatus = HttpStatus.UNAUTHORIZED; // set status to 401
+		}
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				httpStatus,
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, httpStatus);
+	}
 
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<Object> handleBusinessException(AuthenticationException ex) {
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				httpStatus,
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, httpStatus);
+	}
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleException(Exception ex) {
-        HttpStatus httpStatus = HttpStatus.BAD_REQUEST; // default to 400
-        if (ex instanceof AccessDeniedException) {
-            httpStatus = HttpStatus.UNAUTHORIZED; // set status to 401
-        }
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                httpStatus,
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, httpStatus);
-    }
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(UsernameNotFoundException.class)
+	public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+		HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				httpStatus,
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, httpStatus);
+	}
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Object> handleBusinessException(AuthenticationException ex) {
-        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                httpStatus,
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, httpStatus);
-    }
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<Object> handleExceptionBadRequest(BadRequestException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException ex) {
-        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                httpStatus,
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, httpStatus);
-    }
+	@ExceptionHandler(EmailSendException.class)
+	public ResponseEntity<Object> handleExceptionEmail(EmailSendException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<Object> handleExceptionBadRequest(BadRequestException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
+	@ExceptionHandler(InactiveUserException.class)
+	public ResponseEntity<Object> handleExceptionInactiveAccount(InactiveUserException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
-    @ExceptionHandler(EmailSendException.class)
-    public ResponseEntity<Object> handleExceptionEmail(EmailSendException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
+	@ExceptionHandler(IncorrectPasswordException.class)
+	public ResponseEntity<Object> handleExceptionIncorrectPassword(IncorrectPasswordException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ExceptionHandler(InternalServerException.class)
+	public ResponseEntity<Object> handleInternalServerErrorException(InternalServerException ex) {
+		HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				httpStatus,
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, httpStatus);
+	}
 
-    @ExceptionHandler(InactiveUserException.class)
-    public ResponseEntity<Object> handleExceptionInactiveAccount(InactiveUserException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
+	@ExceptionHandler(InvalidTokenException.class)
+	public ResponseEntity<Object> handleExceptionInvalidToken(InvalidTokenException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
-    @ExceptionHandler(IncorrectPasswordException.class)
-    public ResponseEntity<Object> handleExceptionIncorrectPassword(IncorrectPasswordException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
+	@ExceptionHandler(TokenNotFoundException.class)
+	public ResponseEntity<Object> handleExceptionTokenNotFound(TokenNotFoundException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(InternalServerException.class)
-    public ResponseEntity<Object> handleInternalServerErrorException(InternalServerException ex) {
-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                httpStatus,
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, httpStatus);
-    }
+	@ExceptionHandler(UserAlreadyExistsException.class)
+	public ResponseEntity<Object> handleExceptionUserAlreadyExist(UserAlreadyExistsException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<Object> handleExceptionInvalidToken(InvalidTokenException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
+	@ExceptionHandler(UserNotFoundException.class)
+	public ResponseEntity<Object> handleExceptionUserNotFound(UserNotFoundException ex) {
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				ex.getHttpStatus(),
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
+	}
 
-    @ExceptionHandler(TokenNotFoundException.class)
-    public ResponseEntity<Object> handleExceptionTokenNotFound(TokenNotFoundException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
-
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Object> handleExceptionUserAlreadyExist(UserAlreadyExistsException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Object> handleExceptionUserNotFound(UserNotFoundException ex) {
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                ex.getHttpStatus(),
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, ex.getHttpStatus());
-    }
-
-    @ExceptionHandler(IOException.class)
-    public ResponseEntity<Object> handleExceptionIO(IOException ex) {
-        HttpStatus httpStatus = (ex instanceof FileNotFoundException) ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
-        ApiRequestException apiRequestException = new ApiRequestException(
-                ex.getMessage(),
-                httpStatus,
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-        log.error("Call Api Error with message {}", ex.getMessage());
-        return new ResponseEntity<>(apiRequestException, httpStatus);
-    }
+	@ExceptionHandler(IOException.class)
+	public ResponseEntity<Object> handleExceptionIO(IOException ex) {
+		HttpStatus httpStatus = (ex instanceof FileNotFoundException) ? HttpStatus.NOT_FOUND
+				: HttpStatus.INTERNAL_SERVER_ERROR;
+		ApiRequestException apiRequestException = new ApiRequestException(
+				ex.getMessage(),
+				httpStatus,
+				ZonedDateTime.now(ZoneId.of("Z")));
+		log.error("Call Api Error with message {}", ex.getMessage());
+		return new ResponseEntity<>(apiRequestException, httpStatus);
+	}
 
 }
