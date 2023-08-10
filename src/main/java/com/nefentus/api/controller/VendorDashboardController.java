@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
+import com.nefentus.api.Services.ProductService;
 import com.nefentus.api.entities.User;
+import com.nefentus.api.payload.request.AddProductRequest;
 import com.nefentus.api.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
@@ -68,4 +70,25 @@ public class VendorDashboardController {
 		return ResponseEntity.ok(transactionService.calculateIncomeForUserLast30Days(optUser.get()));
 	}
 
+	@GetMapping("/products")
+	public ResponseEntity<?> getProducts(Principal principal) {
+		log.info("Vendor get products");
+		try {
+			return ResponseEntity.ok(productService.getProducts(principal.getName()));
+		} catch (UserNotFoundException e) {
+			log.error("User not found: " + principal.getName());
+			return ResponseEntity.badRequest().body("User not found");
+		}
+	}
+
+	@PostMapping("/products/add")
+	public ResponseEntity<?> addProject(@RequestBody AddProductRequest addUserRequest, Principal principal) {
+		log.info("Vendor add new product! ");
+		try {
+			return ResponseEntity.ok(productService.addProduct(addUserRequest, principal.getName()));
+		} catch (UserNotFoundException e) {
+			log.error("User not found: " + principal.getName());
+			return ResponseEntity.badRequest().body("User not found");
+		}
+	}
 }
