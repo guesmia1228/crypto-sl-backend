@@ -1,5 +1,7 @@
 package com.nefentus.api.controller;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Optional;
 
@@ -8,18 +10,28 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.nefentus.api.Errors.ApiRequestException;
+import com.nefentus.api.Errors.ProductNotFoundException;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.Services.ProductService;
 import com.nefentus.api.entities.User;
-import com.nefentus.api.payload.request.AddProductRequest;
+import com.nefentus.api.payload.request.UpsertProductRequest;
+import com.nefentus.api.payload.response.MessageResponse;
+import com.nefentus.api.payload.request.DeleteProductRequest;
 import com.nefentus.api.repositories.UserRepository;
+import com.nefentus.api.repositories.ProductRepository;
+import com.nefentus.api.entities.Product;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class VendorDashboardController {
 	private UserRepository userRepository;
+	private ProductRepository productRepository;
 	private ProductService productService;
 	UserService userService;
 	TransactionService transactionService;
@@ -81,14 +94,70 @@ public class VendorDashboardController {
 		}
 	}
 
-	@PostMapping("/products/add")
-	public ResponseEntity<?> addProject(@RequestBody AddProductRequest addUserRequest, Principal principal) {
-		log.info("Vendor add new product! ");
+	@PostMapping("/products/upsert")
+	public ResponseEntity<?> upsertImage(@RequestBody UpsertProductRequest upsertRequest,
+			Principal principal) throws IOException {
+		log.info("Vendor upserts product");
 		try {
-			return ResponseEntity.ok(productService.addProduct(addUserRequest, principal.getName()));
-		} catch (UserNotFoundException e) {
-			log.error("User not found: " + principal.getName());
-			return ResponseEntity.badRequest().body("User not found");
+			Product product = productService.upsertProduct(upsertRequest.getProductId(), upsertRequest.getName(),
+					upsertRequest.getDescription(), upsertRequest.getPrice(), upsertRequest.getStock(),
+					principal.getName());
+			return ResponseEntity.ok().body(product);
+		} catch (ApiRequestException e) {
+			log.error("User is not owner of the product: " + principal.getName());
+			return ResponseEntity.badRequest().body("User is not owner of the product");
 		}
+	}
+
+	@PostMapping("/products/delete")
+	public ResponseEntity<?> deleteProduct(@RequestBody DeleteProductRequest deleteProductRequest,
+			Principal principal) {
+		log.info("Vendor delete product! ");
+
+		try {
+			return ResponseEntity.ok(productService.deleteProduct(deleteProductRequest, principal.getName()));
+		} catch (ProductNotFoundException e) {
+			log.error("Product not found: " + principal.getName());
+			return ResponseEntity.badRequest().body("Product not found");
+		} catch (ApiRequestException e) {
+			log.error("User is not owner of the product: " + principal.getName());
+			return ResponseEntity.badRequest().body("User is not owner of the product");
+		}
+	}
+
+	@PostMapping("/products/deleteImage")
+	public ResponseEntity<?> deleteProductImage(@RequestBody DeleteProductRequest deleteProductRequest,
+			Principal principal) {
+		log.info("Vendor delete product image! ");
+
+		try {
+			return ResponseEntity.ok(productService.deleteProductImage(deleteProductRequest, principal.getName()));
+		} catch (ProductNotFoundException e) {
+			log.error("Product not found: " + principal.getName());
+			return ResponseEntity.badRequest().body("Product not found");
+		} catch (ApiRequestException e) {
+			log.error("User is not owner of the product: " + principal.getName());
+			return ResponseEntity.badRequest().body("User is not owner of the product");
+		}
+	}
+
+	@PostMapping("/products/uploadImage")
+	public ResponseEntity<?> uploadProductImage(@RequestPart("file") MultipartFile file,
+			@RequestParam("productId") long productId,
+			Principal principal) throws IOException {
+		log.info("Vendor uploads product image");
+		try {
+			productService.uploadProductImage(principal.getName(), productId, file);
+			return ResponseEntity.ok(new MessageResponse("successfull!"));
+		} catch (ApiRequestException e) {
+			log.error("User is not owner of the product: " + principal.getName());
+			return ResponseEntity.badRequest().body("User is not owner of the product");
+		}
+	}
+
+	@GetMapping("/products/image/{productId}")
+	public ResponseEntity<?> getProductImage(@PathVariable long productId) {
+		log.info("Vendor get product image");
+		return ResponseEntity.ok(productService.getProductImageUrl(productId));
 	}
 }

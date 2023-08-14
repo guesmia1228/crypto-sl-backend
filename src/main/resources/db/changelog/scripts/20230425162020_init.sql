@@ -49,7 +49,7 @@ create table  if not exists  clicks
     prd_description  varchar(255)  null,
     prd_name         varchar(255)  null,
 	prd_user_id      bigint        null,
-    prd_image_path   varchar(255)  null,
+    prd_s3key        varchar(255)  null,
     prd_price        decimal(12,2) null,
     prd_stock        int           null,
     prd_updated_at   datetime(6)   null,

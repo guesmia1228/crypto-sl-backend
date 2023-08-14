@@ -565,17 +565,24 @@ public class UserService {
 
 	public String uploadProfilePicture(MultipartFile file, String email) throws IOException, UserNotFoundException {
 		// Benutzer suchen
-		User user = userRepository.findUserByEmail(email)
-				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
-		String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename())).replace(" ", "");
-		String s3Key = UUID.randomUUID().toString().concat("_").concat(filename);
-		byte[] data = file.getBytes();
-		String url = s3Service.uploadToS3BucketProfilePic(new ByteArrayInputStream(data), s3Key);
+		try {
 
-		user.setS3Url(url);
-		userRepository.save(user);
-		log.info("Successful upload profile Picture");
-		return url;
+			User user = userRepository.findUserByEmail(email)
+					.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+			String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename())).replace(" ",
+					"");
+			String s3Key = UUID.randomUUID().toString().concat("_").concat(filename);
+			byte[] data = file.getBytes();
+			String url = s3Service.uploadToS3BucketProfilePic(new ByteArrayInputStream(data), s3Key);
+
+			user.setS3Url(url);
+			userRepository.save(user);
+			log.info("Successful upload profile Picture");
+			return url;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	public UpdateResponse updateUser(UpdatetUserRequest updatetUserRequest,

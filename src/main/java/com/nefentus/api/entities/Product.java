@@ -37,8 +37,8 @@ public class Product {
 	@JoinColumn(name = "prd_user_id", referencedColumnName = "id")
 	private User user;
 
-	@Column(name = "prd_image_path")
-	private String imagePath;
+	@Column(name = "prd_s3key")
+	private String s3Key;
 
 	@Column(name = "prd_stock")
 	private Integer stock;
