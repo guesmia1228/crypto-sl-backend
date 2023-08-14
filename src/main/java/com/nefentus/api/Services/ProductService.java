@@ -40,7 +40,7 @@ public class ProductService {
 
 	public Product upsertProduct(long productId, String name, String description, BigDecimal price, int stock,
 			String username)
-			throws ApiRequestException, IOException {
+			throws ApiRequestException, IOException, UserNotFoundException {
 		Optional<Product> optProduct = productRepository.findById(productId);
 
 		Product product;
@@ -54,6 +54,16 @@ public class ProductService {
 			}
 		} else {
 			product = new Product();
+
+			User owner = userRepository.findUserByEmail(username)
+					.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
+			product.setUser(owner);
+
+			String newLink = "";
+			do {
+				newLink = UUID.randomUUID().toString().replace("-", "");
+			} while (productRepository.findByLink(newLink).isPresent()); // Check if id already exists in DB
+			product.setLink(newLink);
 		}
 
 		product.setName(name);

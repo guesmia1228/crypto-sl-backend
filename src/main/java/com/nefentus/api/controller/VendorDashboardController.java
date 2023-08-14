@@ -106,6 +106,9 @@ public class VendorDashboardController {
 		} catch (ApiRequestException e) {
 			log.error("User is not owner of the product: " + principal.getName());
 			return ResponseEntity.badRequest().body("User is not owner of the product");
+		} catch (UserNotFoundException e) {
+			log.error("User not found: " + principal.getName());
+			return ResponseEntity.badRequest().body("User not found");
 		}
 	}
 
