@@ -53,6 +53,7 @@ create table  if not exists  clicks
     prd_price        decimal(12,2) null,
     prd_stock        int           null,
     prd_updated_at   datetime(6)   null,
+	prd_link		 varchar(255)  null,
 	constraint prd_user_id_match
         foreign key (prd_user_id) references  users (id)
 );

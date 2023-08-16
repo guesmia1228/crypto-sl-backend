@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,6 +37,19 @@ public class ProductService {
 				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
 		List<Product> products = productRepository.findByUser(user);
 		return products;
+	}
+
+	public Optional<Product> getProductByLink(String link) {
+		return productRepository.findByLink(link);
+	}
+
+	public Optional<String> getProductImageByLink(String link) {
+		Optional<Product> optProduct = productRepository.findByLink(link);
+		if (optProduct.isPresent()) {
+			Product product = optProduct.get();
+			return this.getProductImageUrl(product.getId());
+		}
+		return Optional.empty();
 	}
 
 	public Product upsertProduct(long productId, String name, String description, BigDecimal price, int stock,

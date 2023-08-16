@@ -48,4 +48,7 @@ public class Product {
 
 	@Column(name = "prd_updated_at")
 	private Timestamp updatedAt;
+
+	@Column(name = "prd_link")
+	private String link;
 }
