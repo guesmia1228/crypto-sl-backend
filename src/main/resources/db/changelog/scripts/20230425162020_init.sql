@@ -145,35 +145,50 @@ create table  if not exists  clicks
         foreign key (user_id) references  users (id)
 );
 
- create table if not exists tra_transaction
-(
-    tra_id             bigint auto_increment
-        primary key,
-    tra_created_at     datetime(6)   null,
-    tra_payment_method varchar(255)  null,
-    tra_total_price    decimal(12,2) null,
-    tra_user_id        bigint        null,
-    constraint FKl7b0rhm4c4thxmwan7ftbwoj2
-        foreign key (tra_user_id) references  users (id)
-);
-
  create table if not exists ord_order
 (
     ord_id             bigint auto_increment
         primary key,
-    ord_billing_email  varchar(255)  null,
     ord_created_at     datetime(6)   null,
-    ord_date           date          null,
-    ord_earnings       decimal(12,8) null,
+	ord_finished_at    datetime(6)   null,
+	ord_updated_at     datetime(6)   null,
     ord_quantity       int           null,
-    ord_time           time          null,
-    ord_transaction_id bigint        null,
-    ord_updated_at     datetime(6)   null,
+	ord_total_price    decimal(12,2) null,
     ord_product_id     bigint        null,
+	ord_seller_id      bigint        null,
+	ord_currency       varchar(255)  null,
+	ord_stablecoin	   varchar(255)  null,
+	ord_status         varchar(255)  null,
     constraint FK633expfjam6i63rxdi6gbc3sa
         foreign key (ord_product_id) references  prd_product (prd_id),
-    constraint FKtqbdgy9bddjrivf868bncuf2n
-        foreign key (ord_transaction_id) references  tra_transaction (tra_id)
+	constraint seller_id_match
+		foreign key (ord_seller_id) references  users (id)
+);
+
+ create table if not exists tra_transaction
+(
+    tra_id             bigint auto_increment
+        primary key,
+	tra_order_id	      bigint        null,
+	tra_contract_address  varchar(255)  null,
+	tra_blockchain	      varchar(255)  null,
+	tra_status		      varchar(255)  null,
+	tra_gas_price	      bigint        null,
+	tra_gas_used	      bigint        null,
+	tra_currency_value    bigint  	    null,
+	tra_seller_address    varchar(255)  null,
+	tra_affiliate_address varchar(255)  null,
+	tra_broker_address	  varchar(255)  null,
+	tra_leader_address    varchar(255)  null,
+	tra_buyer_address     varchar(255)  null,
+	tra_seller_amount	  bigint        null,
+	tra_affiliate_amount  bigint        null,
+	tra_broker_amount	  bigint        null,
+	tra_leader_amount	  bigint        null,
+	tra_owner_amount	  bigint        null,
+	tra_swapped_amount	  bigint        null,
+    constraint order_id_match
+        foreign key (tra_order_id) references  ord_order (ord_id)
 );
 
  create table if not exists prv_provision

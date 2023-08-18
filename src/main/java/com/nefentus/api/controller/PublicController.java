@@ -1,5 +1,7 @@
 package com.nefentus.api.controller;
 
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nefentus.api.Services.ProductService;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
+import com.nefentus.api.payload.request.AddOrderRequest;
+import com.nefentus.api.payload.request.SendCryptoRequest;
 import com.nefentus.api.repositories.ProductRepository;
 import com.nefentus.api.repositories.UserRepository;
 
@@ -31,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PublicController {
 	private ProductService productService;
+	private TransactionService transactionService;
 	@Autowired
 	private UserService userService;
 
@@ -50,5 +55,17 @@ public class PublicController {
 	public ResponseEntity<?> getHierarchy(@PathVariable long userId) {
 		log.info("Get hierarchy");
 		return ResponseEntity.ok(userService.getParentWalletAddresses(userId));
+	}
+
+	@PostMapping("/transaction")
+	public ResponseEntity<?> newTransaction(@RequestBody AddOrderRequest request, Principal principal) {
+		// TODO: How to check validity of the request?
+		log.info("Add a new transaction");
+		try {
+			return ResponseEntity.ok(transactionService.addTransaction(request));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.badRequest().build();
 	}
 }

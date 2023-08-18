@@ -30,6 +30,7 @@ import com.nefentus.api.payload.request.UpsertProductRequest;
 import com.nefentus.api.payload.response.MessageResponse;
 import com.nefentus.api.payload.request.DeleteProductRequest;
 import com.nefentus.api.repositories.UserRepository;
+import com.nefentus.api.repositories.OrderRepository;
 import com.nefentus.api.repositories.ProductRepository;
 import com.nefentus.api.entities.Product;
 
@@ -45,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public class VendorDashboardController {
 	private UserRepository userRepository;
 	private ProductRepository productRepository;
+	private OrderRepository orderRepository;
 	private ProductService productService;
 	UserService userService;
 	TransactionService transactionService;
@@ -162,5 +164,11 @@ public class VendorDashboardController {
 	public ResponseEntity<?> getProductImage(@PathVariable long productId) {
 		log.info("Vendor get product image");
 		return ResponseEntity.ok(productService.getProductImageUrl(productId));
+	}
+
+	@GetMapping("/orders")
+	public ResponseEntity<?> getOrders(Principal principal) {
+		log.info("Vendor get orders");
+		return ResponseEntity.ok(orderRepository.findAllBySellerEmail(principal.getName()));
 	}
 }
