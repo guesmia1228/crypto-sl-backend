@@ -17,10 +17,14 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nefentus.api.Services.InvoiceService;
 import com.nefentus.api.Services.ProductService;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
+import com.nefentus.api.Services.WalletService;
+import com.nefentus.api.Services.Web3Service;
 import com.nefentus.api.payload.request.AddOrderRequest;
+import com.nefentus.api.payload.request.MakePaymentRequest;
 import com.nefentus.api.payload.request.SendCryptoRequest;
 import com.nefentus.api.repositories.ProductRepository;
 import com.nefentus.api.repositories.UserRepository;
@@ -37,6 +41,7 @@ public class PublicController {
 	private ProductService productService;
 	private TransactionService transactionService;
 	private InvoiceService invoiceService;
+	private Web3Service web3Service;
 	@Autowired
 	private UserService userService;
 
@@ -74,5 +79,17 @@ public class PublicController {
 	public ResponseEntity<?> getHierarchy(@PathVariable String invoiceLink) {
 		log.info("Get invoice");
 		return ResponseEntity.ok(invoiceService.getInvoice(invoiceLink));
+	}
+
+	@PostMapping("/payment")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> makePayment(@RequestBody MakePaymentRequest request, Principal principal) {
+		log.info("Make a payment");
+		try {
+			return ResponseEntity.ok(web3Service.makePayment(request, principal.getName()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.badRequest().build();
 	}
 }

@@ -1,7 +1,7 @@
 package com.nefentus.api.entities;
 
 public enum EBlockchain {
-	ETHEREUM("ETHEREUM"),
+	ETHEREUM("ETH"),
 	BSC("BSC");
 
 	public final String label;

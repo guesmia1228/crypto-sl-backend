@@ -58,7 +58,7 @@ public class UserService {
 	private final KycImageRepository kycImageRepository;
 	private final TransactionService transactionService;
 	private final HierarchyRepository hierarchyRepository;
-	private final WalletService walletService;
+	private final WalletRepository walletRepository;
 	@Autowired
 	private S3Service s3Service;
 
@@ -270,53 +270,6 @@ public class UserService {
 					return response;
 				})
 				.collect(Collectors.toList());
-	}
-
-	public ParentWalletAddresses getParentWalletAddresses(long userId) {
-		ParentWalletAddresses addresses = new ParentWalletAddresses();
-
-		// Find seller address
-		Optional<User> optUser = userRepository.findById(userId);
-		if (optUser.isPresent()) {
-			List<Wallet> wallets = walletService.getWallets(optUser.get());
-			addresses.setSellerAddress("0x" + wallets.get(0).getAddress());
-		}
-
-		// Find affiliate, broker, and leader
-		Optional<User> optParent = hierarchyRepository.findParentByChildId(userId);
-		while (optParent.isPresent()) {
-			User parent = optParent.get();
-			List<Wallet> wallets = walletService.getWallets(parent);
-
-			Set<Role> roles = parent.getRoles();
-			for (Role role : roles) {
-				switch (role.getName()) {
-					case ROLE_AFFILIATE:
-						if (addresses.getAffiliateAddress() == null)
-							addresses.setAffiliateAddress("0x" + wallets.get(0).getAddress());
-						break;
-					case ROLE_AFFILIATE_VENDOR:
-						if (addresses.getAffiliateAddress() == null)
-							addresses.setAffiliateAddress("0x" + wallets.get(0).getAddress());
-						break;
-					case ROLE_BROKER:
-						if (addresses.getBrokerAddress() == null)
-							addresses.setBrokerAddress("0x" + wallets.get(0).getAddress());
-						break;
-					case ROLE_IB_LEADER:
-						if (addresses.getLeaderAddress() == null)
-							addresses.setLeaderAddress("0x" + wallets.get(0).getAddress());
-						break;
-					default:
-						break;
-				}
-			}
-
-			// Get the new parent
-			optParent = hierarchyRepository.findParentByChildId(parent.getId());
-		}
-
-		return addresses;
 	}
 
 	public Long countUsers() {
@@ -910,4 +863,50 @@ public class UserService {
 		return roles;
 	}
 
+	public ParentWalletAddresses getParentWalletAddresses(long userId) {
+		ParentWalletAddresses addresses = new ParentWalletAddresses();
+
+		// Find seller address
+		Optional<User> optUser = userRepository.findById(userId);
+		if (optUser.isPresent()) {
+			List<Wallet> wallets = walletRepository.findByOwner(optUser.get());
+			addresses.setSellerAddress("0x" + wallets.get(0).getAddress());
+		}
+
+		// Find affiliate, broker, and leader
+		Optional<User> optParent = hierarchyRepository.findParentByChildId(userId);
+		while (optParent.isPresent()) {
+			User parent = optParent.get();
+			List<Wallet> wallets = walletRepository.findByOwner(parent);
+
+			Set<Role> roles = parent.getRoles();
+			for (Role role : roles) {
+				switch (role.getName()) {
+					case ROLE_AFFILIATE:
+						if (addresses.getAffiliateAddress() == null)
+							addresses.setAffiliateAddress("0x" + wallets.get(0).getAddress());
+						break;
+					case ROLE_AFFILIATE_VENDOR:
+						if (addresses.getAffiliateAddress() == null)
+							addresses.setAffiliateAddress("0x" + wallets.get(0).getAddress());
+						break;
+					case ROLE_BROKER:
+						if (addresses.getBrokerAddress() == null)
+							addresses.setBrokerAddress("0x" + wallets.get(0).getAddress());
+						break;
+					case ROLE_IB_LEADER:
+						if (addresses.getLeaderAddress() == null)
+							addresses.setLeaderAddress("0x" + wallets.get(0).getAddress());
+						break;
+					default:
+						break;
+				}
+			}
+
+			// Get the new parent
+			optParent = hierarchyRepository.findParentByChildId(parent.getId());
+		}
+
+		return addresses;
+	}
 }

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.nefentus.api.entities.Role;
 import com.nefentus.api.entities.Wallet;
 import com.nefentus.api.Errors.UserAlreadyExistsException;
 import com.nefentus.api.repositories.WalletRepository;
@@ -36,11 +37,13 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
 
 import com.nefentus.api.security.Encrypt;
 import com.nefentus.api.payload.request.SendCryptoRequest;
+import com.nefentus.api.payload.response.ParentWalletAddresses;
 
 @Service
 @RequiredArgsConstructor
