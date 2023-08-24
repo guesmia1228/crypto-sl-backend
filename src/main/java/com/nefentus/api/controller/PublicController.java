@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PublicController {
 	private ProductService productService;
 	private TransactionService transactionService;
+	private InvoiceService invoiceService;
 	@Autowired
 	private UserService userService;
 
@@ -67,5 +68,11 @@ public class PublicController {
 			e.printStackTrace();
 		}
 		return ResponseEntity.badRequest().build();
+	}
+
+	@GetMapping("/invoice/{invoiceLink}")
+	public ResponseEntity<?> getHierarchy(@PathVariable String invoiceLink) {
+		log.info("Get invoice");
+		return ResponseEntity.ok(invoiceService.getInvoice(invoiceLink));
 	}
 }

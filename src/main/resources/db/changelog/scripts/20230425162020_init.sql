@@ -145,6 +145,21 @@ create table  if not exists  clicks
         foreign key (user_id) references  users (id)
 );
 
+ create table if not exists inv_invoice
+(
+    inv_id             bigint auto_increment 
+	    primary key,
+	inv_link           varchar(63)    null,
+    inv_created_at     datetime(6)    null,
+	inv_paid_at        datetime(6)    null,
+	inv_price          decimal(12, 2) null,
+	inv_user_id        bigint         null,
+    constraint unique_inv_link
+        unique (inv_link),
+    constraint inv_user_id_match
+		foreign key (inv_user_id) references  users (id)
+);
+
  create table if not exists ord_order
 (
     ord_id             bigint auto_increment
@@ -155,12 +170,15 @@ create table  if not exists  clicks
     ord_quantity       int           null,
 	ord_total_price    decimal(12,2) null,
     ord_product_id     bigint        null,
+	ord_invoice_id     bigint        null,
 	ord_seller_id      bigint        null,
 	ord_currency       varchar(255)  null,
 	ord_stablecoin	   varchar(255)  null,
 	ord_status         varchar(255)  null,
-    constraint FK633expfjam6i63rxdi6gbc3sa
+    constraint ord_product_id_match
         foreign key (ord_product_id) references  prd_product (prd_id),
+	constraint ord_invoice_id_match
+        foreign key (ord_invoice_id) references  inv_invoice (inv_id),
 	constraint seller_id_match
 		foreign key (ord_seller_id) references  users (id)
 );

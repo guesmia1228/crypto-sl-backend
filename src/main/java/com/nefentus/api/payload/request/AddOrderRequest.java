@@ -6,16 +6,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Map;
-import java.util.Set;
 
-import com.nefentus.api.entities.Product;
+import com.nefentus.api.entities.User;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class AddOrderRequest {
-	private Product product;
+	private long productId;
+	private long invoiceId;
+	private User seller;
 	private Map<String, Object> transactionInfo;
 	private String buyerAddress;
 }

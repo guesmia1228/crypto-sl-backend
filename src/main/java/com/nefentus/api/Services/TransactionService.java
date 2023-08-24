@@ -3,12 +3,15 @@ package com.nefentus.api.Services;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.entities.EBlockchain;
 import com.nefentus.api.entities.Hierarchy;
+import com.nefentus.api.entities.Invoice;
 import com.nefentus.api.entities.Order;
+import com.nefentus.api.entities.Product;
 import com.nefentus.api.entities.Transaction;
 import com.nefentus.api.entities.User;
 import com.nefentus.api.payload.request.AddOrderRequest;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
 import com.nefentus.api.repositories.HierarchyRepository;
+import com.nefentus.api.repositories.InvoiceRepository;
 import com.nefentus.api.repositories.OrderRepository;
 import com.nefentus.api.repositories.ProductRepository;
 import com.nefentus.api.repositories.TransactionRepository;
@@ -35,6 +38,7 @@ public class TransactionService {
 
 	private TransactionRepository transactionRepository;
 	private ProductRepository productRepository;
+	private InvoiceRepository invoiceRepository;
 	private OrderRepository orderRepository;
 	private UserRepository userRepository;
 	private HierarchyRepository hierarchyRepository;
@@ -61,8 +65,11 @@ public class TransactionService {
 		order.setTotalPrice(new BigDecimal(transactionInfo.get("totalPrice").toString()));
 
 		// Not every order contains a product!!!
-		order.setProduct(request.getProduct());
-		order.setSeller(request.getProduct().getUser());
+		Optional<Product> optProduct = productRepository.findById(request.getProductId());
+		order.setProduct(optProduct.isPresent() ? optProduct.get() : null);
+		Optional<Invoice> optInvoice = invoiceRepository.findById(request.getInvoiceId());
+		order.setInvoice(optInvoice.isPresent() ? optInvoice.get() : null);
+		order.setSeller(request.getSeller());
 
 		String currencyAddress = transactionInfo.get("currencyAddress") != null
 				? transactionInfo.get("currencyAddress").toString()

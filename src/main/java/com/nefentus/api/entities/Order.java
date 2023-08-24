@@ -41,6 +41,10 @@ public class Order {
 	private Product product;
 
 	@ManyToOne
+	@JoinColumn(name = "ord_invoice_id", referencedColumnName = "inv_id")
+	private Invoice invoice;
+
+	@ManyToOne
 	@JoinColumn(name = "ord_seller_id", referencedColumnName = "id")
 	private User seller;
 

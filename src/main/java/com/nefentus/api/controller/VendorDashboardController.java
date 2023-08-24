@@ -3,6 +3,7 @@ package com.nefentus.api.controller;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -25,9 +26,11 @@ import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.Services.ProductService;
+import com.nefentus.api.Services.InvoiceService;
 import com.nefentus.api.entities.User;
 import com.nefentus.api.payload.request.UpsertProductRequest;
 import com.nefentus.api.payload.response.MessageResponse;
+import com.nefentus.api.payload.request.CreateInvoiceRequest;
 import com.nefentus.api.payload.request.DeleteProductRequest;
 import com.nefentus.api.repositories.UserRepository;
 import com.nefentus.api.repositories.OrderRepository;
@@ -50,6 +53,7 @@ public class VendorDashboardController {
 	private ProductService productService;
 	UserService userService;
 	TransactionService transactionService;
+	InvoiceService invoiceService;
 
 	@GetMapping("/")
 	public ResponseEntity<?> checkPermission() {
@@ -170,5 +174,16 @@ public class VendorDashboardController {
 	public ResponseEntity<?> getOrders(Principal principal) {
 		log.info("Vendor get orders");
 		return ResponseEntity.ok(orderRepository.findAllBySellerEmail(principal.getName()));
+	}
+
+	@PostMapping("/invoice")
+	public ResponseEntity<?> createInvoice(@RequestBody CreateInvoiceRequest request,
+			Principal principal) {
+		log.info("Create an invoice");
+		try {
+			return ResponseEntity.ok(invoiceService.createInvoice(request, principal.getName()));
+		} catch (NoSuchElementException e) {
+			return ResponseEntity.badRequest().build();
+		}
 	}
 }
