@@ -43,11 +43,23 @@ metadata:
   labels:
     app: nefentus-app
   annotations:
-    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    # Note that the backend talks over HTTP.
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    # TODO: Fill in with the ARN of your certificate.
+    service.beta.kubernetes.io/aws-load-balancer-tls-cert: arn:aws:acm:eu-central-1:119850375808:certificate/35147b3a-027f-447a-833d-e807036ddfbb
+    # Only run TLS on the port named "https" below.
+    service.beta.kubernetes.io/aws-load-balancer-tls-ports: "https"
+    # By default In-tree controller will create a Classic LoadBalancer if you require a NLB uncomment below annotation.
+    # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: nefentus-app
   ports:
-  - port: 80
-    targetPort: 8080
+    - name: http
+      port: 80
+      targetPort: 8080
+    - name: https
+      port: 443
+      targetPort: 8080
+
