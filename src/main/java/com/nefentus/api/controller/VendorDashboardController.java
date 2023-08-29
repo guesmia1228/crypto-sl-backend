@@ -3,6 +3,8 @@ package com.nefentus.api.controller;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -29,6 +31,7 @@ import com.nefentus.api.Services.ProductService;
 import com.nefentus.api.Services.InvoiceService;
 import com.nefentus.api.entities.User;
 import com.nefentus.api.payload.request.UpsertProductRequest;
+import com.nefentus.api.payload.response.DashboardNumberResponse;
 import com.nefentus.api.payload.response.MessageResponse;
 import com.nefentus.api.payload.request.CreateInvoiceRequest;
 import com.nefentus.api.payload.request.DeleteProductRequest;
@@ -61,32 +64,34 @@ public class VendorDashboardController {
 		return ResponseEntity.ok("permission granted!");
 	}
 
-	@GetMapping("/income")
+	@GetMapping("/sales")
 	public ResponseEntity<?> getTotalIncome(Principal principal) {
 		log.info("Vendor request to get total income! ");
 		log.info(principal.getName());
 
-		Optional<User> optUser = userRepository.findUserByEmail(principal.getName());
-		if (optUser.isEmpty()) {
-			log.error("User not found: " + principal.getName());
+		try {
+			Map<String, DashboardNumberResponse> result = new HashMap<>();
+			result.put("total", transactionService.calculateTotalIncome(principal.getName()));
+			result.put("last30Days", transactionService.calculateIncomeLast30Days(principal.getName()));
+			result.put("last24Hours", transactionService.calculateIncomeLast24Hours(principal.getName()));
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			e.printStackTrace();
 			return ResponseEntity.badRequest().body("User not found");
 		}
-
-		return ResponseEntity.ok(transactionService.calculateTotalIncomeForUser(optUser.get()));
 	}
 
-	@GetMapping("/incomeLast30Days")
-	public ResponseEntity<?> getIncomeLast30Days(Principal principal) {
-		log.info("Vendor request to get total income per day! ");
+	@GetMapping("/numOrders")
+	public ResponseEntity<?> getNumOrders(Principal principal) {
+		log.info("Vendor request to get total income! ");
 		log.info(principal.getName());
 
-		Optional<User> optUser = userRepository.findUserByEmail(principal.getName());
-		if (optUser.isEmpty()) {
-			log.error("User not found: " + principal.getName());
+		try {
+			return ResponseEntity.ok(transactionService.getNumberOfOrders(principal.getName()));
+		} catch (Exception e) {
+			e.printStackTrace();
 			return ResponseEntity.badRequest().body("User not found");
 		}
-
-		return ResponseEntity.ok(transactionService.calculateIncomeForUserLast30Days(optUser.get()));
 	}
 
 	@GetMapping("/products")

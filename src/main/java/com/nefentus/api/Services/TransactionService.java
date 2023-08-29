@@ -20,6 +20,7 @@ import com.nefentus.api.Services.Web3Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 
 @Service
@@ -176,26 +178,103 @@ public class TransactionService {
 		return totalIncomeDto;
 	}
 
-	public DashboardNumberResponse calculateTotalIncome(String email) throws UserNotFoundException {
-		Optional<User> optUser = userRepository.findUserByEmail(email);
-
+	public DashboardNumberResponse calculateTotalIncome(String userEmail) throws UserNotFoundException {
+		Optional<User> optUser = userRepository.findUserByEmail(userEmail);
 		if (optUser.isEmpty()) {
-			log.error("User not found");
-			throw new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST);
+			log.error("User not found ");
+			throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
 		}
-		var user = optUser.get();
+		User user = optUser.get();
+
 		BigDecimal totalIncome = calculateTotalIncomeForUser(user);
 		BigDecimal lastMonthTotalIncome = calculateIncomeForUserLast30Days(user);
-		BigDecimal last30 = totalIncome.subtract(lastMonthTotalIncome);
-		BigDecimal percentageIncrease = last30.compareTo(BigDecimal.valueOf(0)) == 0 ? totalIncome
-				: (lastMonthTotalIncome.subtract(last30)).divide(last30).multiply(BigDecimal.valueOf(100));
+		BigDecimal beforeIncome = totalIncome.subtract(lastMonthTotalIncome);
+		BigDecimal percentageIncrease = beforeIncome.compareTo(BigDecimal.valueOf(0)) == 0 ? null
+				: (lastMonthTotalIncome.subtract(beforeIncome)).divide(beforeIncome, 4, RoundingMode.HALF_UP)
+						.multiply(BigDecimal.valueOf(100));
 
 		DashboardNumberResponse totalIncomeDto = new DashboardNumberResponse();
 		totalIncomeDto.setNumber(totalIncome);
 		totalIncomeDto.setPercentage(percentageIncrease);
 		log.info("Successful calculateTotalIncome for user= {} ", user.getEmail());
 		return totalIncomeDto;
+	}
 
+	public DashboardNumberResponse calculateIncomeLast30Days(String userEmail) throws UserNotFoundException {
+		Optional<User> optUser = userRepository.findUserByEmail(userEmail);
+		if (optUser.isEmpty()) {
+			log.error("User not found ");
+			throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
+		}
+		User user = optUser.get();
+
+		BigDecimal last30Days = calculateIncomeForUserLast30Days(user);
+		BigDecimal beforeIncome = calculateIncomeForUserBetween(user, 60, 30);
+		BigDecimal percentageIncrease = beforeIncome.compareTo(BigDecimal.valueOf(0)) == 0 ? null
+				: (last30Days.subtract(beforeIncome)).divide(beforeIncome, 4, RoundingMode.HALF_UP)
+						.multiply(BigDecimal.valueOf(100));
+
+		DashboardNumberResponse incomeLast30Days = new DashboardNumberResponse();
+		incomeLast30Days.setNumber(last30Days);
+		incomeLast30Days.setPercentage(percentageIncrease);
+		log.info("Successful calculateIncomeLast30Days for user= {} ", user.getEmail());
+		return incomeLast30Days;
+	}
+
+	public DashboardNumberResponse calculateIncomeLast24Hours(String userEmail) throws UserNotFoundException {
+		Optional<User> optUser = userRepository.findUserByEmail(userEmail);
+		if (optUser.isEmpty()) {
+			log.error("User not found ");
+			throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
+		}
+		User user = optUser.get();
+
+		BigDecimal last30Days = calculateIncomeForUserBetween(user, 1, 0);
+		BigDecimal beforeIncome = calculateIncomeForUserBetween(user, 2, 1);
+		BigDecimal percentageIncrease = beforeIncome.compareTo(BigDecimal.valueOf(0)) == 0 ? null
+				: (last30Days.subtract(beforeIncome)).divide(beforeIncome, 4, RoundingMode.HALF_UP)
+						.multiply(BigDecimal.valueOf(100));
+
+		DashboardNumberResponse incomeLast24Hours = new DashboardNumberResponse();
+		incomeLast24Hours.setNumber(last30Days);
+		incomeLast24Hours.setPercentage(percentageIncrease);
+		log.info("Successful calculateIncomeLast24Hours for user= {} ", user.getEmail());
+		return incomeLast24Hours;
+	}
+
+	public DashboardNumberResponse getNumberOfOrders(String userEmail) {
+		int numberOfOrders = this.getNumberOfOrdersForUser(userEmail);
+		int numberOfOrdersThisMonth = this.getNumberOfOrdersForUserBetween(userEmail, 30, 0);
+		int numberOfOrdersBefore = numberOfOrders - numberOfOrdersThisMonth;
+		BigDecimal percentageIncrease = numberOfOrdersBefore == 0 ? null
+				: BigDecimal.valueOf(((numberOfOrders - numberOfOrdersBefore) / numberOfOrdersBefore) * 100.0);
+
+		DashboardNumberResponse ret = new DashboardNumberResponse();
+		ret.setNumber(BigDecimal.valueOf(numberOfOrders));
+		ret.setPercentage(percentageIncrease);
+		log.info("Successful getNumberOfOrders for user= {} ", userEmail);
+		return ret;
+	}
+
+	public int getNumberOfOrdersForUser(String email) {
+		List<Order> orders = orderRepository.findAllBySellerEmail(email);
+		return orders.size();
+	}
+
+	public int getNumberOfOrdersForUserBetween(String email, int daysStart, int daysEnd) {
+		List<Order> orders = orderRepository.findAllBySellerEmail(email);
+		int numberOfOrders = 0;
+
+		LocalDateTime start = LocalDateTime.now().minusDays(daysStart);
+		LocalDateTime end = LocalDateTime.now().minusDays(daysEnd);
+
+		for (Order order : orders) {
+			LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
+			if (createdAt.isAfter(start) && createdAt.isBefore(end)) {
+				numberOfOrders++;
+			}
+		}
+		return numberOfOrders;
 	}
 
 	public BigDecimal getTotalPriceByEmail(String email) {
@@ -229,12 +308,29 @@ public class TransactionService {
 	}
 
 	public BigDecimal calculateIncomeForUserLast30Days(User user) {
+		return calculateIncomeForUserBetween(user, 30, 0);
+	}
+
+	/**
+	 * Calculate the income in the past between daysStart before now and daysEnd
+	 * before now.
+	 * 
+	 * @param user      The user to calculate the income for
+	 * @param daysStart The number of days before now to start calculating the
+	 *                  income
+	 * @param daysEnd   The number of days before now to end calculating the income
+	 * @return
+	 */
+	public BigDecimal calculateIncomeForUserBetween(User user, int daysStart, int daysEnd) {
 		BigDecimal totalIncome = new BigDecimal(0);
+
+		LocalDateTime start = LocalDateTime.now().minusDays(daysStart);
+		LocalDateTime end = LocalDateTime.now().minusDays(daysEnd);
 
 		// Calculate the total income for the user's transactions
 		for (Order order : user.getOrders()) {
 			LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
-			if (createdAt.isAfter(LocalDateTime.now().minusDays(30))) {
+			if (createdAt.isAfter(start) && createdAt.isBefore(end)) {
 				totalIncome = totalIncome.add(order.getTotalPrice());
 			}
 		}
@@ -242,7 +338,7 @@ public class TransactionService {
 		var hierarchys = hierarchyRepository.findAllByParent(user);
 
 		for (Hierarchy hierarchy : hierarchys) {
-			BigDecimal childIncome = calculateTotalIncomeForUser(hierarchy.getChild())
+			BigDecimal childIncome = calculateIncomeForUserLast30Days(hierarchy.getChild())
 					.multiply(hierarchy.getCommissionRate());
 			totalIncome = totalIncome.add(childIncome);
 		}
