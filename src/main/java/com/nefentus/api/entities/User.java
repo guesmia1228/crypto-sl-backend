@@ -1,6 +1,7 @@
 package com.nefentus.api.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
@@ -78,7 +79,8 @@ public class User {
 	@JsonIgnore
 	private String secret;
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "id")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "seller", cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Set<Order> orders = new HashSet<>();
 
 	@Lob

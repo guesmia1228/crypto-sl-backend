@@ -9,6 +9,8 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -46,6 +48,7 @@ public class Order {
 
 	@ManyToOne
 	@JoinColumn(name = "ord_seller_id", referencedColumnName = "id")
+	@JsonBackReference
 	private User seller;
 
 	@Column(name = "ord_currency")
