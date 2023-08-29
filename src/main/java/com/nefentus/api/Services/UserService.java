@@ -863,7 +863,7 @@ public class UserService {
 		return roles;
 	}
 
-	public ParentWalletAddresses getParentWalletAddresses(long userId) {
+	public ParentWalletAddresses getParentWalletAddresses(long userId) throws UserNotFoundException {
 		ParentWalletAddresses addresses = new ParentWalletAddresses();
 
 		// Find seller address
@@ -871,6 +871,8 @@ public class UserService {
 		if (optUser.isPresent()) {
 			List<Wallet> wallets = walletRepository.findByOwner(optUser.get());
 			addresses.setSellerAddress("0x" + wallets.get(0).getAddress());
+		} else {
+			throw new UserNotFoundException("User with id " + userId + " not found", HttpStatus.BAD_REQUEST);
 		}
 
 		// Find affiliate, broker, and leader

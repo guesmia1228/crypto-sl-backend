@@ -423,7 +423,8 @@ public class Web3Service {
 		}
 	}
 
-	public boolean makePayment(MakePaymentRequest request, String username) throws WalletNotFoundException {
+	public boolean makePayment(MakePaymentRequest request, String username)
+			throws WalletNotFoundException, UserNotFoundException {
 
 		// Currently, only ETH implemented
 		EBlockchain blockchain = EBlockchain.ETHEREUM;

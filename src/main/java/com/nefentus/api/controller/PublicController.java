@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.InvoiceService;
 import com.nefentus.api.Services.ProductService;
 import com.nefentus.api.Services.TransactionService;
@@ -60,7 +61,12 @@ public class PublicController {
 	@GetMapping("/hierarchy/{userId}")
 	public ResponseEntity<?> getHierarchy(@PathVariable long userId) {
 		log.info("Get hierarchy");
-		return ResponseEntity.ok(userService.getParentWalletAddresses(userId));
+		try {
+			return ResponseEntity.ok(userService.getParentWalletAddresses(userId));
+		} catch (UserNotFoundException e) {
+			log.warn(e.getMessage());
+			return ResponseEntity.badRequest().build();
+		}
 	}
 
 	@PostMapping("/transaction")
