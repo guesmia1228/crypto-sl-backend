@@ -100,7 +100,6 @@ create table  if not exists  clicks
         primary key,
     commission_rate   decimal(7,6) null,
     created_at        datetime(6)  null,
-    relationship_type varchar(255) null,
     child_id          bigint       null,
     parent_id         bigint       null,
     constraint UKr4xgw4cx7ylclubos7f74w55g

@@ -1,7 +1,8 @@
 package com.nefentus.api.entities;
 
 public enum RelationshipType {
-    DIAMOND,
-    GOLD,
-    AFFILIATE
+	LEADER,
+	SENIOR_BROKER,
+	BROKER,
+	AFFILIATE
 }

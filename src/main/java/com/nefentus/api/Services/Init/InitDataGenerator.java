@@ -110,8 +110,8 @@ public class InitDataGenerator implements CommandLineRunner {
 			userRepository.save(admin2);
 		}
 
-		if (userRepository.findByRoleName(ERole.ROLE_DIAMOND_PARTNER).isEmpty()) {
-			var diamondRole = roleRepository.findByName(ERole.ROLE_DIAMOND_PARTNER);
+		if (userRepository.findByRoleName(ERole.ROLE_SENIOR_BROKER).isEmpty()) {
+			var diamondRole = roleRepository.findByName(ERole.ROLE_SENIOR_BROKER);
 			User diamondUser = new User(null,
 					"diamond@example.com",
 					encoder.encode("password"),
@@ -133,7 +133,7 @@ public class InitDataGenerator implements CommandLineRunner {
 					false,
 					"GERMANY");
 
-			var goldRole = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER);
+			var goldRole = roleRepository.findByName(ERole.ROLE_BROKER);
 			User goldUser = new User(null,
 					"gold@example.com",
 					encoder.encode("password"),
@@ -163,10 +163,9 @@ public class InitDataGenerator implements CommandLineRunner {
 			var user1 = userRepository.findUserByEmail("diamond@example.com").get();
 			var user2 = userRepository.findUserByEmail("gold@example.com").get();
 			Hierarchy hierarchy = new Hierarchy();
-			hierarchy.setRelationshipType(RelationshipType.DIAMOND);
 			hierarchy.setChild(user2);
 			hierarchy.setParent(user1);
-			hierarchy.setCommissionRate(new BigDecimal("0.0125"));
+			hierarchy.setCommissionRate(new BigDecimal("0.025"));
 			hierarchy.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
 			hierarchyRepository.save(hierarchy);
 		}

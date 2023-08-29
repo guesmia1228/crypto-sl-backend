@@ -110,25 +110,25 @@ public class UserService {
 		affiliateData.put("percentage", 0);
 		affiliateData.put("count", 0);
 
-		Map<String, Object> diamondData = new HashMap<>();
-		diamondData.put("role", "Senior IB");
-		diamondData.put("percentage", 0);
-		diamondData.put("count", 0);
+		Map<String, Object> seniorIBData = new HashMap<>();
+		seniorIBData.put("role", "Senior IB");
+		seniorIBData.put("percentage", 0);
+		seniorIBData.put("count", 0);
 
-		Map<String, Object> goldData = new HashMap<>();
-		goldData.put("role", "IB");
-		goldData.put("percentage", 0);
-		goldData.put("count", 0);
+		Map<String, Object> brokerData = new HashMap<>();
+		brokerData.put("role", "IB");
+		brokerData.put("percentage", 0);
+		brokerData.put("count", 0);
+
+		Map<String, Object> leaderData = new HashMap<>();
+		leaderData.put("role", "IB Leader");
+		leaderData.put("percentage", 0);
+		leaderData.put("count", 0);
 
 		Map<String, Object> others = new HashMap<>();
 		others.put("role", "Others");
 		others.put("percentage", 0);
 		others.put("count", 0);
-
-		Map<String, Object> ibLeaderData = new HashMap<>();
-		ibLeaderData.put("role", "IB Leader");
-		ibLeaderData.put("percentage", 0);
-		ibLeaderData.put("count", 0);
 
 		int totalUsers = users.size();
 		for (User user : users) {
@@ -142,14 +142,14 @@ public class UserService {
 					case "ROLE_AFFILIATE":
 						affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
 						break;
-					case "ROLE_SENIOR_IB":
-						diamondData.put("count", (Integer) diamondData.get("count") + 1);
+					case "ROLE_SENIOR_BROKER":
+						seniorIBData.put("count", (Integer) seniorIBData.get("count") + 1);
 						break;
-					case "ROLE_IB":
-						goldData.put("count", (Integer) goldData.get("count") + 1);
+					case "ROLE_BROKER":
+						brokerData.put("count", (Integer) brokerData.get("count") + 1);
 						break;
-					case "ROLE_IB_LEADER":
-						ibLeaderData.put("count", (Integer) ibLeaderData.get("count") + 1);
+					case "ROLE_LEADER":
+						leaderData.put("count", (Integer) leaderData.get("count") + 1);
 					default:
 						others.put("count", (Integer) others.get("count") + 1);
 						break;
@@ -162,17 +162,17 @@ public class UserService {
 			log.info("Start process to calculate the total percentages and add the report data to the list! ");
 			vendorData.put("percentage", ((Integer) vendorData.get("count") * 100) / totalUsers);
 			affiliateData.put("percentage", ((Integer) affiliateData.get("count") * 100) / totalUsers);
-			diamondData.put("percentage", ((Integer) diamondData.get("count") * 100) / totalUsers);
-			goldData.put("percentage", ((Integer) goldData.get("count") * 100) / totalUsers);
+			seniorIBData.put("percentage", ((Integer) seniorIBData.get("count") * 100) / totalUsers);
+			brokerData.put("percentage", ((Integer) brokerData.get("count") * 100) / totalUsers);
 			others.put("percentage", ((Integer) others.get("count") * 100) / totalUsers);
-			ibLeaderData.put("percentage", ((Integer) ibLeaderData.get("count") * 100) / totalUsers);
+			leaderData.put("percentage", ((Integer) leaderData.get("count") * 100) / totalUsers);
 		}
 
 		report.add(vendorData);
 		report.add(affiliateData);
-		report.add(diamondData);
-		report.add(goldData);
-		report.add(ibLeaderData);
+		report.add(seniorIBData);
+		report.add(brokerData);
+		report.add(leaderData);
 		report.add(others);
 		log.info("Successful to make a report with totalUser= {} ", totalUsers);
 		return report;
@@ -192,15 +192,15 @@ public class UserService {
 		affiliateData.put("percentage", 0);
 		affiliateData.put("count", 0);
 
-		Map<String, Object> diamondData = new HashMap<>();
-		diamondData.put("role", "Senior IB");
-		diamondData.put("percentage", 0);
-		diamondData.put("count", 0);
+		Map<String, Object> seniorIBData = new HashMap<>();
+		seniorIBData.put("role", "Senior IB");
+		seniorIBData.put("percentage", 0);
+		seniorIBData.put("count", 0);
 
-		Map<String, Object> goldData = new HashMap<>();
-		goldData.put("role", "IB");
-		goldData.put("percentage", 0);
-		goldData.put("count", 0);
+		Map<String, Object> brokerData = new HashMap<>();
+		brokerData.put("role", "IB");
+		brokerData.put("percentage", 0);
+		brokerData.put("count", 0);
 
 		Map<String, Object> others = new HashMap<>();
 		others.put("role", "Others");
@@ -219,11 +219,11 @@ public class UserService {
 					case "ROLE_AFFILIATE":
 						affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
 						break;
-					case "ROLE_SENIOR_IB":
-						diamondData.put("count", (Integer) diamondData.get("count") + 1);
+					case "ROLE_SENIOR_BROKER":
+						seniorIBData.put("count", (Integer) seniorIBData.get("count") + 1);
 						break;
-					case "ROLE_IB":
-						goldData.put("count", (Integer) goldData.get("count") + 1);
+					case "ROLE_BROKER":
+						brokerData.put("count", (Integer) brokerData.get("count") + 1);
 						break;
 					default:
 						others.put("count", (Integer) others.get("count") + 1);
@@ -236,15 +236,15 @@ public class UserService {
 		if (totalUsers > 0) {
 			vendorData.put("percentage", ((Integer) vendorData.get("count") * 100) / totalUsers);
 			affiliateData.put("percentage", ((Integer) affiliateData.get("count") * 100) / totalUsers);
-			diamondData.put("percentage", ((Integer) diamondData.get("count") * 100) / totalUsers);
-			goldData.put("percentage", ((Integer) goldData.get("count") * 100) / totalUsers);
+			seniorIBData.put("percentage", ((Integer) seniorIBData.get("count") * 100) / totalUsers);
+			brokerData.put("percentage", ((Integer) brokerData.get("count") * 100) / totalUsers);
 			others.put("percentage", ((Integer) others.get("count") * 100) / totalUsers);
 		}
 
 		report.add(vendorData);
 		report.add(affiliateData);
-		report.add(diamondData);
-		report.add(goldData);
+		report.add(seniorIBData);
+		report.add(brokerData);
 		report.add(others);
 		log.info("Successful to make a report with totalUser= {} ", totalUsers);
 		return report;
@@ -349,31 +349,11 @@ public class UserService {
 		user.setProfilePicturepath("");
 		User created = userRepository.save(user);
 
-		boolean hasRoleDiamondPartner = false;
-		for (Role role : user.getRoles()) {
-			if (role.getName() == ERole.ROLE_DIAMOND_PARTNER) {
-				hasRoleDiamondPartner = true;
-				break;
-			}
-		}
-
 		var hierarchy = new Hierarchy();
 		hierarchy.setChild(created);
 		hierarchy.setParent(admin);
-		hierarchy.setRelationshipType(hasRoleDiamondPartner ? RelationshipType.DIAMOND : RelationshipType.GOLD);
 		hierarchy.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-		switch (hierarchy.getRelationshipType()) {
-			case DIAMOND:
-				hierarchy.setCommissionRate(new BigDecimal("0.0125"));
-				break;
-			case GOLD:
-				hierarchy.setCommissionRate(new BigDecimal("0.0125"));
-				break;
-			// add cases for other RelationshipType values as needed
-			default:
-				hierarchy.setCommissionRate(new BigDecimal(0)); // set a default commission rate if no match is found
-		}
-
+		hierarchy.setCommissionRate(CommissionRate.getAccordingToHighestRole(user.getRoles(), admin.getRoles()));
 		var savedHierarchy = hierarchyRepository.save(hierarchy);
 
 		try {
@@ -825,11 +805,7 @@ public class UserService {
 	public Set<Role> setRoles(Set<String> strRoles) {
 
 		Set<Role> roles = new HashSet<>();
-		if (strRoles == null) {
-			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-			roles.add(userRole);
-		} else {
+		if (strRoles != null) {
 			strRoles.forEach(role -> {
 				switch (role) {
 					case "Affiliate" -> {
@@ -837,25 +813,28 @@ public class UserService {
 								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 						roles.add(affRole);
 					}
-					case "Gold-Partner", "Gold Partner", "IB" -> {
-						Role goldP = roleRepository.findByName(ERole.ROLE_GOLD_PARTNER)
+					case "Gold-Partner", "Gold Partner", "IB", "Broker" -> {
+						Role broker = roleRepository.findByName(ERole.ROLE_BROKER)
 								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-						roles.add(goldP);
+						roles.add(broker);
 					}
-					case "Diamond-Partner", "Diamond Partner", "Senior IB" -> {
-						Role diaP = roleRepository.findByName(ERole.ROLE_DIAMOND_PARTNER)
+					case "Diamond-Partner", "Diamond Partner", "Senior IB", "Senior Broker" -> {
+						Role seniorBroker = roleRepository.findByName(ERole.ROLE_SENIOR_BROKER)
 								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-						roles.add(diaP);
+						roles.add(seniorBroker);
 					}
 					case "IB-Leader", "IB Leader" -> {
-						Role IblP = roleRepository.findByName(ERole.ROLE_IB_LEADER)
+						Role leader = roleRepository.findByName(ERole.ROLE_LEADER)
 								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-						roles.add(IblP);
+						roles.add(leader);
+					}
+					case "Vendor" -> {
+						Role vendor = roleRepository.findByName(ERole.ROLE_VENDOR)
+								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+						roles.add(vendor);
 					}
 					default -> {
-						Role userRole = roleRepository.findByName(ERole.ROLE_VENDOR)
-								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-						roles.add(userRole);
+						log.error("Error: Role {} is not found.", role);
 					}
 				}
 			});
@@ -888,15 +867,15 @@ public class UserService {
 						if (addresses.getAffiliateAddress() == null)
 							addresses.setAffiliateAddress("0x" + wallets.get(0).getAddress());
 						break;
-					case ROLE_AFFILIATE_VENDOR:
-						if (addresses.getAffiliateAddress() == null)
-							addresses.setAffiliateAddress("0x" + wallets.get(0).getAddress());
-						break;
 					case ROLE_BROKER:
 						if (addresses.getBrokerAddress() == null)
 							addresses.setBrokerAddress("0x" + wallets.get(0).getAddress());
 						break;
-					case ROLE_IB_LEADER:
+					case ROLE_SENIOR_BROKER:
+						if (addresses.getSeniorBrokerAddress() == null)
+							addresses.setSeniorBrokerAddress("0x" + wallets.get(0).getAddress());
+						break;
+					case ROLE_LEADER:
 						if (addresses.getLeaderAddress() == null)
 							addresses.setLeaderAddress("0x" + wallets.get(0).getAddress());
 						break;

@@ -31,10 +31,6 @@ public class Hierarchy {
 	@JoinColumn(name = "child_id")
 	private User child;
 
-	@Column(name = "relationship_type")
-	@Enumerated(EnumType.STRING)
-	private RelationshipType relationshipType;
-
 	@Column(name = "commission_rate")
 	private BigDecimal commissionRate;
 
