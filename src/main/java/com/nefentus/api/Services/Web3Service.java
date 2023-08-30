@@ -31,6 +31,7 @@ import com.nefentus.api.entities.Product;
 import com.nefentus.api.entities.User;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Errors.WalletNotFoundException;
+import com.nefentus.api.Errors.InsufficientFundsException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -173,11 +174,13 @@ public class Web3Service {
 	}
 
 	private TransactionResponse transaction(String contractAddress, Function function,
-			String walletAddress, Credentials credentials, BigDecimal amountEther, int gasLimit) {
+			String walletAddress, Credentials credentials, BigDecimal amountEther, int gasLimit)
+			throws InsufficientFundsException {
 		String encodedFunction = FunctionEncoder.encode(function);
 		BigInteger gasPrice = Convert.toWei("20", Convert.Unit.GWEI).toBigInteger();
 
 		TransactionReceipt transactionReceipt = null;
+		EthSendTransaction response = null;
 		long timestampSent = 0;
 		long timestampMined = 0;
 		int tries = 0;
@@ -191,7 +194,7 @@ public class Web3Service {
 				// Create the transaction
 				RawTransactionManager rawTransactionManager = new RawTransactionManager(web3j, credentials, (long) 1);
 				timestampSent = new Date().getTime();
-				EthSendTransaction response = rawTransactionManager.sendTransaction(
+				response = rawTransactionManager.sendTransaction(
 						gasPrice, BigInteger.valueOf(gasLimit),
 						contractAddress, encodedFunction,
 						Convert.toWei(amountEther, Convert.Unit.ETHER).toBigInteger());
@@ -227,6 +230,14 @@ public class Web3Service {
 				}
 			} catch (Exception e) {
 				log.warn("Error calling smart contract (" + function.getName() + "): " + e.getMessage());
+				e.printStackTrace();
+			}
+
+			// Throw here if unsufficient funds
+			if (response != null) {
+				if (response.getError().getMessage().contains("insufficient funds")) {
+					throw new InsufficientFundsException(response.getError().getMessage());
+				}
 			}
 
 			tries += 1;
@@ -266,13 +277,17 @@ public class Web3Service {
 		return new Object[] {};
 	}
 
-	public static List<Map<String, Object>> contractDeposits() {
+	public static ArrayList<Map<String, Object>> contractDeposits() {
 		// Read from JSON using Jackson
 
-		List<Map<String, Object>> ret = new ArrayList<>();
+		ArrayList<Map<String, Object>> ret = new ArrayList<>();
 		ret.add(Map.of(
 				"id", 1,
 				"address", "0xC5a70e940925cBF02F093C8Fb20a7202D7afE2C4",
+				"abi", "SwapAndDistribute1.json"));
+		ret.add(Map.of(
+				"id", 2,
+				"address", "0xd577766dd079c123ce677b8a27f9a01e5f4c9905",
 				"abi", "SwapAndDistribute1.json"));
 		return ret;
 	}
@@ -328,8 +343,15 @@ public class Web3Service {
 		final Function function = new Function("transfer", inputParameters, Collections.emptyList());
 		String encodedFunction = FunctionEncoder.encode(function);
 
-		TransactionResponse response = this.transaction(tokenAddress, function, walletAddress, credentials,
-				new BigDecimal(0), 100000);
+		TransactionResponse response = null;
+		try {
+			this.transaction(tokenAddress, function, walletAddress, credentials,
+					new BigDecimal(0), 100000);
+		} catch (InsufficientFundsException e) {
+			log.error("Insufficient funds: {}", e.getMessage());
+			return false;
+		}
+
 		if (response != null) {
 			return response.receipt.isStatusOK();
 		}
@@ -424,12 +446,13 @@ public class Web3Service {
 	}
 
 	public boolean makePayment(MakePaymentRequest request, String username)
-			throws WalletNotFoundException, UserNotFoundException {
+			throws WalletNotFoundException, UserNotFoundException, InsufficientFundsException {
 
 		// Currently, only ETH implemented
 		EBlockchain blockchain = EBlockchain.ETHEREUM;
 		assert (request.getCurrencyAddress() == null);
-		String contractAddress = (String) Web3Service.contractDeposits().get(0).get("address");
+		ArrayList<Map<String, Object>> contractDeposits = Web3Service.contractDeposits();
+		String contractAddress = (String) contractDeposits.get(contractDeposits.size() - 1).get("address");
 
 		String currencyAddress = request.getCurrencyAddress() != null ? request.getCurrencyAddress()
 				: Web3Service.NATIVE_TOKEN;
@@ -502,6 +525,7 @@ public class Web3Service {
 		inputParameters.add(new Address(hierarchy.getSellerAddress()));
 		inputParameters.add(new Address(this.nullToZeroAddress(hierarchy.getAffiliateAddress())));
 		inputParameters.add(new Address(this.nullToZeroAddress(hierarchy.getBrokerAddress())));
+		inputParameters.add(new Address(this.nullToZeroAddress(hierarchy.getSeniorBrokerAddress())));
 		inputParameters.add(new Address(this.nullToZeroAddress(hierarchy.getLeaderAddress())));
 		inputParameters.add(new Address(request.getStablecoinAddress()));
 
@@ -513,8 +537,13 @@ public class Web3Service {
 
 		final Function function = new Function("deposit", inputParameters, Collections.emptyList());
 
-		TransactionResponse response = this.transaction(contractAddress, function, walletAddress, credentials,
-				amountEther, 300000);
+		TransactionResponse response = null;
+		try {
+			response = this.transaction(contractAddress, function, walletAddress, credentials, amountEther, 300000);
+		} catch (InsufficientFundsException e) {
+			log.error("Insufficient funds: {}", e.getMessage());
+			throw e;
+		}
 
 		if (response != null) {
 			if (response.receipt.isStatusOK()) {
@@ -548,6 +577,7 @@ public class Web3Service {
 		info.put("sellerAddress", hierarchy.getSellerAddress());
 		info.put("affiliateAddress", hierarchy.getAffiliateAddress());
 		info.put("brokerAddress", hierarchy.getBrokerAddress());
+		info.put("seniorBrokerAddress", hierarchy.getSeniorBrokerAddress());
 		info.put("leaderAddress", hierarchy.getLeaderAddress());
 		info.put("currencyAddress", currencyAddress);
 		info.put("stablecoinAddress", stablecoinAddress);
@@ -586,6 +616,8 @@ public class Web3Service {
 						new TypeReference<Uint256>(false) {
 						},
 						new TypeReference<Uint256>(false) {
+						},
+						new TypeReference<Uint256>(false) {
 						}));
 		String DistributeEventHash = EventEncoder.encode(DistributeEvent);
 		for (Log log : receipt.getLogs()) {
@@ -597,12 +629,14 @@ public class Web3Service {
 				BigInteger sellerAmount = new BigInteger(nonIndexedValues.get(0).getValue().toString());
 				BigInteger affiliateAmount = new BigInteger(nonIndexedValues.get(1).getValue().toString());
 				BigInteger brokerAmount = new BigInteger(nonIndexedValues.get(2).getValue().toString());
-				BigInteger leaderAmount = new BigInteger(nonIndexedValues.get(3).getValue().toString());
-				BigInteger ownerAmount = new BigInteger(nonIndexedValues.get(4).getValue().toString());
+				BigInteger seniorBrokerAmount = new BigInteger(nonIndexedValues.get(3).getValue().toString());
+				BigInteger leaderAmount = new BigInteger(nonIndexedValues.get(4).getValue().toString());
+				BigInteger ownerAmount = new BigInteger(nonIndexedValues.get(5).getValue().toString());
 
 				info.put("sellerAmount", sellerAmount);
 				info.put("affiliateAmount", affiliateAmount);
 				info.put("brokerAmount", brokerAmount);
+				info.put("seniorBrokerAmount", seniorBrokerAmount);
 				info.put("leaderAmount", leaderAmount);
 				info.put("ownerAmount", ownerAmount);
 			}
@@ -631,7 +665,7 @@ public class Web3Service {
 
 			if (eventHash.equals(SwapEventHash)) {
 				List<Type> nonIndexedValues = FunctionReturnDecoder.decode(log.getData(),
-						DistributeEvent.getNonIndexedParameters());
+						SwapEvent.getNonIndexedParameters());
 				BigInteger swappedAmount = new BigInteger(nonIndexedValues.get(0).getValue().toString());
 				info.put("swappedAmount", swappedAmount);
 			}

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nefentus.api.Errors.InsufficientFundsException;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.InvoiceService;
 import com.nefentus.api.Services.ProductService;
@@ -93,6 +94,8 @@ public class PublicController {
 		log.info("Make a payment");
 		try {
 			return ResponseEntity.ok(web3Service.makePayment(request, principal.getName()));
+		} catch (InsufficientFundsException e) {
+			return ResponseEntity.status(412).build();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -21,5 +21,6 @@ public class ParentWalletAddresses {
 	private String sellerAddress;
 	private String affiliateAddress;
 	private String brokerAddress;
+	private String seniorBrokerAddress;
 	private String leaderAddress;
 }

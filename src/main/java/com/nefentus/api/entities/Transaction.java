@@ -54,6 +54,9 @@ public class Transaction {
 	@Column(name = "tra_broker_address")
 	private String brokerAddress;
 
+	@Column(name = "tra_senior_broker_address")
+	private String seniorBrokerAddress;
+
 	@Column(name = "tra_leader_address")
 	private String leaderAddress;
 
@@ -68,6 +71,9 @@ public class Transaction {
 
 	@Column(name = "tra_broker_amount")
 	private BigInteger brokerAmount;
+
+	@Column(name = "tra_senior_broker_amount")
+	private BigInteger seniorBrokerAmount;
 
 	@Column(name = "tra_leader_amount")
 	private BigInteger leaderAmount;
