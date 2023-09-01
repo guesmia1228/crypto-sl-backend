@@ -119,6 +119,12 @@ public class Web3Service {
 		return address;
 	}
 
+	private String toChecksumAddress(String address) {
+		if (address == null)
+			return null;
+		return Keys.toChecksumAddress(address);
+	}
+
 	private List<Type> call(String contractAddress, Function function, String walletAddress) {
 		String encodedFunction = FunctionEncoder.encode(function);
 
@@ -574,19 +580,20 @@ public class Web3Service {
 		this.parseReceipt(receipt, info);
 		info.put("timestampSent", timestampSent);
 		info.put("timestampMined", timestampMined);
-		info.put("sellerAddress", hierarchy.getSellerAddress());
-		info.put("affiliateAddress", hierarchy.getAffiliateAddress());
-		info.put("brokerAddress", hierarchy.getBrokerAddress());
-		info.put("seniorBrokerAddress", hierarchy.getSeniorBrokerAddress());
-		info.put("leaderAddress", hierarchy.getLeaderAddress());
-		info.put("currencyAddress", currencyAddress);
-		info.put("stablecoinAddress", stablecoinAddress);
+		info.put("sellerAddress", toChecksumAddress(hierarchy.getSellerAddress()));
+		info.put("affiliateAddress", toChecksumAddress(hierarchy.getAffiliateAddress()));
+		info.put("brokerAddress", toChecksumAddress(hierarchy.getBrokerAddress()));
+		info.put("seniorBrokerAddress", toChecksumAddress(hierarchy.getSeniorBrokerAddress()));
+		info.put("leaderAddress", toChecksumAddress(hierarchy.getLeaderAddress()));
+		info.put("currencyAddress", toChecksumAddress(currencyAddress));
+		info.put("stablecoinAddress", toChecksumAddress(stablecoinAddress));
+		info.put("transactionHash", receipt.getTransactionHash());
 
 		info.put("totalPrice", request.getAmount());
 		info.put("quantity", request.getQuantity());
 
 		results.setTransactionInfo(info);
-		results.setBuyerAddress(buyerAddress);
+		results.setBuyerAddress(toChecksumAddress(buyerAddress));
 		results.setSeller(seller);
 		results.setInvoiceId(request.getInvoiceId());
 		results.setProductId(request.getProductId());
@@ -596,7 +603,7 @@ public class Web3Service {
 
 	private void parseReceipt(TransactionReceipt receipt, Map<String, Object> info) {
 		// Basic info
-		info.put("contractAddress", receipt.getTo());
+		info.put("contractAddress", toChecksumAddress(receipt.getTo()));
 		info.put("status", Numeric.decodeQuantity(receipt.getStatus()).intValue());
 
 		// Gas & value
@@ -666,7 +673,7 @@ public class Web3Service {
 			if (eventHash.equals(SwapEventHash)) {
 				List<Type> nonIndexedValues = FunctionReturnDecoder.decode(log.getData(),
 						SwapEvent.getNonIndexedParameters());
-				BigInteger swappedAmount = new BigInteger(nonIndexedValues.get(0).getValue().toString());
+				BigInteger swappedAmount = new BigInteger(nonIndexedValues.get(1).getValue().toString());
 				info.put("swappedAmount", swappedAmount);
 			}
 		}
