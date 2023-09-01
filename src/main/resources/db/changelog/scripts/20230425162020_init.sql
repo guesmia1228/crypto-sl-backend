@@ -193,12 +193,12 @@ create table  if not exists  clicks
 	tra_gas_price	      bigint        null,
 	tra_gas_used	      bigint        null,
 	tra_currency_value    bigint  	    null,
-	tra_seller_address    varchar(255)  null,
-	tra_affiliate_address varchar(255)  null,
-	tra_broker_address	  varchar(255)  null,
-	tra_senior_broker_address varchar(255) null,
-	tra_leader_address    varchar(255)  null,
-	tra_buyer_address     varchar(255)  null,
+	tra_seller_wallet     bigint        null,
+	tra_affiliate_wallet  bigint        null,
+	tra_broker_wallet	  bigint        null,
+	tra_senior_broker_wallet bigint     null,
+	tra_leader_wallet     bigint        null,
+	tra_buyer_wallet      bigint        null,
 	tra_seller_amount	  bigint        null,
 	tra_affiliate_amount  bigint        null,
 	tra_broker_amount	  bigint        null,
@@ -207,7 +207,19 @@ create table  if not exists  clicks
 	tra_owner_amount	  bigint        null,
 	tra_swapped_amount	  bigint        null,
     constraint order_id_match
-        foreign key (tra_order_id) references  ord_order (ord_id)
+        foreign key (tra_order_id) references  ord_order (ord_id),
+	constraint seller_wallet_match
+		foreign key (tra_seller_wallet) references  wlt_wallet (wlt_id),
+	constraint affiliate_wallet_match
+		foreign key (tra_affiliate_wallet) references  wlt_wallet (wlt_id),
+	constraint broker_wallet_match
+		foreign key (tra_broker_wallet) references  wlt_wallet (wlt_id),
+	constraint senior_broker_wallet_match
+		foreign key (tra_senior_broker_wallet) references  wlt_wallet (wlt_id),
+	constraint leader_wallet_match
+		foreign key (tra_leader_wallet) references  wlt_wallet (wlt_id),
+	constraint buyer_wallet_match
+		foreign key (tra_buyer_wallet) references  wlt_wallet (wlt_id)
 );
 
  create table if not exists prv_provision

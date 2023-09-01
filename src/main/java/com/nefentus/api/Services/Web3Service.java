@@ -283,6 +283,10 @@ public class Web3Service {
 		return new Object[] {};
 	}
 
+	public static Object[] getCurrencyFromAbbr(String currencyAbbr) {
+		return Web3Service.currencyToBlockchain().get(currencyAbbr);
+	}
+
 	public static ArrayList<Map<String, Object>> contractDeposits() {
 		// Read from JSON using Jackson
 

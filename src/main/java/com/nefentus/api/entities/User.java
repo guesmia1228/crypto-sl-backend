@@ -1,6 +1,8 @@
 package com.nefentus.api.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nefentus.api.Errors.UserNotFoundException;
+import com.nefentus.api.repositories.WalletRepository;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -11,7 +13,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Entity
@@ -23,6 +28,8 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
+	private static WalletRepository walletRepository;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -97,4 +104,10 @@ public class User {
 
 	@Column(name = "country")
 	private String country;
+
+	public List<Wallet> getWallets() {
+		List<Wallet> wallets = walletRepository.findByOwner(this);
+
+		return wallets;
+	}
 }

@@ -37,7 +37,7 @@ import com.nefentus.api.payload.request.CreateInvoiceRequest;
 import com.nefentus.api.payload.request.DeleteProductRequest;
 import com.nefentus.api.repositories.UserRepository;
 import com.nefentus.api.repositories.OrderRepository;
-import com.nefentus.api.repositories.ProductRepository;
+import com.nefentus.api.repositories.InvoiceRepository;
 import com.nefentus.api.entities.Product;
 
 import lombok.AllArgsConstructor;
@@ -45,14 +45,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/dashboard/vendor")
-@PreAuthorize("hasAnyRole('VENDOR')")
+@PreAuthorize("hasAnyRole('VENDOR','AFFILIATE','BROKER','SENIOR_BROKER','LEADER','ADMIN')")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @AllArgsConstructor
 @Slf4j
 public class VendorDashboardController {
 	private UserRepository userRepository;
-	private ProductRepository productRepository;
 	private OrderRepository orderRepository;
+	private InvoiceRepository invoiceRepository;
 	private ProductService productService;
 	UserService userService;
 	TransactionService transactionService;
@@ -64,7 +64,7 @@ public class VendorDashboardController {
 		return ResponseEntity.ok("permission granted!");
 	}
 
-	@GetMapping("/sales")
+	@GetMapping("/income")
 	public ResponseEntity<?> getTotalIncome(Principal principal) {
 		log.info("Vendor request to get total income! ");
 		log.info(principal.getName());
@@ -90,6 +90,17 @@ public class VendorDashboardController {
 			return ResponseEntity.ok(transactionService.getNumberOfOrders(principal.getName()));
 		} catch (Exception e) {
 			e.printStackTrace();
+			return ResponseEntity.badRequest().body("User not found");
+		}
+	}
+
+	@GetMapping("/totalIncomesPerDay")
+	public ResponseEntity<?> getTotalIncomesPerDay(Principal principal) {
+		log.info("Admin request to get total income per day! ");
+		try {
+			return ResponseEntity.ok(transactionService.getTotalPriceByDayAsVendor(principal.getName()));
+		} catch (UserNotFoundException e) {
+			log.error("User not found: " + principal.getName());
 			return ResponseEntity.badRequest().body("User not found");
 		}
 	}
@@ -179,6 +190,17 @@ public class VendorDashboardController {
 	public ResponseEntity<?> getOrders(Principal principal) {
 		log.info("Vendor get orders");
 		return ResponseEntity.ok(orderRepository.findAllBySellerEmail(principal.getName()));
+	}
+
+	@GetMapping("/invoices")
+	public ResponseEntity<?> getInvoices(Principal principal) {
+		log.info("Vendor get invoices");
+		Optional<User> optUser = userRepository.findUserByEmail(principal.getName());
+		if (optUser.isEmpty()) {
+			return ResponseEntity.badRequest().body("User not found");
+		}
+
+		return ResponseEntity.ok(invoiceRepository.findByUser(optUser.get()));
 	}
 
 	@PostMapping("/invoice")

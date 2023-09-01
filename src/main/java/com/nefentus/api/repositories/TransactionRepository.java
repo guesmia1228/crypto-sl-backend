@@ -4,8 +4,8 @@ import com.nefentus.api.entities.Transaction;
 import com.nefentus.api.entities.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-	List<Transaction> findAllByOrder(Order order);
+	Optional<Transaction> findByOrder(Order order);
 }

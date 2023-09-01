@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
@@ -19,22 +19,22 @@ public class UserDisplayAdminResponse {
 	private String fullname;
 	private Set<String> roles;
 	private String email;
-	private boolean status;
+	private boolean activated;
 	private BigDecimal Income;
-	private LocalDate joinedOn;
+	private Date createdAt;
 
 	public static UserDisplayAdminResponse fromUser(User user) {
-        UserDisplayAdminResponse response = new UserDisplayAdminResponse();
-        response.setFullname(user.getFirstName() + " " + user.getLastName());
-        response.setRoles(user.getRoles().stream()
-                .map(role -> role.getName().label.replace("ROLE_", "").toLowerCase())
-                .collect(Collectors.toSet()));
-        response.setEmail(user.getEmail());
-        response.setStatus(user.getActive());
-        // Set the income field here based on your business logic
-        response.setIncome(BigDecimal.valueOf(0));
-        response.setJoinedOn(user.getCreatedAt().toLocalDateTime().toLocalDate());
-        return response;
-    }
+		UserDisplayAdminResponse response = new UserDisplayAdminResponse();
+		response.setFullname(user.getFirstName() + " " + user.getLastName());
+		response.setRoles(user.getRoles().stream()
+				.map(role -> role.getName().label.replace("ROLE_", "").replace("_", " ").toLowerCase())
+				.collect(Collectors.toSet()));
+		response.setEmail(user.getEmail());
+		response.setActivated(user.getActive());
+		// Set the income field here based on your business logic
+		response.setIncome(BigDecimal.valueOf(0));
+		response.setCreatedAt(user.getCreatedAt());
+		return response;
+	}
 
 }

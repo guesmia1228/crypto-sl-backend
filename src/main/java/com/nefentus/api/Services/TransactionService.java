@@ -8,6 +8,7 @@ import com.nefentus.api.entities.Order;
 import com.nefentus.api.entities.Product;
 import com.nefentus.api.entities.Transaction;
 import com.nefentus.api.entities.User;
+import com.nefentus.api.entities.Wallet;
 import com.nefentus.api.payload.request.AddOrderRequest;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
 import com.nefentus.api.repositories.HierarchyRepository;
@@ -16,9 +17,11 @@ import com.nefentus.api.repositories.OrderRepository;
 import com.nefentus.api.repositories.ProductRepository;
 import com.nefentus.api.repositories.TransactionRepository;
 import com.nefentus.api.repositories.UserRepository;
+import com.nefentus.api.repositories.WalletRepository;
 import com.nefentus.api.Services.Web3Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,12 +47,24 @@ public class TransactionService {
 	private OrderRepository orderRepository;
 	private UserRepository userRepository;
 	private HierarchyRepository hierarchyRepository;
+	private WalletRepository walletRepository;
+	private WalletService walletService;
 
 	private String toString(Object value) {
 		try {
 			return value.toString();
 		} catch (NullPointerException e) {
 			return null;
+		}
+	}
+
+	private Wallet findOrCreateWallet(String addressWithPrefix) {
+		String address = addressWithPrefix.substring(2);
+		Optional<Wallet> optWallet = walletRepository.findByAddress(address);
+		if (optWallet.isEmpty()) {
+			return walletService.makeWalletsWithAddress(address);
+		} else {
+			return optWallet.get();
 		}
 	}
 
@@ -108,11 +123,12 @@ public class TransactionService {
 		transaction.setGasPrice(new BigInteger(transactionInfo.get("gasPrice").toString()));
 		transaction.setGasUsed(new BigInteger(transactionInfo.get("gasUsed").toString()));
 		transaction.setCurrencyValue(new BigInteger(transactionInfo.get("value").toString()));
-		transaction.setSellerAddress(transactionInfo.get("sellerAddress").toString());
-		transaction.setBuyerAddress(request.getBuyerAddress());
-		transaction.setAffiliateAddress(toString(transactionInfo.get("affiliateAddress")));
-		transaction.setBrokerAddress(toString(transactionInfo.get("brokerAddress")));
-		transaction.setLeaderAddress(toString(transactionInfo.get("leaderAddress")));
+		transaction.setSellerWallet(findOrCreateWallet(transactionInfo.get("sellerAddress").toString()));
+		transaction.setBuyerWallet(findOrCreateWallet(request.getBuyerAddress()));
+		transaction.setAffiliateWallet(findOrCreateWallet(toString(transactionInfo.get("affiliateAddress"))));
+		transaction.setBrokerWallet(findOrCreateWallet(toString(transactionInfo.get("brokerAddress"))));
+		transaction.setSeniorBrokerWallet(findOrCreateWallet(toString(transactionInfo.get("seniorBrokerAddress"))));
+		transaction.setLeaderWallet(findOrCreateWallet(toString(transactionInfo.get("leaderAddress"))));
 		transaction.setSellerAmount(new BigInteger(toString(transactionInfo.get("sellerAmount"))));
 		transaction.setAffiliateAmount(new BigInteger(toString(transactionInfo.get("affiliateAmount"))));
 		transaction.setBrokerAmount(new BigInteger(toString(transactionInfo.get("brokerAmount").toString())));
@@ -126,12 +142,18 @@ public class TransactionService {
 		return true;
 	}
 
+	/**
+	 * Get total income (of the platform) per day
+	 * This is only called by the admins.
+	 * 
+	 * @return
+	 */
 	public Map<String, BigDecimal> getTotalPriceByDay() {
 		Map<String, BigDecimal> totalPriceByDay = new HashMap<>();
 		List<Order> orders = orderRepository.findAll();
 		for (Order order : orders) {
 			String date = order.getCreatedAt().toLocalDateTime().toLocalDate().toString();
-			BigDecimal price = order.getTotalPrice();
+			BigDecimal price = order.getOwnerAmountUSD();
 			BigDecimal total = totalPriceByDay.getOrDefault(date, new BigDecimal(0));
 			totalPriceByDay.put(date, total.add(price));
 		}
@@ -139,24 +161,30 @@ public class TransactionService {
 		return totalPriceByDay;
 	}
 
+	/**
+	 * Get total income of a user per day. Orders as a vendor as well as leader, ...
+	 * are considered
+	 * 
+	 * @param email
+	 * @return
+	 * @throws UserNotFoundException
+	 */
 	public Map<String, BigDecimal> getTotalPriceByDay(String email) throws UserNotFoundException {
 		Optional<User> optUser = userRepository.findUserByEmail(email);
-
 		if (optUser.isEmpty()) {
 			log.error("User not found ");
 			throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
 		}
 
 		User user = optUser.get();
-		Map<String, BigDecimal> totalPriceByDay = new HashMap<>();
+		Map<String, BigDecimal> totalPriceByDay = this.getTotalPriceByDayAsVendor(email);
 
-		List<Hierarchy> hierarchies = hierarchyRepository.findAllByParent(user);
-
-		for (var hierarchy : hierarchies) {
-			List<Order> orders = orderRepository.findAllBySellerEmail(hierarchy.getChild().getEmail());
-			for (Order order : orders) {
+		// Get wallet addresses
+		List<Wallet> wallets = user.getWallets();
+		for (Wallet wallet : wallets) {
+			for (Order order : orderRepository.findAll()) {
 				String date = order.getCreatedAt().toLocalDateTime().toLocalDate().toString();
-				BigDecimal price = order.getTotalPrice().multiply(hierarchy.getCommissionRate());
+				BigDecimal price = order.getCommissionUSD(wallet);
 				BigDecimal total = totalPriceByDay.getOrDefault(date, new BigDecimal(0));
 				totalPriceByDay.put(date, total.add(price));
 			}
@@ -165,9 +193,42 @@ public class TransactionService {
 		return totalPriceByDay;
 	}
 
+	/**
+	 * Get total income (of a vendor) per day. This is only called by a vendor.
+	 * 
+	 * @param email
+	 * @return
+	 * @throws UserNotFoundException
+	 */
+	public Map<String, BigDecimal> getTotalPriceByDayAsVendor(String email) throws UserNotFoundException {
+		Optional<User> optUser = userRepository.findUserByEmail(email);
+		if (optUser.isEmpty()) {
+			log.error("User not found ");
+			throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
+		}
+
+		Map<String, BigDecimal> totalPriceByDay = new HashMap<>();
+
+		// Orders of products of the user
+		List<Order> userOrders = orderRepository.findAllBySellerEmail(email);
+		for (Order order : userOrders) {
+			String date = order.getCreatedAt().toLocalDateTime().toLocalDate().toString();
+			BigDecimal price = order.getSellerAmountUSD();
+			BigDecimal total = totalPriceByDay.getOrDefault(date, new BigDecimal(0));
+			totalPriceByDay.put(date, total.add(price));
+		}
+
+		return totalPriceByDay;
+	}
+
+	/**
+	 * Get the income of the owner of the platform
+	 * 
+	 * @return
+	 */
 	public DashboardNumberResponse calculateTotalIncome() {
-		BigDecimal totalIncome = getTotalPriceAll();
-		BigDecimal lastMonthTotalIncome = getTotalPriceLast30Days();
+		BigDecimal totalIncome = getOwnerIncomeAll();
+		BigDecimal lastMonthTotalIncome = getOwnerIncomeLast30Days();
 		BigDecimal last30 = totalIncome.subtract(lastMonthTotalIncome);
 		BigDecimal percentageIncrease = last30.compareTo(BigDecimal.valueOf(0)) == 0 ? totalIncome
 				: (lastMonthTotalIncome.subtract(last30)).divide(last30).multiply(BigDecimal.valueOf(100));
@@ -178,6 +239,13 @@ public class TransactionService {
 		return totalIncomeDto;
 	}
 
+	/**
+	 * Get the income of a user (as vendor or something else)
+	 * 
+	 * @param userEmail
+	 * @return
+	 * @throws UserNotFoundException
+	 */
 	public DashboardNumberResponse calculateTotalIncome(String userEmail) throws UserNotFoundException {
 		Optional<User> optUser = userRepository.findUserByEmail(userEmail);
 		if (optUser.isEmpty()) {
@@ -186,7 +254,7 @@ public class TransactionService {
 		}
 		User user = optUser.get();
 
-		BigDecimal totalIncome = calculateTotalIncomeForUser(user);
+		BigDecimal totalIncome = getIncomeForUser(user);
 		BigDecimal lastMonthTotalIncome = calculateIncomeForUserLast30Days(user);
 		BigDecimal beforeIncome = totalIncome.subtract(lastMonthTotalIncome);
 		BigDecimal percentageIncrease = beforeIncome.compareTo(BigDecimal.valueOf(0)) == 0 ? null
@@ -277,32 +345,29 @@ public class TransactionService {
 		return numberOfOrders;
 	}
 
-	public BigDecimal getTotalPriceByEmail(String email) {
-		List<Order> orders = orderRepository.findAllBySellerEmail(email);
-		BigDecimal totalPrice = new BigDecimal(0);
-		for (Order order : orders) {
-			totalPrice = totalPrice.add(order.getTotalPrice());
-		}
-		return totalPrice;
-	}
-
-	public BigDecimal getTotalPriceLast30Days() {
+	/**
+	 * Get the total income of the platform in the last 30 days
+	 */
+	public BigDecimal getOwnerIncomeLast30Days() {
 		List<Order> orders = orderRepository.findAll();
 		BigDecimal totalPrice = new BigDecimal(0);
 		for (Order order : orders) {
 			LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
 			if (createdAt.isAfter(LocalDateTime.now().minusDays(30))) {
-				totalPrice = totalPrice.add(order.getTotalPrice());
+				totalPrice = totalPrice.add(order.getOwnerAmountUSD());
 			}
 		}
 		return totalPrice;
 	}
 
-	public BigDecimal getTotalPriceAll() {
+	/**
+	 * Get the income of the owner of the platform
+	 */
+	public BigDecimal getOwnerIncomeAll() {
 		List<Order> orders = orderRepository.findAll();
 		BigDecimal totalPrice = new BigDecimal(0);
 		for (Order order : orders) {
-			totalPrice = totalPrice.add(order.getTotalPrice());
+			totalPrice = totalPrice.add(order.getOwnerAmountUSD());
 		}
 		return totalPrice;
 	}
@@ -335,31 +400,35 @@ public class TransactionService {
 			}
 		}
 
-		var hierarchys = hierarchyRepository.findAllByParent(user);
-
-		for (Hierarchy hierarchy : hierarchys) {
-			BigDecimal childIncome = calculateIncomeForUserLast30Days(hierarchy.getChild())
-					.multiply(hierarchy.getCommissionRate());
-			totalIncome = totalIncome.add(childIncome);
+		List<Wallet> wallets = user.getWallets();
+		for (Wallet wallet : wallets) {
+			for (Order order : orderRepository.findAll()) {
+				LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
+				if (createdAt.isAfter(start) && createdAt.isBefore(end)) {
+					BigDecimal price = order.getCommissionUSD(wallet);
+					totalIncome = totalIncome.add(price);
+				}
+			}
 		}
 
 		return totalIncome;
 	}
 
-	public BigDecimal calculateTotalIncomeForUser(User user) {
+	public BigDecimal getIncomeForUser(User user) {
 		BigDecimal totalIncome = new BigDecimal(0);
 
 		// Calculate the total income for the user's transactions
 		for (Order order : user.getOrders()) {
-			totalIncome = totalIncome.add(order.getTotalPrice());
+			totalIncome = totalIncome.add(order.getSellerAmountUSD());
 		}
 
-		var hierarchys = hierarchyRepository.findAllByParent(user);
-
-		for (Hierarchy hierarchy : hierarchys) {
-			BigDecimal childIncome = calculateTotalIncomeForUser(hierarchy.getChild())
-					.multiply(hierarchy.getCommissionRate());
-			totalIncome = totalIncome.add(childIncome);
+		// Get wallet addresses
+		List<Wallet> wallets = user.getWallets();
+		for (Wallet wallet : wallets) {
+			for (Order order : orderRepository.findAll()) {
+				BigDecimal price = order.getCommissionUSD(wallet);
+				totalIncome = totalIncome.add(price);
+			}
 		}
 
 		return totalIncome;

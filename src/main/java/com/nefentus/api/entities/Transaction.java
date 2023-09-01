@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import jakarta.persistence.FetchType;
 import java.sql.Timestamp;
 
 @Getter
@@ -23,7 +24,7 @@ public class Transaction {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne
+	@OneToOne
 	@JoinColumn(name = "tra_order_id", referencedColumnName = "ord_id")
 	private Order order;
 
@@ -45,23 +46,29 @@ public class Transaction {
 	@Column(name = "tra_currency_value")
 	private BigInteger currencyValue;
 
-	@Column(name = "tra_seller_address")
-	private String sellerAddress;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tra_seller_wallet", referencedColumnName = "wlt_id")
+	private Wallet sellerWallet;
 
-	@Column(name = "tra_affiliate_address")
-	private String affiliateAddress;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tra_affiliate_wallet", referencedColumnName = "wlt_id")
+	private Wallet affiliateWallet;
 
-	@Column(name = "tra_broker_address")
-	private String brokerAddress;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tra_broker_wallet", referencedColumnName = "wlt_id")
+	private Wallet brokerWallet;
 
-	@Column(name = "tra_senior_broker_address")
-	private String seniorBrokerAddress;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tra_senior_broker_wallet", referencedColumnName = "wlt_id")
+	private Wallet seniorBrokerWallet;
 
-	@Column(name = "tra_leader_address")
-	private String leaderAddress;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tra_leader_wallet", referencedColumnName = "wlt_id")
+	private Wallet leaderWallet;
 
-	@Column(name = "tra_buyer_address")
-	private String buyerAddress;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tra_buyer_wallet", referencedColumnName = "wlt_id")
+	private Wallet buyerWallet;
 
 	@Column(name = "tra_seller_amount")
 	private BigInteger sellerAmount;

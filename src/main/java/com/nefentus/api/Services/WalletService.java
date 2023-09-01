@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.nefentus.api.entities.EBlockchain;
 import com.nefentus.api.entities.Role;
 import com.nefentus.api.entities.Wallet;
 import com.nefentus.api.Errors.UserAlreadyExistsException;
@@ -63,6 +64,25 @@ public class WalletService {
 	public List<Wallet> getWallets(User user) {
 		List<Wallet> wallets = walletRepository.findByOwner(user);
 		return wallets;
+	}
+
+	public Map<EBlockchain, String> getWalletsByBockchain(User user) throws UserNotFoundException {
+		List<Wallet> wallets = walletRepository.findByOwner(user);
+
+		Map<EBlockchain, String> walletsByBlockchain = new HashMap<EBlockchain, String>();
+		for (Wallet wallet : wallets) {
+			walletsByBlockchain.put(EBlockchain.valueOf(wallet.getType()), wallet.getAddress());
+		}
+
+		return walletsByBlockchain;
+	}
+
+	public Wallet makeWalletsWithAddress(String address) {
+		Wallet wallet = new Wallet();
+		wallet.setAddress(address);
+		Wallet createdWallet = walletRepository.save(wallet);
+
+		return createdWallet;
 	}
 
 	public boolean makeWallets(String username, String password) throws UserNotFoundException {
