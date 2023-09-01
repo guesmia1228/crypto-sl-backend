@@ -109,18 +109,18 @@ public class UserService {
 		affiliateData.put("percentage", 0);
 		affiliateData.put("count", 0);
 
-		Map<String, Object> seniorIBData = new HashMap<>();
-		seniorIBData.put("role", "Senior IB");
-		seniorIBData.put("percentage", 0);
-		seniorIBData.put("count", 0);
-
 		Map<String, Object> brokerData = new HashMap<>();
-		brokerData.put("role", "IB");
+		brokerData.put("role", "Broker");
 		brokerData.put("percentage", 0);
 		brokerData.put("count", 0);
 
+		Map<String, Object> seniorIBData = new HashMap<>();
+		seniorIBData.put("role", "Senior Broker");
+		seniorIBData.put("percentage", 0);
+		seniorIBData.put("count", 0);
+
 		Map<String, Object> leaderData = new HashMap<>();
-		leaderData.put("role", "IB Leader");
+		leaderData.put("role", "Leader");
 		leaderData.put("percentage", 0);
 		leaderData.put("count", 0);
 
@@ -169,8 +169,8 @@ public class UserService {
 
 		report.add(vendorData);
 		report.add(affiliateData);
-		report.add(seniorIBData);
 		report.add(brokerData);
+		report.add(seniorIBData);
 		report.add(leaderData);
 		report.add(others);
 		log.info("Successful to make a report with totalUser= {} ", totalUsers);

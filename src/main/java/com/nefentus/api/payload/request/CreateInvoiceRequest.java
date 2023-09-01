@@ -12,5 +12,4 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class CreateInvoiceRequest {
 	private BigDecimal amountUSD;
-	private String walletAddress;
 }
