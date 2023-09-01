@@ -7,9 +7,16 @@ import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.payload.request.AddUserRequest;
 import com.nefentus.api.payload.request.ChangeUserStateRequest;
+import com.nefentus.api.payload.response.UserDisplayAdminResponse;
 import com.nefentus.api.repositories.AffiliateCounterRepository;
+import com.nefentus.api.repositories.UserRepository;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminDashboardController {
 	UserService userService;
 	AffiliateCounterRepository affiliateCounterRepository;
+	UserRepository userRepository;
 	TransactionService transactionService;
 	ClickService clickService;
 
@@ -53,7 +61,14 @@ public class AdminDashboardController {
 	@GetMapping("/users")
 	public ResponseEntity<?> getAllUsers() {
 		log.info("Admin query all users! ");
-		return ResponseEntity.ok(userService.getAllUsers());
+		List<UserDisplayAdminResponse> userData = userRepository.findAll().stream()
+				.map(user -> {
+					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
+					response.setIncome(transactionService.getIncomeForUser(user));
+					return response;
+				})
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(userData);
 	}
 
 	@GetMapping("/clicks")

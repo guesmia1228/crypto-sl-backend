@@ -7,7 +7,10 @@ import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.payload.request.AddUserRequest;
 import com.nefentus.api.payload.response.MessageResponse;
+import com.nefentus.api.payload.response.UserDisplayAdminResponse;
 import com.nefentus.api.repositories.AffiliateCounterRepository;
+import com.nefentus.api.repositories.HierarchyRepository;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +18,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/dashboard/seniorbroker")
@@ -24,6 +29,7 @@ import java.security.Principal;
 @Slf4j
 public class DiamondDashboardController {
 	UserService userService;
+	HierarchyRepository hierarchyRepository;
 	AffiliateCounterRepository affiliateCounterRepository;
 	TransactionService transactionService;
 	ClickService clickService;
@@ -60,7 +66,15 @@ public class DiamondDashboardController {
 	@GetMapping("/users")
 	public ResponseEntity<?> getAllUsers(Principal principal) {
 		log.info("Diamond user request to get all users with email= {}", principal.getName());
-		return ResponseEntity.ok(userService.getAllUsers(principal.getName()));
+		var users = hierarchyRepository.findChildByParentEmail(principal.getName());
+		List<UserDisplayAdminResponse> userData = users.stream()
+				.map(user -> {
+					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
+					response.setIncome(transactionService.getIncomeForUser(user));
+					return response;
+				})
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(userData);
 	}
 
 	// get all clicks by the aff links below him

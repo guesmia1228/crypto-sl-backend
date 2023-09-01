@@ -56,7 +56,6 @@ public class UserService {
 	private final PasswordResetTokenRepository resetTokenRepository;
 	private final TotpManager totpManager;
 	private final KycImageRepository kycImageRepository;
-	private final TransactionService transactionService;
 	private final HierarchyRepository hierarchyRepository;
 	private final WalletRepository walletRepository;
 	@Autowired
@@ -248,28 +247,6 @@ public class UserService {
 		report.add(others);
 		log.info("Successful to make a report with totalUser= {} ", totalUsers);
 		return report;
-	}
-
-	public List<UserDisplayAdminResponse> getAllUsers() {
-		return userRepository.findAll().stream()
-				.map(user -> {
-					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
-					response.setIncome(transactionService.getTotalPriceByEmail(user.getEmail()));
-					return response;
-				})
-				.collect(Collectors.toList());
-	}
-
-	public List<UserDisplayAdminResponse> getAllUsers(String email) {
-		var users = hierarchyRepository.findChildByParentEmail(email);
-		log.info("Successful query all users");
-		return users.stream()
-				.map(user -> {
-					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
-					response.setIncome(transactionService.getTotalPriceByEmail(user.getEmail()));
-					return response;
-				})
-				.collect(Collectors.toList());
 	}
 
 	public Long countUsers() {

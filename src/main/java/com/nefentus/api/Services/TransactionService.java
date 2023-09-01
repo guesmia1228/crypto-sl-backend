@@ -1,6 +1,8 @@
 package com.nefentus.api.Services;
 
+import com.nefentus.api.Errors.InsufficientFundsException;
 import com.nefentus.api.Errors.UserNotFoundException;
+import com.nefentus.api.Errors.WalletNotFoundException;
 import com.nefentus.api.entities.EBlockchain;
 import com.nefentus.api.entities.Hierarchy;
 import com.nefentus.api.entities.Invoice;
@@ -10,6 +12,7 @@ import com.nefentus.api.entities.Transaction;
 import com.nefentus.api.entities.User;
 import com.nefentus.api.entities.Wallet;
 import com.nefentus.api.payload.request.AddOrderRequest;
+import com.nefentus.api.payload.request.MakePaymentRequest;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
 import com.nefentus.api.repositories.HierarchyRepository;
 import com.nefentus.api.repositories.InvoiceRepository;
@@ -46,9 +49,9 @@ public class TransactionService {
 	private InvoiceRepository invoiceRepository;
 	private OrderRepository orderRepository;
 	private UserRepository userRepository;
-	private HierarchyRepository hierarchyRepository;
 	private WalletRepository walletRepository;
 	private WalletService walletService;
+	private Web3Service web3Service;
 
 	private String toString(Object value) {
 		try {
@@ -66,6 +69,16 @@ public class TransactionService {
 		} else {
 			return optWallet.get();
 		}
+	}
+
+	public boolean makePayment(MakePaymentRequest request, String username)
+			throws WalletNotFoundException, UserNotFoundException, InsufficientFundsException {
+		AddOrderRequest results = web3Service.makePayment(request, username);
+		if (results != null) {
+			boolean success = this.addTransaction(results);
+			return success;
+		}
+		return false;
 	}
 
 	public boolean addTransaction(AddOrderRequest request) {

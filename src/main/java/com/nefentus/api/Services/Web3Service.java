@@ -102,7 +102,6 @@ public class Web3Service {
 	private final InvoiceRepository invoiceRepository;
 	private final ProductRepository productRepository;
 	private final UserService userService;
-	private final TransactionService transactionService;
 
 	public static final String UNISWAP_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 	public static final String WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
@@ -455,7 +454,7 @@ public class Web3Service {
 		}
 	}
 
-	public boolean makePayment(MakePaymentRequest request, String username)
+	public AddOrderRequest makePayment(MakePaymentRequest request, String username)
 			throws WalletNotFoundException, UserNotFoundException, InsufficientFundsException {
 
 		// Currently, only ETH implemented
@@ -470,7 +469,7 @@ public class Web3Service {
 		// Find user
 		Optional<User> optUser = userRepository.findUserByEmail(username);
 		if (optUser.isEmpty()) {
-			return false;
+			return null;
 		}
 		User user = optUser.get();
 
@@ -484,21 +483,21 @@ public class Web3Service {
 			}
 		}
 		if (walletAddress == null) {
-			return false;
+			return null;
 		}
 
 		// Find the currency
 		Object[] currency = Web3Service.getCurrency(currencyAddress);
 		if (currency.length == 0) {
 			log.error("Token not found: {}", currencyAddress);
-			return false;
+			return null;
 		}
 
 		// Find the stablecoin
 		Object[] stablecoin = Web3Service.getCurrency(request.getStablecoinAddress());
 		if (stablecoin.length == 0) {
 			log.error("Token not found: {}", stablecoin);
-			return false;
+			return null;
 		}
 
 		// Get seller
@@ -519,7 +518,7 @@ public class Web3Service {
 		ECKeyPair keyPair = this.keysFromWallet(request.getPassword(), walletAddressWithoutPrefix);
 		if (keyPair == null) {
 			log.error("Error getting keys from wallet");
-			return false;
+			return null;
 		}
 		Credentials credentials = Credentials.create(keyPair);
 
@@ -558,18 +557,15 @@ public class Web3Service {
 		if (response != null) {
 			if (response.receipt.isStatusOK()) {
 				AddOrderRequest results = terminatePayment(response.receipt, response.gasPrice, amountWei,
-						response.timestampSent,
-						response.timestampMined,
+						response.timestampSent, response.timestampMined,
 						request.getCurrencyAddress(), request.getStablecoinAddress(), hierarchy, seller, walletAddress,
 						request);
 
-				boolean success = transactionService.addTransaction(results);
-
-				return success;
+				return results;
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	private AddOrderRequest terminatePayment(TransactionReceipt receipt, BigInteger gasPrice, BigInteger value,

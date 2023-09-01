@@ -93,7 +93,7 @@ public class PublicController {
 	public ResponseEntity<?> makePayment(@RequestBody MakePaymentRequest request, Principal principal) {
 		log.info("Make a payment");
 		try {
-			return ResponseEntity.ok(web3Service.makePayment(request, principal.getName()));
+			return ResponseEntity.ok(transactionService.makePayment(request, principal.getName()));
 		} catch (InsufficientFundsException e) {
 			return ResponseEntity.status(412).build();
 		} catch (Exception e) {
