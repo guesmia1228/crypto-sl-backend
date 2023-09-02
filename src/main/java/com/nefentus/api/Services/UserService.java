@@ -419,7 +419,7 @@ public class UserService {
 
 	public LoginResponse loginUser(AuthRequest authRequest,
 			HttpServletResponse response)
-			throws AuthenticationException, InactiveUserException {
+			throws AuthenticationException, InactiveUserException, UserNotFoundException {
 		// Authentifizierung des Benutzers
 		log.info("Request to Login with email= {}", authRequest.getEmail());
 		Authentication authentication = authenticationManager.authenticate(

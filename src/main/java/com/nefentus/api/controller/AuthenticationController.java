@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -91,11 +92,14 @@ public class AuthenticationController {
 	@PostMapping(value = "/login")
 	public ResponseEntity<?> login(@RequestBody AuthRequest authRequest,
 			HttpServletResponse response) throws InactiveUserException, AuthenticationException {
-		LoginResponse loginResponse = userService.loginUser(authRequest, response);
-
-		// Make wallets (if not existing until now)
+		LoginResponse loginResponse = null;
 		try {
+			loginResponse = userService.loginUser(authRequest, response);
+			// Make wallets (if not existing until now)
 			walletService.makeWallets(authRequest.getEmail(), authRequest.getPassword());
+		} catch (BadCredentialsException e) {
+			log.error("Bad credentials for user: " + authRequest.getEmail());
+			return ResponseEntity.badRequest().body("Bad credentials");
 		} catch (UserNotFoundException e) {
 			log.error("User not found: " + authRequest.getEmail());
 			return ResponseEntity.badRequest().body("User not found");
@@ -117,7 +121,6 @@ public class AuthenticationController {
 		log.info("Request to save upload KYC");
 		userService.uploadKYCImage(type, principal.getName(), file);
 		return ResponseEntity.ok(new MessageResponse("successfull!"));
-
 	}
 
 	@GetMapping("/{userId}/kyc-image-url")
