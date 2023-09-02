@@ -96,156 +96,71 @@ public class UserService {
 	}
 
 	public List<Map<String, Object>> getRolesStatus() {
-		var users = userRepository.findAll();
-		List<Map<String, Object>> report = new ArrayList<>();
-		// Initialize the report data
-		Map<String, Object> vendorData = new HashMap<>();
-		vendorData.put("role", "Vendor");
-		vendorData.put("percentage", 0);
-		vendorData.put("count", 0);
-
-		Map<String, Object> affiliateData = new HashMap<>();
-		affiliateData.put("role", "Affiliate");
-		affiliateData.put("percentage", 0);
-		affiliateData.put("count", 0);
-
-		Map<String, Object> brokerData = new HashMap<>();
-		brokerData.put("role", "Broker");
-		brokerData.put("percentage", 0);
-		brokerData.put("count", 0);
-
-		Map<String, Object> seniorIBData = new HashMap<>();
-		seniorIBData.put("role", "Senior Broker");
-		seniorIBData.put("percentage", 0);
-		seniorIBData.put("count", 0);
-
-		Map<String, Object> leaderData = new HashMap<>();
-		leaderData.put("role", "Leader");
-		leaderData.put("percentage", 0);
-		leaderData.put("count", 0);
-
-		Map<String, Object> others = new HashMap<>();
-		others.put("role", "Others");
-		others.put("percentage", 0);
-		others.put("count", 0);
-
-		int totalUsers = users.size();
-		for (User user : users) {
-			Set<Role> roles = user.getRoles();
-			totalUsers += user.getRoles().size() - 1;
-			for (Role role : roles) {
-				switch (role.getName().label) {
-					case "ROLE_VENDOR":
-						vendorData.put("count", (Integer) vendorData.get("count") + 1);
-						break;
-					case "ROLE_AFFILIATE":
-						affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
-						break;
-					case "ROLE_SENIOR_BROKER":
-						seniorIBData.put("count", (Integer) seniorIBData.get("count") + 1);
-						break;
-					case "ROLE_BROKER":
-						brokerData.put("count", (Integer) brokerData.get("count") + 1);
-						break;
-					case "ROLE_LEADER":
-						leaderData.put("count", (Integer) leaderData.get("count") + 1);
-					default:
-						others.put("count", (Integer) others.get("count") + 1);
-						break;
-				}
-			}
-		}
-
-		// Calculate the total percentages and add the report data to the list
-		if (totalUsers > 0) {
-			log.info("Start process to calculate the total percentages and add the report data to the list! ");
-			vendorData.put("percentage", ((Integer) vendorData.get("count") * 100) / totalUsers);
-			affiliateData.put("percentage", ((Integer) affiliateData.get("count") * 100) / totalUsers);
-			seniorIBData.put("percentage", ((Integer) seniorIBData.get("count") * 100) / totalUsers);
-			brokerData.put("percentage", ((Integer) brokerData.get("count") * 100) / totalUsers);
-			others.put("percentage", ((Integer) others.get("count") * 100) / totalUsers);
-			leaderData.put("percentage", ((Integer) leaderData.get("count") * 100) / totalUsers);
-		}
-
-		report.add(vendorData);
-		report.add(affiliateData);
-		report.add(brokerData);
-		report.add(seniorIBData);
-		report.add(leaderData);
-		report.add(others);
-		log.info("Successful to make a report with totalUser= {} ", totalUsers);
-		return report;
+		List<User> users = userRepository.findAll();
+		return rolesMapToList(getRolesStatus(users));
 	}
 
 	public List<Map<String, Object>> getRolesStatus(String email) {
-		var users = hierarchyRepository.findChildByParentEmail(email);
-		List<Map<String, Object>> report = new ArrayList<>();
-		// Initialize the report data
-		Map<String, Object> vendorData = new HashMap<>();
-		vendorData.put("role", "Vendor");
-		vendorData.put("percentage", 0);
-		vendorData.put("count", 0);
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
+		ERole highestRole = user.getRoles().stream()
+				.map(Role::getName)
+				.max(Comparator.comparingInt(ERole::ordinal))
+				.orElseThrow(() -> new RuntimeException("User has no role"));
 
-		Map<String, Object> affiliateData = new HashMap<>();
-		affiliateData.put("role", "Affiliate");
-		affiliateData.put("percentage", 0);
-		affiliateData.put("count", 0);
+		List<User> users = hierarchyRepository.findChildByParentEmail(email);
+		Map<ERole, Map<String, Object>> response = getRolesStatus(users);
 
-		Map<String, Object> seniorIBData = new HashMap<>();
-		seniorIBData.put("role", "Senior IB");
-		seniorIBData.put("percentage", 0);
-		seniorIBData.put("count", 0);
+		// Filter out roles with a lower "ranking"
+		Map<ERole, Map<String, Object>> responseFiltered = response.entrySet()
+				.stream().filter(x -> x.getKey().ordinal() < highestRole.ordinal())
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-		Map<String, Object> brokerData = new HashMap<>();
-		brokerData.put("role", "IB");
-		brokerData.put("percentage", 0);
-		brokerData.put("count", 0);
+		return rolesMapToList(responseFiltered);
+	}
 
-		Map<String, Object> others = new HashMap<>();
-		others.put("role", "Others");
-		others.put("percentage", 0);
-		others.put("count", 0);
+	private List<Map<String, Object>> rolesMapToList(Map<ERole, Map<String, Object>> roles) {
+		Set<ERole> keys = roles.keySet();
 
-		int totalUsers = users.size();
+		List<Map<String, Object>> rolesList = new ArrayList<>();
+		for (ERole role : ERole.values()) {
+			if (keys.contains(role)) {
+				rolesList.add(roles.get(role));
+			}
+		}
+
+		return rolesList;
+	}
+
+	private Map<ERole, Map<String, Object>> getRolesStatus(List<User> users) {
+		Map<ERole, Map<String, Object>> report = new HashMap<>();
+		for (ERole role : ERole.values()) {
+			Map<String, Object> roleData = new HashMap<>();
+			roleData.put("role", role.label.substring(role.label.indexOf("_")).toLowerCase().replace("_", ""));
+			roleData.put("percentage", 0);
+			roleData.put("count", 0);
+			report.put(role, roleData);
+		}
+
+		int totalRoles = 0;
 		for (User user : users) {
 			Set<Role> roles = user.getRoles();
-			totalUsers += user.getRoles().size() - 1;
+			totalRoles += user.getRoles().size();
 			for (Role role : roles) {
-				switch (role.getName().label) {
-					case "ROLE_VENDOR":
-						vendorData.put("count", (Integer) vendorData.get("count") + 1);
-						break;
-					case "ROLE_AFFILIATE":
-						affiliateData.put("count", (Integer) affiliateData.get("count") + 1);
-						break;
-					case "ROLE_SENIOR_BROKER":
-						seniorIBData.put("count", (Integer) seniorIBData.get("count") + 1);
-						break;
-					case "ROLE_BROKER":
-						brokerData.put("count", (Integer) brokerData.get("count") + 1);
-						break;
-					default:
-						others.put("count", (Integer) others.get("count") + 1);
-						break;
-				}
+				Map<String, Object> roleData = report.get(role.getName());
+				roleData.put("count", (Integer) roleData.get("count") + 1);
 			}
 		}
 
 		// Calculate the total percentages and add the report data to the list
-		if (totalUsers > 0) {
-			vendorData.put("percentage", ((Integer) vendorData.get("count") * 100) / totalUsers);
-			affiliateData.put("percentage", ((Integer) affiliateData.get("count") * 100) / totalUsers);
-			seniorIBData.put("percentage", ((Integer) seniorIBData.get("count") * 100) / totalUsers);
-			brokerData.put("percentage", ((Integer) brokerData.get("count") * 100) / totalUsers);
-			others.put("percentage", ((Integer) others.get("count") * 100) / totalUsers);
+		if (totalRoles > 0) {
+			for (ERole role : ERole.values()) {
+				Map<String, Object> roleData = report.get(role);
+				roleData.put("percentage", ((Integer) roleData.get("count") * 100) / totalRoles);
+			}
 		}
 
-		report.add(vendorData);
-		report.add(affiliateData);
-		report.add(seniorIBData);
-		report.add(brokerData);
-		report.add(others);
-		log.info("Successful to make a report with totalUser= {} ", totalUsers);
+		log.info("Successful to make a report with totalUser= {} ", totalRoles);
 		return report;
 	}
 
