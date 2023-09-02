@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,7 @@ public class TransactionService {
 		order.setQuantity(Integer.parseInt(transactionInfo.get("quantity").toString()));
 		order.setTotalPrice(new BigDecimal(transactionInfo.get("totalPrice").toString()));
 
-		// Not every order contains a product!!!
+		// An order either refers to a product or an invoice
 		Optional<Product> optProduct = productRepository.findById(request.getProductId());
 		order.setProduct(optProduct.isPresent() ? optProduct.get() : null);
 		Optional<Invoice> optInvoice = invoiceRepository.findById(request.getInvoiceId());
@@ -122,10 +123,23 @@ public class TransactionService {
 			}
 		}
 		order.setStablecoin(stablecoin);
-
 		order.setStatus(status);
 
 		Order savedOrder = orderRepository.save(order);
+
+		// If direct payment: Mark invoice as paid
+		if (optInvoice.isPresent()) {
+			Invoice invoice = optInvoice.get();
+			invoice.setPaidAt(new Timestamp(new Date().getTime()));
+			invoiceRepository.save(invoice);
+		}
+
+		// If product payment: Reduce quantity of product
+		if (optProduct.isPresent()) {
+			Product product = optProduct.get();
+			product.setStock(product.getStock() - order.getQuantity());
+			productRepository.save(product);
+		}
 
 		// Transaction
 		Transaction transaction = new Transaction();
