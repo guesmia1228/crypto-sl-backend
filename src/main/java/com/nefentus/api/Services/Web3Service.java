@@ -701,6 +701,7 @@ public class Web3Service {
 		}
 		String publicKey = Numeric.toHexStringWithPrefix(keyPair.getPublicKey());
 		String address = Keys.getAddress(keyPair.getPublicKey());
+		address = Keys.toChecksumAddress(address);
 
 		// 2. Create a new Wallet that is saved in the database
 		Wallet wallet = new Wallet();
@@ -710,7 +711,7 @@ public class Web3Service {
 		wallet.setType("ETH");
 
 		// 3. Encrypt private key with password
-		String salt = address + blockchain;
+		String salt = address.toLowerCase() + blockchain;
 		SecretKey secretkey = null;
 		try {
 			secretkey = Encrypt.getKeyFromPassword(password, salt);
@@ -762,7 +763,7 @@ public class Web3Service {
 		Wallet wallet = optWwallet.get();
 
 		// Decrypt
-		String salt = address + blockchain;
+		String salt = address.toLowerCase() + blockchain;
 		byte[] nonceByte = wallet.getNonce();
 		GCMParameterSpec nonce = new GCMParameterSpec(96, nonceByte);
 		SecretKey secretkey = null;
