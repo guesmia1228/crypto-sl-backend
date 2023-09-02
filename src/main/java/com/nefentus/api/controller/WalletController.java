@@ -92,7 +92,8 @@ public class WalletController {
 	public ResponseEntity<?> registerAddress(@PathVariable String address, Principal principal) {
 		log.info("Register a new address");
 		try {
-			Wallet wallet = walletService.addWalletWithAddress(address, principal.getName());
+			String addressWithoutPrefix = address.replace("0x", "");
+			Wallet wallet = walletService.addWalletWithAddress(addressWithoutPrefix, principal.getName());
 			return ResponseEntity.ok(true);
 		} catch (Exception e) {
 			e.printStackTrace();
