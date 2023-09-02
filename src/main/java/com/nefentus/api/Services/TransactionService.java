@@ -193,7 +193,7 @@ public class TransactionService {
 		Map<String, BigDecimal> totalPriceByDay = this.getTotalPriceByDayAsVendor(email);
 
 		// Get wallet addresses
-		List<Wallet> wallets = user.getWallets();
+		List<Wallet> wallets = walletService.getWallets(user);
 		for (Wallet wallet : wallets) {
 			for (Order order : orderRepository.findAll()) {
 				String date = order.getCreatedAt().toLocalDateTime().toLocalDate().toString();
@@ -413,7 +413,7 @@ public class TransactionService {
 			}
 		}
 
-		List<Wallet> wallets = user.getWallets();
+		List<Wallet> wallets = walletService.getWallets(user);
 		for (Wallet wallet : wallets) {
 			for (Order order : orderRepository.findAll()) {
 				LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
@@ -436,7 +436,7 @@ public class TransactionService {
 		}
 
 		// Get wallet addresses
-		List<Wallet> wallets = user.getWallets();
+		List<Wallet> wallets = walletService.getWallets(user);
 		for (Wallet wallet : wallets) {
 			for (Order order : orderRepository.findAll()) {
 				BigDecimal price = order.getCommissionUSD(wallet);
