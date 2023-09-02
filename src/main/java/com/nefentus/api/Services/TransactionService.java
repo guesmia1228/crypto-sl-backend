@@ -66,7 +66,7 @@ public class TransactionService {
 		String address = addressWithPrefix.substring(2);
 		Optional<Wallet> optWallet = walletRepository.findByAddress(address);
 		if (optWallet.isEmpty()) {
-			return walletService.makeWalletsWithAddress(address);
+			return walletService.addWalletWithAddress(address);
 		} else {
 			return optWallet.get();
 		}

@@ -36,6 +36,7 @@ import org.web3j.crypto.Keys;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -77,9 +78,16 @@ public class WalletService {
 		return walletsByBlockchain;
 	}
 
-	public Wallet makeWalletsWithAddress(String address) {
+	public Wallet addWalletWithAddress(String address) {
+		return this.addWalletWithAddress(address, null);
+	}
+
+	public Wallet addWalletWithAddress(String address, String ownerEmail) {
 		Wallet wallet = new Wallet();
 		wallet.setAddress(address);
+		wallet.setType("ETH");
+		wallet.setOwner(userRepository.findUserByEmail(ownerEmail).orElse(null));
+		wallet.setCreatedAt(new Timestamp(new Date().getTime()));
 		Wallet createdWallet = walletRepository.save(wallet);
 
 		return createdWallet;

@@ -2,7 +2,9 @@ package com.nefentus.api.controller;
 
 import java.security.Principal;
 import java.util.Optional;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nefentus.api.Errors.InsufficientFundsException;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Errors.WalletNotFoundException;
 import com.nefentus.api.Services.WalletService;
@@ -35,13 +38,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/wallet")
-@PreAuthorize("hasAnyRole('VENDOR')")
+@PreAuthorize("isAuthenticated()")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @AllArgsConstructor
 @Slf4j
 public class WalletController {
 	private UserRepository userRepository;
-	private WalletRepository walletRepository;
 	private WalletService walletService;
 
 	@GetMapping("/addresses")
@@ -53,7 +55,13 @@ public class WalletController {
 			User user = userRepository.findUserByEmail(username)
 					.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
 			List<Wallet> wallets = walletService.getWallets(user);
-			List<String> addresses = wallets.stream().map(wallet -> "0x" + wallet.getAddress()).toList();
+			List<Map<String, Object>> addresses = wallets.stream().map(wallet -> {
+				Map<String, Object> addressInfo = new HashMap<String, Object>();
+				addressInfo.put("address", "0x" + wallet.getAddress());
+				addressInfo.put("type", wallet.getType());
+				addressInfo.put("internal", wallet.getPrivateKey() != null);
+				return addressInfo;
+			}).toList();
 			return ResponseEntity.ok(addresses);
 		} catch (UserNotFoundException e) {
 			log.error("User not found: " + username);
@@ -78,5 +86,17 @@ public class WalletController {
 			log.error("Wallet not found: " + e.getMessage());
 			return ResponseEntity.badRequest().body("Wallet not found");
 		}
+	}
+
+	@GetMapping("/address/{address}")
+	public ResponseEntity<?> registerAddress(@PathVariable String address, Principal principal) {
+		log.info("Register a new address");
+		try {
+			Wallet wallet = walletService.addWalletWithAddress(address, principal.getName());
+			return ResponseEntity.ok(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ResponseEntity.badRequest().build();
 	}
 }
