@@ -94,4 +94,16 @@ public class PartnerDashboardController {
 		return ResponseEntity.ok(userService.getRolesStatus(principal.getName()));
 	}
 
+	@GetMapping("/numOrders")
+	public ResponseEntity<?> getNumOrders(Principal principal) {
+		log.info("Vendor request to get total income! ");
+		log.info(principal.getName());
+
+		try {
+			return ResponseEntity.ok(transactionService.getNumberOfOrders(principal.getName()));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.badRequest().body("User not found");
+		}
+	}
 }
