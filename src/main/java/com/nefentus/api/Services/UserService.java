@@ -47,7 +47,6 @@ public class UserService {
 	private EmailService emailService;
 
 	private final UserRepository userRepository;
-	private final AffiliateRepository affiliateRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final AuthenticationManager authenticationManager;
@@ -241,12 +240,12 @@ public class UserService {
 		user.setProfilePicturepath("");
 		User created = userRepository.save(user);
 
-		var hierarchy = new Hierarchy();
+		Hierarchy hierarchy = new Hierarchy();
 		hierarchy.setChild(created);
 		hierarchy.setParent(admin);
 		hierarchy.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
 		hierarchy.setCommissionRate(CommissionRate.getAccordingToHighestRole(user.getRoles(), admin.getRoles()));
-		var savedHierarchy = hierarchyRepository.save(hierarchy);
+		Hierarchy savedHierarchy = hierarchyRepository.save(hierarchy);
 
 		try {
 			sendConfirmationEmail(created.getEmail(), created.getToken());
@@ -296,11 +295,18 @@ public class UserService {
 		User created = userRepository.save(user);
 
 		// Affiliate erstellen und speichern, falls vorhanden
-		if (authRequest.getAffiliate() != null && !authRequest.getAffiliate().isEmpty()) {
-			Affiliate aff = new Affiliate(null, authRequest.getAffiliate(), new BigDecimal("0.15"),
-					Timestamp.valueOf(LocalDateTime.now()),
-					created);
-			affiliateRepository.save(aff);
+		if (authRequest.getAffiliateLink() != null && !authRequest.getAffiliateLink().isEmpty()) {
+			Optional<User> optParent = userRepository.findByAffiliateLink(authRequest.getAffiliateLink());
+			if (optParent.isPresent()) {
+				Hierarchy hierarchy = new Hierarchy();
+				hierarchy.setChild(created);
+				hierarchy.setParent(optParent.get());
+				hierarchy.setCreatedAt(new Timestamp(new Date().getTime()));
+				hierarchy.setCommissionRate(
+						CommissionRate.get(roleRepository.findByName(ERole.ROLE_VENDOR).get(),
+								roleRepository.findByName(ERole.ROLE_AFFILIATE).get()));
+				hierarchyRepository.save(hierarchy);
+			}
 		}
 
 		// Bestätigungsemail senden

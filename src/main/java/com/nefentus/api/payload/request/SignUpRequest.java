@@ -12,32 +12,32 @@ import java.util.Set;
 @Setter
 public class SignUpRequest {
 
-    @NotBlank
-    @Size(max = 70)
-    @Email
-    private String email;
+	@NotBlank
+	@Size(max = 70)
+	@Email
+	private String email;
 
-    private Set<String> roles;
+	private Set<String> roles;
 
-    @NotBlank
-    @Size(min = 6, max = 70)
-    private String password;
+	@NotBlank
+	@Size(min = 6, max = 70)
+	private String password;
 
-    @NotBlank
-    @Size(min = 2, max = 70)
-    private String firstName;
+	@NotBlank
+	@Size(min = 2, max = 70)
+	private String firstName;
 
-    @NotBlank
-    @Size(min = 2, max = 70)
-    private String lastName;
+	@NotBlank
+	@Size(min = 2, max = 70)
+	private String lastName;
 
-    @NotBlank
-    @Size(min = 6, max = 70)
-    private String telNr;
+	@NotBlank
+	@Size(min = 6, max = 70)
+	private String telNr;
 
-    private String affiliate;
+	private String affiliateLink;
 
-    @NotBlank
-    private String country;
+	@NotBlank
+	private String country;
 
 }

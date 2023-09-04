@@ -8,7 +8,6 @@ import com.nefentus.api.Services.UserService;
 import com.nefentus.api.payload.request.AddUserRequest;
 import com.nefentus.api.payload.request.ChangeUserStateRequest;
 import com.nefentus.api.payload.response.UserDisplayAdminResponse;
-import com.nefentus.api.repositories.AffiliateCounterRepository;
 import com.nefentus.api.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class AdminDashboardController {
 	UserService userService;
-	AffiliateCounterRepository affiliateCounterRepository;
 	UserRepository userRepository;
 	TransactionService transactionService;
 	ClickService clickService;

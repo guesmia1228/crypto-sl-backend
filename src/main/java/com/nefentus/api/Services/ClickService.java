@@ -3,7 +3,6 @@ package com.nefentus.api.Services;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.entities.LinkCounter;
 import com.nefentus.api.payload.response.DashboardNumberResponse;
-import com.nefentus.api.repositories.AffiliateCounterRepository;
 import com.nefentus.api.repositories.LinkCounterRepository;
 import com.nefentus.api.repositories.UserRepository;
 import lombok.AllArgsConstructor;
@@ -13,13 +12,13 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.math.BigDecimal;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class ClickService {
-	private AffiliateCounterRepository clickRepository;
 	private LinkCounterRepository linkCounterRepository;
 	private UserRepository userRepository;
 
@@ -51,16 +50,22 @@ public class ClickService {
 		return totalClicksDto;
 	}
 
-	public void addClick(String afflink) throws UserNotFoundException {
+	public void addClick(String afflink, String loggedInEmail) throws UserNotFoundException {
 		var optUser = userRepository.findByAffiliateLink(afflink);
 		if (optUser.isEmpty()) {
 			log.error("User not found ");
 			throw new UserNotFoundException("User not found ", HttpStatus.BAD_REQUEST);
 		}
 		var user = optUser.get();
+		// Do not count clicks by the user himself
+		log.info("Clicking email= {} ", loggedInEmail);
+		if (user.getEmail().equals(loggedInEmail)) {
+			return;
+		}
+
 		LinkCounter click = new LinkCounter();
 		click.setUser(user);
-		click.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
+		click.setTimestamp(new Timestamp(new Date().getTime()));
 		log.info("Successful add click");
 		linkCounterRepository.save(click);
 	}
