@@ -191,8 +191,8 @@ public class UserService {
 
 		var user = new User();
 		user.setEmail(addUserRequest.getEmail());
-		user.setFirstName("");
-		user.setLastName("");
+		user.setFirstName(addUserRequest.getFirstName());
+		user.setLastName(addUserRequest.getLastName());
 		user.setTel("");
 		user.setPassword(passwordEncoder.encode(addUserRequest.getPassword()));
 		user.setRoles(setRoles(addUserRequest.getRoles()));
@@ -226,8 +226,8 @@ public class UserService {
 
 		var user = new User();
 		user.setEmail(addUserRequest.getEmail());
-		user.setFirstName("");
-		user.setLastName("");
+		user.setFirstName(addUserRequest.getFirstName());
+		user.setLastName(addUserRequest.getLastName());
 		user.setTel("");
 		user.setPassword(passwordEncoder.encode(addUserRequest.getPassword()));
 		user.setRoles(setRoles(addUserRequest.getRoles()));

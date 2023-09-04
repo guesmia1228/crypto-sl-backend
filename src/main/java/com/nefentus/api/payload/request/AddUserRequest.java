@@ -12,7 +12,9 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AddUserRequest {
-    private String email;
-    private String password;
-    private Set<String> roles;
+	private String firstName;
+	private String lastName;
+	private String email;
+	private String password;
+	private Set<String> roles;
 }
