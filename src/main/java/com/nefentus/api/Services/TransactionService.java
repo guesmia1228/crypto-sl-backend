@@ -62,6 +62,10 @@ public class TransactionService {
 		}
 	}
 
+	public Optional<Transaction> findByOrder(Order order) {
+		return transactionRepository.findByOrder(order);
+	}
+
 	private Wallet findOrCreateWallet(String addressWithPrefix) {
 		Optional<Wallet> optWallet = walletRepository.findByAddress(addressWithPrefix);
 		if (optWallet.isEmpty()) {
@@ -179,7 +183,7 @@ public class TransactionService {
 		List<Order> orders = orderRepository.findAll();
 		for (Order order : orders) {
 			String date = order.getCreatedAt().toLocalDateTime().toLocalDate().toString();
-			BigDecimal price = order.getOwnerAmountUSD();
+			BigDecimal price = this.getOwnerAmountUSD(order);
 			BigDecimal total = totalPriceByDay.getOrDefault(date, new BigDecimal(0));
 			totalPriceByDay.put(date, total.add(price));
 		}
@@ -210,7 +214,7 @@ public class TransactionService {
 		for (Wallet wallet : wallets) {
 			for (Order order : orderRepository.findAll()) {
 				String date = order.getCreatedAt().toLocalDateTime().toLocalDate().toString();
-				BigDecimal price = order.getCommissionUSD(wallet);
+				BigDecimal price = this.getCommissionUSD(order, wallet);
 				BigDecimal total = totalPriceByDay.getOrDefault(date, new BigDecimal(0));
 				totalPriceByDay.put(date, total.add(price));
 			}
@@ -239,7 +243,7 @@ public class TransactionService {
 		List<Order> userOrders = orderRepository.findAllBySellerEmail(email);
 		for (Order order : userOrders) {
 			String date = order.getCreatedAt().toLocalDateTime().toLocalDate().toString();
-			BigDecimal price = order.getSellerAmountUSD();
+			BigDecimal price = this.getSellerAmountUSD(order);
 			BigDecimal total = totalPriceByDay.getOrDefault(date, new BigDecimal(0));
 			totalPriceByDay.put(date, total.add(price));
 		}
@@ -380,7 +384,7 @@ public class TransactionService {
 		for (Order order : orders) {
 			LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
 			if (createdAt.isAfter(LocalDateTime.now().minusDays(30))) {
-				totalPrice = totalPrice.add(order.getOwnerAmountUSD());
+				totalPrice = totalPrice.add(this.getOwnerAmountUSD(order));
 			}
 		}
 		return totalPrice;
@@ -393,7 +397,7 @@ public class TransactionService {
 		List<Order> orders = orderRepository.findAll();
 		BigDecimal totalPrice = new BigDecimal(0);
 		for (Order order : orders) {
-			totalPrice = totalPrice.add(order.getOwnerAmountUSD());
+			totalPrice = totalPrice.add(this.getOwnerAmountUSD(order));
 		}
 		return totalPrice;
 	}
@@ -431,7 +435,7 @@ public class TransactionService {
 			for (Order order : orderRepository.findAll()) {
 				LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
 				if (createdAt.isAfter(start) && createdAt.isBefore(end)) {
-					BigDecimal price = order.getCommissionUSD(wallet);
+					BigDecimal price = this.getCommissionUSD(order, wallet);
 					totalIncome = totalIncome.add(price);
 				}
 			}
@@ -445,14 +449,14 @@ public class TransactionService {
 
 		// Calculate the total income for the user's transactions
 		for (Order order : user.getOrders()) {
-			totalIncome = totalIncome.add(order.getSellerAmountUSD());
+			totalIncome = totalIncome.add(this.getSellerAmountUSD(order));
 		}
 
 		// Get wallet addresses
 		List<Wallet> wallets = walletService.getWallets(user);
 		for (Wallet wallet : wallets) {
 			for (Order order : orderRepository.findAll()) {
-				BigDecimal price = order.getCommissionUSD(wallet);
+				BigDecimal price = this.getCommissionUSD(order, wallet);
 				totalIncome = totalIncome.add(price);
 			}
 		}
@@ -460,4 +464,54 @@ public class TransactionService {
 		return totalIncome;
 	}
 
+	private int getStablecoinDigits(Order order) {
+		Object[] stablecoin = Web3Service.getCurrencyFromAbbr(order.getStablecoin());
+		return (int) stablecoin[2];
+	}
+
+	public BigDecimal getOwnerAmountUSD(Order order) {
+		Optional<Transaction> optTransaction = this.transactionRepository.findByOrder(order);
+		if (optTransaction.isEmpty()) {
+			return new BigDecimal("0");
+		}
+
+		int digits = this.getStablecoinDigits(order);
+		return new BigDecimal(optTransaction.get().getOwnerAmount())
+				.divide(BigDecimal.valueOf((long) Math.pow(10, digits)));
+	}
+
+	public BigDecimal getSellerAmountUSD(Order order) {
+		Optional<Transaction> optTransaction = this.transactionRepository.findByOrder(order);
+		if (optTransaction.isEmpty()) {
+			return new BigDecimal("0");
+		}
+
+		int digits = this.getStablecoinDigits(order);
+		return new BigDecimal(optTransaction.get().getSellerAmount())
+				.divide(BigDecimal.valueOf((long) Math.pow(10, digits)));
+	}
+
+	public BigDecimal getCommissionUSD(Order order, Wallet wallet) {
+		Optional<Transaction> optTransaction = this.transactionRepository.findByOrder(order);
+		if (optTransaction.isEmpty()) {
+			return new BigDecimal("0");
+		}
+
+		BigInteger amount = BigInteger.valueOf(0);
+		Transaction transaction = optTransaction.get();
+		if (transaction.getSellerWallet().getId() == wallet.getId()) {
+			amount = transaction.getSellerAmount();
+		} else if (transaction.getAffiliateWallet().getId() == wallet.getId()) {
+			amount = transaction.getAffiliateAmount();
+		} else if (transaction.getBrokerWallet().getId() == wallet.getId()) {
+			amount = transaction.getBrokerAmount();
+		} else if (transaction.getSeniorBrokerWallet().getId() == wallet.getId()) {
+			amount = transaction.getSeniorBrokerAmount();
+		} else if (transaction.getLeaderWallet().getId() == wallet.getId()) {
+			amount = transaction.getLeaderAmount();
+		}
+
+		int digits = this.getStablecoinDigits(order);
+		return new BigDecimal(amount).divide(BigDecimal.valueOf((long) Math.pow(10, digits)));
+	}
 }
