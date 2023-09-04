@@ -473,15 +473,8 @@ public class UserService {
 
 		// Benutzer aktualisieren
 		user.setBusiness(updatetUserRequest.getBusiness());
-		String[] names = updatetUserRequest.getFullName().split(" ");
-		if (names.length >= 2) {
-			user.setFirstName(names[0]);
-			String lastName = String.join(" ", Arrays.copyOfRange(names, 1, names.length));
-			user.setLastName(lastName);
-		} else {
-			user.setFirstName(names[0]);
-			user.setLastName("");
-		}
+		user.setFirstName(updatetUserRequest.getFirstName());
+		user.setLastName(updatetUserRequest.getLastName());
 		user.setTel(updatetUserRequest.getPhoneNumber());
 		user.setEmail(updatetUserRequest.getEmail());
 		// Benutzer speichern und UpdateResponse zurückgeben

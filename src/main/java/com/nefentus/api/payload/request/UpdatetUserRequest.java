@@ -10,10 +10,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdatetUserRequest {
-    public String fullName;
-    public String username;
-    public String email;
-    public String business;
-    public String phoneNumber;
-    public String supportEmail;
+	public String firstName;
+	public String lastName;
+	public String username;
+	public String email;
+	public String business;
+	public String phoneNumber;
+	public String supportEmail;
 }
