@@ -57,7 +57,7 @@ public class WalletController {
 			List<Wallet> wallets = walletService.getWallets(user);
 			List<Map<String, Object>> addresses = wallets.stream().map(wallet -> {
 				Map<String, Object> addressInfo = new HashMap<String, Object>();
-				addressInfo.put("address", "0x" + wallet.getAddress());
+				addressInfo.put("address", wallet.getAddress());
 				addressInfo.put("type", wallet.getType());
 				addressInfo.put("internal", wallet.getPrivateKey() != null);
 				return addressInfo;
@@ -92,8 +92,7 @@ public class WalletController {
 	public ResponseEntity<?> registerAddress(@PathVariable String address, Principal principal) {
 		log.info("Register a new address");
 		try {
-			String addressWithoutPrefix = address.replace("0x", "");
-			Wallet wallet = walletService.addWalletWithAddress(addressWithoutPrefix, principal.getName());
+			Wallet wallet = walletService.addWalletWithAddress(address, principal.getName());
 			return ResponseEntity.ok(true);
 		} catch (Exception e) {
 			e.printStackTrace();

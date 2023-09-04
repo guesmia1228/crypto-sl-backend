@@ -747,7 +747,7 @@ public class UserService {
 		Optional<User> optUser = userRepository.findById(userId);
 		if (optUser.isPresent()) {
 			List<Wallet> wallets = walletRepository.findByOwner(optUser.get());
-			addresses.setSellerAddress("0x" + wallets.get(0).getAddress());
+			addresses.setSellerAddress(wallets.get(0).getAddress());
 		} else {
 			throw new UserNotFoundException("User with id " + userId + " not found", HttpStatus.BAD_REQUEST);
 		}
@@ -763,19 +763,19 @@ public class UserService {
 				switch (role.getName()) {
 					case ROLE_AFFILIATE:
 						if (addresses.getAffiliateAddress() == null)
-							addresses.setAffiliateAddress("0x" + wallets.get(0).getAddress());
+							addresses.setAffiliateAddress(wallets.get(0).getAddress());
 						break;
 					case ROLE_BROKER:
 						if (addresses.getBrokerAddress() == null)
-							addresses.setBrokerAddress("0x" + wallets.get(0).getAddress());
+							addresses.setBrokerAddress(wallets.get(0).getAddress());
 						break;
 					case ROLE_SENIOR_BROKER:
 						if (addresses.getSeniorBrokerAddress() == null)
-							addresses.setSeniorBrokerAddress("0x" + wallets.get(0).getAddress());
+							addresses.setSeniorBrokerAddress(wallets.get(0).getAddress());
 						break;
 					case ROLE_LEADER:
 						if (addresses.getLeaderAddress() == null)
-							addresses.setLeaderAddress("0x" + wallets.get(0).getAddress());
+							addresses.setLeaderAddress(wallets.get(0).getAddress());
 						break;
 					default:
 						break;

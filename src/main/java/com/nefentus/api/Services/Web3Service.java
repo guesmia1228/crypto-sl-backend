@@ -303,8 +303,7 @@ public class Web3Service {
 
 	public boolean sendNative(String amount, String toAddress, String walletAddress, String password)
 			throws WalletNotFoundException {
-		String walletAddressWithoutPrefix = walletAddress.substring(2);
-		ECKeyPair keyPair = this.keysFromWallet(password, walletAddressWithoutPrefix);
+		ECKeyPair keyPair = this.keysFromWallet(password, walletAddress);
 		if (keyPair == null) {
 			log.error("Error getting keys from wallet");
 			return false;
@@ -335,8 +334,7 @@ public class Web3Service {
 		}
 
 		// Get key pair
-		String walletAddressWithoutPrefix = walletAddress.substring(2);
-		ECKeyPair keyPair = this.keysFromWallet(password, walletAddressWithoutPrefix);
+		ECKeyPair keyPair = this.keysFromWallet(password, walletAddress);
 		if (keyPair == null) {
 			log.error("Error getting keys from wallet");
 			return false;
@@ -478,7 +476,7 @@ public class Web3Service {
 		List<Wallet> wallets = walletRepository.findByOwner(user);
 		for (Wallet wallet : wallets) {
 			if (wallet.getType().equals(blockchain.label)) {
-				walletAddress = "0x" + wallet.getAddress();
+				walletAddress = wallet.getAddress();
 				break;
 			}
 		}
@@ -514,8 +512,7 @@ public class Web3Service {
 		ParentWalletAddresses hierarchy = userService.getParentWalletAddresses(seller.getId());
 
 		// Get key pair
-		String walletAddressWithoutPrefix = walletAddress.substring(2);
-		ECKeyPair keyPair = this.keysFromWallet(request.getPassword(), walletAddressWithoutPrefix);
+		ECKeyPair keyPair = this.keysFromWallet(request.getPassword(), walletAddress);
 		if (keyPair == null) {
 			log.error("Error getting keys from wallet");
 			return null;
@@ -752,6 +749,14 @@ public class Web3Service {
 		return true;
 	}
 
+	/**
+	 * Get a key from an addess and the users password.
+	 * 
+	 * @param password The password of the owner of the wallet
+	 * @param address  The address of the wallet (with prefix!)
+	 * @return
+	 * @throws WalletNotFoundException
+	 */
 	public ECKeyPair keysFromWallet(String password, String address) throws WalletNotFoundException {
 		String blockchain = "ETH";
 
@@ -763,7 +768,11 @@ public class Web3Service {
 		Wallet wallet = optWwallet.get();
 
 		// Decrypt
-		String salt = address.toLowerCase() + blockchain;
+		String addressWithoutPrefix = address;
+		if (address.startsWith("0x")) {
+			addressWithoutPrefix = address.substring(2);
+		}
+		String salt = addressWithoutPrefix.toLowerCase() + blockchain;
 		byte[] nonceByte = wallet.getNonce();
 		GCMParameterSpec nonce = new GCMParameterSpec(96, nonceByte);
 		SecretKey secretkey = null;

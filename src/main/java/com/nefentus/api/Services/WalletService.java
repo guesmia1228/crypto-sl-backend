@@ -123,7 +123,7 @@ public class WalletService {
 		// Find wallet address
 		for (Wallet wallet : wallets) {
 			if (wallet.getType().equals(blockchain)) {
-				walletAddress = "0x" + wallet.getAddress();
+				walletAddress = wallet.getAddress();
 				break;
 			}
 		}
