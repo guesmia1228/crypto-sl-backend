@@ -1,13 +1,6 @@
 -- liquibase formatted sql
 
 -- changeset tin:init-migration
-create table  if not exists  clicks
-(
-    id         bigint auto_increment
-        primary key,
-    created_at datetime(6) null
-);
-
  create table if not exists roles
 (
     id   int auto_increment
@@ -35,6 +28,9 @@ create table  if not exists  clicks
     tel                 varchar(120) null,
     usr_token           varchar(255) null,
     usr_updated_at      datetime(6)  null,
+    s3_url              nvarchar(512) null,
+	country             varchar(512) null,
+	is_require_kyc      bit          not null,
     constraint UK6dotkott2kjsp8vw4d0m25fb7
         unique (email),
     constraint UK_opaau0844qqbnof1rnx2gevxt
@@ -72,28 +68,6 @@ create table  if not exists  clicks
         foreign key (wlt_owner_id) references  users (id)
 );
 
- create table if not exists aff_affiliate
-(
-    aff_id              bigint auto_increment
-        primary key,
-    aff_affiliate_link  varchar(255) null,
-    aff_commission_rate decimal(7,6) null,
-    aff_created_at      datetime(6)  null,
-    aff_user_id         bigint       null,
-    constraint FKieaocf1jfed9sb556tuo5hy2q
-        foreign key (aff_user_id) references  users (id)
-);
-
- create table if not exists affiliate_counter
-(
-    id        bigint auto_increment
-        primary key,
-    timestamp datetime(6) null,
-    aff_c_id  bigint      null,
-    constraint FKm373s46gmiksggge10e1mqm8p
-        foreign key (aff_c_id) references  users (id)
-);
-
  create table if not exists hierarchy
 (
     id                bigint auto_increment
@@ -114,10 +88,11 @@ create table  if not exists  clicks
 (
     id        bigint auto_increment
         primary key,
-    confirmed bit          null,
-    data      blob         null,
-    type      varchar(255) null,
-    user_id   bigint       null,
+    confirmed bit           null,
+    data      blob          null,
+    type      varchar(255)  null,
+    user_id   bigint        null,
+	s3_key    nvarchar(512) null,
     constraint FKt1xq5uapi9n3m22rqqljy3wwr
         foreign key (user_id) references  users (id)
 );
@@ -220,20 +195,6 @@ create table  if not exists  clicks
 		foreign key (tra_leader_wallet) references  wlt_wallet (wlt_id),
 	constraint buyer_wallet_match
 		foreign key (tra_buyer_wallet) references  wlt_wallet (wlt_id)
-);
-
- create table if not exists prv_provision
-(
-    prv_id                bigint auto_increment
-        primary key,
-    prv_affiliate_id      bigint        null,
-    prv_commission_amount decimal(12,8) null,
-    prv_created_at        datetime(6)   null,
-    prv_transaction_id    bigint        null,
-    constraint FK8l4qppuwtre9rejfmcqrqv1f1
-        foreign key (prv_transaction_id) references  tra_transaction (tra_id),
-    constraint FKj2r7iy6s6sklxsxdmpkxqbuky
-        foreign key (prv_affiliate_id) references  aff_affiliate (aff_id)
 );
 
  create table if not exists user_roles
