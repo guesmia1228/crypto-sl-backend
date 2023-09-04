@@ -96,8 +96,7 @@ public class PartnerDashboardController {
 
 	@GetMapping("/numOrders")
 	public ResponseEntity<?> getNumOrders(Principal principal) {
-		log.info("Vendor request to get total income! ");
-		log.info(principal.getName());
+		log.info("Vendor request to get number of order for user= {} ", principal.getName());
 
 		try {
 			return ResponseEntity.ok(transactionService.getNumberOfOrders(principal.getName()));

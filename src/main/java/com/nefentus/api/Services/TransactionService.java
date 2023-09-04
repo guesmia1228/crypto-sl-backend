@@ -340,6 +340,20 @@ public class TransactionService {
 		return incomeLast24Hours;
 	}
 
+	public DashboardNumberResponse getNumberOfOrders() {
+		int numberOfOrders = this.getNumberOfOrdersOwner();
+		int numberOfOrdersThisMonth = this.getNumberOfOrdersOwnerBetween(30, 0);
+		int numberOfOrdersBefore = numberOfOrders - numberOfOrdersThisMonth;
+		BigDecimal percentageIncrease = numberOfOrdersBefore == 0 ? null
+				: BigDecimal.valueOf(((numberOfOrders - numberOfOrdersBefore) / numberOfOrdersBefore) * 100.0);
+
+		DashboardNumberResponse ret = new DashboardNumberResponse();
+		ret.setNumber(BigDecimal.valueOf(numberOfOrders));
+		ret.setPercentage(percentageIncrease);
+		log.info("Successful getNumberOfOrders");
+		return ret;
+	}
+
 	public DashboardNumberResponse getNumberOfOrders(String userEmail) {
 		int numberOfOrders = this.getNumberOfOrdersForUser(userEmail);
 		int numberOfOrdersThisMonth = this.getNumberOfOrdersForUserBetween(userEmail, 30, 0);
@@ -352,6 +366,27 @@ public class TransactionService {
 		ret.setPercentage(percentageIncrease);
 		log.info("Successful getNumberOfOrders for user= {} ", userEmail);
 		return ret;
+	}
+
+	public int getNumberOfOrdersOwner() {
+		List<Order> orders = orderRepository.findAll();
+		return orders.size();
+	}
+
+	public int getNumberOfOrdersOwnerBetween(int daysStart, int daysEnd) {
+		List<Order> orders = orderRepository.findAll();
+		int numberOfOrders = 0;
+
+		LocalDateTime start = LocalDateTime.now().minusDays(daysStart);
+		LocalDateTime end = LocalDateTime.now().minusDays(daysEnd);
+
+		for (Order order : orders) {
+			LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
+			if (createdAt.isAfter(start) && createdAt.isBefore(end)) {
+				numberOfOrders++;
+			}
+		}
+		return numberOfOrders;
 	}
 
 	public int getNumberOfOrdersForUser(String email) {

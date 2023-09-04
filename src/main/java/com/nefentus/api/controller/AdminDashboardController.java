@@ -13,6 +13,7 @@ import com.nefentus.api.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,5 +93,17 @@ public class AdminDashboardController {
 	public ResponseEntity<?> getRoles() {
 		log.info("Admin request to get roles!");
 		return ResponseEntity.ok(userService.getRolesStatus());
+	}
+
+	@GetMapping("/numOrders")
+	public ResponseEntity<?> getNumOrders() {
+		log.info("Vendor request to get total income! ");
+
+		try {
+			return ResponseEntity.ok(transactionService.getNumberOfOrders());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.badRequest().body("User not found");
+		}
 	}
 }
