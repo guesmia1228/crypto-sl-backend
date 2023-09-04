@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/dashboard/broker")
-@PreAuthorize("hasRole('BROKER')")
+@RequestMapping("/api/dashboard/partner")
+@PreAuthorize("hasAnyRole('AFFILIATE','BROKER','SENIOR_BROKER','LEADER')")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @AllArgsConstructor
 @Slf4j
-public class GoldDashboardController {
+public class PartnerDashboardController {
 	UserService userService;
 	HierarchyRepository hierarchyRepository;
 	TransactionService transactionService;

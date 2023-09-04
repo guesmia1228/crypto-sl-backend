@@ -65,7 +65,7 @@ public class WebSecurityConfig {
 						.requestMatchers("/api/auth/checkJWTCookie").authenticated()
 						.requestMatchers("/api/dashboard/**").authenticated()
 						.requestMatchers("/api/wallet/**").authenticated()
-						.requestMatchers("/api/clicks/").permitAll()
+						.requestMatchers("/api/clicks/**").permitAll()
 						.requestMatchers(SWAGGER_PATHS).permitAll()
 						.anyRequest().permitAll())
 				.formLogin(login -> login
