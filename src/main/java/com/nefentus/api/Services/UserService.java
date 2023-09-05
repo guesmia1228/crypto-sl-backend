@@ -476,7 +476,6 @@ public class UserService {
 		user.setFirstName(updatetUserRequest.getFirstName());
 		user.setLastName(updatetUserRequest.getLastName());
 		user.setTel(updatetUserRequest.getPhoneNumber());
-		user.setEmail(updatetUserRequest.getEmail());
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());

@@ -12,9 +12,6 @@ import lombok.Setter;
 public class UpdatetUserRequest {
 	public String firstName;
 	public String lastName;
-	public String username;
-	public String email;
 	public String business;
 	public String phoneNumber;
-	public String supportEmail;
 }
