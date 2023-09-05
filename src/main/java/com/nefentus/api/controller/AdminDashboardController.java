@@ -54,7 +54,7 @@ public class AdminDashboardController {
 	@GetMapping("/usersCount")
 	public ResponseEntity<?> getTotalUserCount() {
 		log.info("Admin request to calculate total users!");
-		return ResponseEntity.ok(userService.calculateTotalClicks());
+		return ResponseEntity.ok(userService.calculateRegistrations());
 	}
 
 	@GetMapping("/users")

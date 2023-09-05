@@ -60,13 +60,13 @@ public class UserService {
 	@Autowired
 	private S3Service s3Service;
 
-	public DashboardNumberResponse calculateTotalClicks() {
+	public DashboardNumberResponse calculateRegistrations() {
 		long totalClicks = userRepository.count();
 		long lastMonthClicks = userRepository
 				.countByCreatedAtAfter(Timestamp.valueOf(LocalDateTime.now().minusDays(30)));
 		long last30 = totalClicks - lastMonthClicks;
-		double percentageIncrease = last30 == 0 ? totalClicks * 100
-				: ((double) (lastMonthClicks - last30) / last30) * 100;
+		double percentageIncrease = lastMonthClicks == 0 ? totalClicks * 100
+				: ((double) last30 / lastMonthClicks) * 100;
 		DashboardNumberResponse totalClicksDto = new DashboardNumberResponse();
 		totalClicksDto.setNumber(new BigDecimal(totalClicks));
 		totalClicksDto.setPercentage(new BigDecimal(percentageIncrease));
@@ -74,13 +74,14 @@ public class UserService {
 		return totalClicksDto;
 	}
 
-	public DashboardNumberResponse calculateTotalClicks(String email) {
-		long totalClicks = hierarchyRepository.countByParentEmail(email);
-		long lastMonthClicks = hierarchyRepository
-				.countByCreatedAtAfterAndParentEmail(Timestamp.valueOf(LocalDateTime.now().minusDays(30)), email);
+	public DashboardNumberResponse calculateRegistrations(String email) {
+		long totalClicks = this.getChildrenRecursive(email).size();
+		log.info("TOTAL!!!= {} ", totalClicks);
+		long lastMonthClicks = this.calculateRegistrationsForUserBetween(email, 30);
+		log.info("LAST MONTH!!!= {} ", lastMonthClicks);
 		long last30 = totalClicks - lastMonthClicks;
-		double percentageIncrease = last30 == 0 ? totalClicks * 100
-				: ((double) (lastMonthClicks - last30) / last30) * 100;
+		double percentageIncrease = lastMonthClicks == 0 ? totalClicks * 100
+				: ((double) last30 / lastMonthClicks) * 100;
 		DashboardNumberResponse totalClicksDto = new DashboardNumberResponse();
 		totalClicksDto.setNumber(new BigDecimal(totalClicks));
 		totalClicksDto.setPercentage(new BigDecimal(percentageIncrease));
@@ -88,10 +89,39 @@ public class UserService {
 		return totalClicksDto;
 	}
 
+	public long calculateRegistrationsForUserBetween(String email, int daysEnd) {
+		LocalDateTime end = LocalDateTime.now().minusDays(daysEnd);
+
+		List<User> users = this.getChildrenRecursive(email);
+		int numberOfUsers = 0;
+		for (User user : users) {
+			LocalDateTime createdAt = user.getCreatedAt().toLocalDateTime();
+			if (createdAt.isBefore(end)) {
+				numberOfUsers++;
+			}
+		}
+
+		return numberOfUsers;
+	}
+
 	public String getProfilePicture(String email) {
 		var user = userRepository.findUserByEmail(email).get();
 		log.info("Get profile picture from email= {}", email);
 		return Base64.getEncoder().encodeToString(user.getProfilepic());
+	}
+
+	public List<User> getChildrenRecursive(String email) {
+		List<User> result = new ArrayList<>();
+
+		// Direct children
+		List<User> children = hierarchyRepository.findChildByParentEmail(email);
+		result.addAll(children);
+
+		// Children of children, etc.
+		for (User child : children) {
+			result.addAll(getChildrenRecursive(child.getEmail()));
+		}
+		return result;
 	}
 
 	public List<Map<String, Object>> getRolesStatus() {
@@ -107,7 +137,7 @@ public class UserService {
 				.max(Comparator.comparingInt(ERole::ordinal))
 				.orElseThrow(() -> new RuntimeException("User has no role"));
 
-		List<User> users = hierarchyRepository.findChildByParentEmail(email);
+		List<User> users = this.getChildrenRecursive(email);
 		Map<ERole, Map<String, Object>> response = getRolesStatus(users);
 
 		// Filter out roles with a lower "ranking"

@@ -52,6 +52,7 @@ public class TransactionService {
 	private UserRepository userRepository;
 	private WalletRepository walletRepository;
 	private WalletService walletService;
+	private UserService userService;
 	private Web3Service web3Service;
 
 	private String toString(Object value) {
@@ -340,6 +341,8 @@ public class TransactionService {
 		return incomeLast24Hours;
 	}
 
+	// ORDERS
+
 	public DashboardNumberResponse getNumberOfOrders() {
 		int numberOfOrders = this.getNumberOfOrdersOwner();
 		int numberOfOrdersThisMonth = this.getNumberOfOrdersOwnerBetween(30, 0);
@@ -390,25 +393,48 @@ public class TransactionService {
 	}
 
 	public int getNumberOfOrdersForUser(String email) {
-		List<Order> orders = orderRepository.findAllBySellerEmail(email);
-		return orders.size();
+		List<User> children = userService.getChildrenRecursive(email);
+
+		int numberOfOrders = 0;
+		for (User child : children) {
+			List<Order> orders = orderRepository.findAllBySellerEmail(email);
+			numberOfOrders += orders.size();
+		}
+
+		return numberOfOrders;
 	}
 
 	public int getNumberOfOrdersForUserBetween(String email, int daysStart, int daysEnd) {
-		List<Order> orders = orderRepository.findAllBySellerEmail(email);
-		int numberOfOrders = 0;
+		List<Order> ownOrders = orderRepository.findAllBySellerEmail(email);
 
 		LocalDateTime start = LocalDateTime.now().minusDays(daysStart);
 		LocalDateTime end = LocalDateTime.now().minusDays(daysEnd);
 
-		for (Order order : orders) {
+		// Own orders
+		int numberOfOrders = 0;
+		for (Order order : ownOrders) {
 			LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
 			if (createdAt.isAfter(start) && createdAt.isBefore(end)) {
 				numberOfOrders++;
 			}
 		}
+
+		// Orders of children
+		List<User> children = userService.getChildrenRecursive(email);
+		for (User child : children) {
+			List<Order> orders = orderRepository.findAllBySellerEmail(child.getEmail());
+			for (Order order : orders) {
+				LocalDateTime createdAt = order.getCreatedAt().toLocalDateTime();
+				if (createdAt.isAfter(start) && createdAt.isBefore(end)) {
+					numberOfOrders++;
+				}
+			}
+		}
+
 		return numberOfOrders;
 	}
+
+	// TOTAL INCOME
 
 	/**
 	 * Get the total income of the platform in the last 30 days

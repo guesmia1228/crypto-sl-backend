@@ -5,6 +5,7 @@ import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.ClickService;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
+import com.nefentus.api.entities.User;
 import com.nefentus.api.payload.request.AddUserRequest;
 import com.nefentus.api.payload.response.MessageResponse;
 import com.nefentus.api.payload.response.UserDisplayAdminResponse;
@@ -56,7 +57,7 @@ public class PartnerDashboardController {
 	@GetMapping("/usersCount")
 	public ResponseEntity<?> getTotalUserCount(Principal principal) {
 		log.info("Gold user request to count total users with email= {}", principal.getName());
-		return ResponseEntity.ok(userService.calculateTotalClicks(principal.getName()));
+		return ResponseEntity.ok(userService.calculateRegistrations(principal.getName()));
 	}
 
 	// get all clicks by the aff links below him
@@ -78,7 +79,7 @@ public class PartnerDashboardController {
 	@GetMapping("/users")
 	public ResponseEntity<?> getAllUsers(Principal principal) {
 		log.info("Diamond user request to get all users with email= {}", principal.getName());
-		var users = hierarchyRepository.findChildByParentEmail(principal.getName());
+		List<User> users = userService.getChildrenRecursive(principal.getName());
 		List<UserDisplayAdminResponse> userData = users.stream()
 				.map(user -> {
 					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
