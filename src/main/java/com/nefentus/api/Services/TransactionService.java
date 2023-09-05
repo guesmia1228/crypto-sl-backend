@@ -141,7 +141,8 @@ public class TransactionService {
 		// If product payment: Reduce quantity of product
 		if (optProduct.isPresent()) {
 			Product product = optProduct.get();
-			product.setStock(product.getStock() - order.getQuantity());
+			if (product.getStock() > 0)
+				product.setStock(product.getStock() - order.getQuantity());
 			productRepository.save(product);
 		}
 
