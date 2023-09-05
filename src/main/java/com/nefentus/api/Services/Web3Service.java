@@ -118,7 +118,7 @@ public class Web3Service {
 		return address;
 	}
 
-	private String toChecksumAddress(String address) {
+	public String toChecksumAddress(String address) {
 		if (address == null)
 			return null;
 		return Keys.toChecksumAddress(address);
@@ -555,7 +555,7 @@ public class Web3Service {
 			if (response.receipt.isStatusOK()) {
 				AddOrderRequest results = terminatePayment(response.receipt, response.gasPrice, amountWei,
 						response.timestampSent, response.timestampMined,
-						request.getCurrencyAddress(), request.getStablecoinAddress(), hierarchy, seller, walletAddress,
+						request.getCurrencyAddress(), request.getStablecoinAddress(), hierarchy, walletAddress,
 						request);
 
 				return results;
@@ -567,7 +567,7 @@ public class Web3Service {
 
 	private AddOrderRequest terminatePayment(TransactionReceipt receipt, BigInteger gasPrice, BigInteger value,
 			long timestampSent, long timestampMined, String currencyAddress, String stablecoinAddress,
-			ParentWalletAddresses hierarchy, User seller, String buyerAddress, MakePaymentRequest request) {
+			ParentWalletAddresses hierarchy, String buyerAddress, MakePaymentRequest request) {
 		AddOrderRequest results = new AddOrderRequest();
 
 		Map<String, Object> info = new HashMap<String, Object>();
@@ -591,7 +591,6 @@ public class Web3Service {
 
 		results.setTransactionInfo(info);
 		results.setBuyerAddress(toChecksumAddress(buyerAddress));
-		results.setSeller(seller);
 		results.setInvoiceId(request.getInvoiceId());
 		results.setProductId(request.getProductId());
 

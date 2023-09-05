@@ -104,7 +104,14 @@ public class TransactionService {
 		order.setProduct(optProduct.isPresent() ? optProduct.get() : null);
 		Optional<Invoice> optInvoice = invoiceRepository.findById(request.getInvoiceId());
 		order.setInvoice(optInvoice.isPresent() ? optInvoice.get() : null);
-		order.setSeller(request.getSeller());
+
+		// Seller
+		String sellerAddress = transactionInfo.get("sellerAddress").toString();
+		sellerAddress = web3Service.toChecksumAddress(sellerAddress);
+		Optional<Wallet> optWallet = walletRepository.findByAddress(sellerAddress);
+		if (optWallet.isPresent()) {
+			order.setSeller(optWallet.get().getOwner());
+		}
 
 		String currencyAddress = transactionInfo.get("currencyAddress") != null
 				? transactionInfo.get("currencyAddress").toString()
