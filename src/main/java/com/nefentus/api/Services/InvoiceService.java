@@ -47,4 +47,16 @@ public class InvoiceService {
 
 		return invoiceLink;
 	}
+
+	public boolean deleteInvoice(String invoiceLink, String email) {
+		Invoice invoice = invoiceRepository.findByLink(invoiceLink).orElseThrow();
+		if (invoice.getUser().getEmail().equals(email)) {
+			Optional<Invoice> optInvoice = invoiceRepository.findByLink(invoiceLink);
+			if (optInvoice.isPresent()) {
+				invoiceRepository.delete(optInvoice.get());
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -213,4 +213,15 @@ public class VendorDashboardController {
 			return ResponseEntity.badRequest().build();
 		}
 	}
+
+	@GetMapping("/deleteInvoice/{invoiceLink}")
+	public ResponseEntity<?> deleteInvoice(@PathVariable String invoiceLink,
+			Principal principal) {
+		log.info("Delete an invoice");
+		try {
+			return ResponseEntity.ok(invoiceService.deleteInvoice(invoiceLink, principal.getName()));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
+		}
+	}
 }
