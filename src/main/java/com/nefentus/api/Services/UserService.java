@@ -385,6 +385,13 @@ public class UserService {
 	public boolean deleteUser(String email) {
 		Optional<User> userOptional = userRepository.findUserByEmail(email);
 		if (userOptional.isPresent()) {
+			// Delete wallets before deleting user
+			List<Wallet> wallets = walletRepository.findByOwner(userOptional.get());
+			for (Wallet wallet : wallets) {
+				walletRepository.delete(wallet);
+			}
+
+			// Delete user
 			userRepository.delete(userOptional.get());
 			log.info("Deleted user {} successful", email);
 			return true;
