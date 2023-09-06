@@ -222,7 +222,7 @@ public class UserService {
 		User created = userRepository.save(user);
 
 		try {
-			// sendConfirmationEmail(created.getEmail(), created.getToken());
+			sendConfirmationEmail(created.getEmail(), created.getToken());
 		} catch (Exception e) {
 			userRepository.delete(created);
 			throw new RuntimeException("Failed to send Confirmation email. Please try again.", e);
