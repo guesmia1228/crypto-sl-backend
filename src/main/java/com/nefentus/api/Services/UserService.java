@@ -769,7 +769,7 @@ public class UserService {
 								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 						roles.add(seniorBroker);
 					}
-					case "IB-Leader", "IB Leader" -> {
+					case "IB-Leader", "IB Leader", "Leader" -> {
 						Role leader = roleRepository.findByName(ERole.ROLE_LEADER)
 								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 						roles.add(leader);
