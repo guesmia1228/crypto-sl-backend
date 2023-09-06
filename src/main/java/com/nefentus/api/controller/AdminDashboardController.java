@@ -86,7 +86,7 @@ public class AdminDashboardController {
 	public ResponseEntity<?> changeState(@RequestBody ChangeUserStateRequest changeUserStateRequest)
 			throws UserNotFoundException {
 		log.info("Admin request to change state of user !");
-		return ResponseEntity.ok(userService.changeUserState(changeUserStateRequest));
+		return ResponseEntity.ok(userService.activateUserByEmail(changeUserStateRequest.getUseremail()));
 	}
 
 	@GetMapping("/userroles")
@@ -104,6 +104,26 @@ public class AdminDashboardController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.badRequest().body("User not found");
+		}
+	}
+
+	@GetMapping("/users/delete/{email}")
+	public ResponseEntity<?> deleteUser(@PathVariable String email) {
+		log.info("Delete a user");
+		try {
+			return ResponseEntity.ok(userService.deleteUser(email));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
+		}
+	}
+
+	@GetMapping("/users/deactivate/{email}")
+	public ResponseEntity<?> deactivateUser(@PathVariable String email) {
+		log.info("Activate a user");
+		try {
+			return ResponseEntity.ok(userService.deactivateUserByEmail(email));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
 		}
 	}
 }

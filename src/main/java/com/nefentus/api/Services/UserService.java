@@ -197,20 +197,6 @@ public class UserService {
 		return userRepository.count();
 	}
 
-	public User changeUserState(ChangeUserStateRequest changeUserStateRequest) throws UserNotFoundException {
-		var optUser = userRepository.findUserByEmail(changeUserStateRequest.getUseremail());
-		if (optUser.isEmpty()) {
-			log.error("User with email +  " + changeUserStateRequest.getUseremail() + " is not found");
-			throw new UserNotFoundException(
-					"User with email +  " + changeUserStateRequest.getUseremail() + " is not found",
-					HttpStatus.BAD_REQUEST);
-		}
-		var user = optUser.get();
-		user.setActive(!user.getActive());
-		log.info("Change user state success with email= {} ", changeUserStateRequest.getUseremail());
-		return userRepository.save(user);
-	}
-
 	public User addUser(AddUserRequest addUserRequest) throws UserAlreadyExistsException {
 		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
 		if (userOptional.isPresent()) {
@@ -366,6 +352,46 @@ public class UserService {
 			log.error("Can not found user with this token! ");
 			throw new TokenNotFoundException("Token is not found!", HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	public boolean activateUserByEmail(String email) {
+		Optional<User> userOptional = userRepository.findUserByEmail(email);
+		if (userOptional.isPresent()) {
+			User user = userOptional.get();
+			user.setActive(true);
+			userRepository.save(user);
+			log.info("Activate user successful");
+			return true;
+		} else {
+			log.error("Can not find user with this email!");
+		}
+		return false;
+	}
+
+	public boolean deactivateUserByEmail(String email) {
+		Optional<User> userOptional = userRepository.findUserByEmail(email);
+		if (userOptional.isPresent()) {
+			User user = userOptional.get();
+			user.setActive(false);
+			userRepository.save(user);
+			log.info("Deactivate user successful");
+			return true;
+		} else {
+			log.error("Can not find user with this email!");
+		}
+		return false;
+	}
+
+	public boolean deleteUser(String email) {
+		Optional<User> userOptional = userRepository.findUserByEmail(email);
+		if (userOptional.isPresent()) {
+			userRepository.delete(userOptional.get());
+			log.info("Deleted user {} successful", email);
+			return true;
+		} else {
+			log.error("Can not delete user with email {}", email);
+		}
+		return false;
 	}
 
 	public LoginResponse loginUser(AuthRequest authRequest,
