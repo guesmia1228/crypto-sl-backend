@@ -212,7 +212,7 @@ public class AuthenticationController {
 	@PostMapping("/reset-password-auth")
 	public ResponseEntity<?> setNewPassword(@RequestBody DashboardPasswordRequestAuth requestAuth, Principal principal)
 			throws UserNotFoundException, InvalidTokenException {
-		log.info("Request to set new password from email= {}", principal.getName());
+		log.info("Request to change password from email= {}", principal.getName());
 		userService.setNewPassword(principal.getName(), requestAuth.getToken());
 		return ResponseEntity.ok(new MessageResponse("Password reset successful!"));
 	}

@@ -576,8 +576,7 @@ public class UserService {
 		}
 	}
 
-	public void resetPassword(String token,
-			String newPassword)
+	public void resetPassword(String token, String newPassword)
 			throws InvalidTokenException {
 		// Benutzer suchen
 		User user = userRepository.findByResetToken(token)
@@ -727,7 +726,7 @@ public class UserService {
 			String token) {
 		try {
 			var html = HtmlProvider.loadResetTokenMail(token);
-			emailService.sendEmail(email, "Please activate your account", html);
+			emailService.sendEmail(email, "Change your password", html);
 		} catch (IOException e) {
 			log.error("sendResetEmail", e);
 		}
