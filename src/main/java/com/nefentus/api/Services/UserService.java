@@ -202,7 +202,7 @@ public class UserService {
 		if (userOptional.isPresent()) {
 			log.error("User with email " + addUserRequest.getEmail() + " already exists!");
 			throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists. ",
-					HttpStatus.BAD_REQUEST);
+					HttpStatus.CONFLICT);
 		}
 
 		var user = new User();
@@ -235,7 +235,7 @@ public class UserService {
 		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
 		if (userOptional.isPresent()) {
 			throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists.",
-					HttpStatus.BAD_REQUEST);
+					HttpStatus.CONFLICT);
 		}
 
 		var admin = userRepository.findUserByEmail(email).get();
@@ -282,7 +282,7 @@ public class UserService {
 		if (userOptional.isPresent()) {
 			log.error("User with email " + authRequest.getEmail() + " already exists.");
 			throw new UserAlreadyExistsException("User with email " + authRequest.getEmail() + " already exists.",
-					HttpStatus.BAD_REQUEST);
+					HttpStatus.CONFLICT);
 		}
 
 		List<String> countryList = Arrays.stream(ECountry.values())
