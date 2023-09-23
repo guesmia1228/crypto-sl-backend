@@ -274,6 +274,52 @@ public class UserService {
 		return created;
 	}
 
+	public User updateUserAdmin(AddUserRequest addUserRequest) throws UserFoundException {
+		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
+		if (userOptional.isEmpty()) {
+			log.error("User with email " + addUserRequest.getEmail() + " does not exist!");
+			throw new UserFoundException("User with email " + addUserRequest.getEmail() + " does not exist. ",
+					HttpStatus.CONFLICT);
+		}
+
+		return updateUserWithAddRequest(addUserRequest, userOptional.get());
+	}
+
+	public User updateUserAdmin(AddUserRequest addUserRequest, String email)
+			throws UserFoundException, UserNotFoundException, BadRequestException {
+		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
+		if (userOptional.isEmpty()) {
+			log.error("User with email " + addUserRequest.getEmail() + " does not exist!");
+			throw new UserFoundException("User with email " + addUserRequest.getEmail() + " does not exist. ",
+					HttpStatus.CONFLICT);
+		}
+
+		Optional<User> callerOptional = userRepository.findUserByEmail(email);
+		if (callerOptional.isEmpty()) {
+			log.error("User with email " + email + " does not exist!");
+			throw new UserFoundException("User with email " + email + " does not exist. ",
+					HttpStatus.CONFLICT);
+		}
+
+		User userToUpdate = userOptional.get();
+		List<User> parents = this.getParents(userToUpdate);
+
+		if (parents.contains(callerOptional.get())) {
+			return updateUserWithAddRequest(addUserRequest, userToUpdate);
+		} else {
+			throw new BadRequestException("You are not allowed to update this user", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	public User updateUserWithAddRequest(AddUserRequest addUserRequest, User userToUpdate) {
+		userToUpdate.setFirstName(addUserRequest.getFirstName());
+		userToUpdate.setLastName(addUserRequest.getLastName());
+		userToUpdate.setRoles(setRoles(addUserRequest.getRoles()));
+		userToUpdate.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+		User created = userRepository.save(userToUpdate);
+		return created;
+	}
+
 	public User registerNewUser(SignUpRequest authRequest)
 			throws UserAlreadyExistsException, AuthenticationException {
 		// Überprüfen, ob ein Benutzer mit der angegebenen E-Mail-Adresse bereits
@@ -841,5 +887,20 @@ public class UserService {
 		}
 
 		return addresses;
+	}
+
+	public List<User> getParents(User user) throws UserNotFoundException {
+		List<User> parents = new ArrayList<User>();
+
+		Optional<User> optParent = hierarchyRepository.findParentByChildId(user.getId());
+		while (optParent.isPresent()) {
+			User parent = optParent.get();
+			parents.add(parent);
+
+			// Get the new parent
+			optParent = hierarchyRepository.findParentByChildId(parent.getId());
+		}
+
+		return parents;
 	}
 }

@@ -1,6 +1,8 @@
 package com.nefentus.api.controller;
 
+import com.nefentus.api.Errors.BadRequestException;
 import com.nefentus.api.Errors.UserAlreadyExistsException;
+import com.nefentus.api.Errors.UserFoundException;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.ClickService;
 import com.nefentus.api.Services.TransactionService;
@@ -73,6 +75,13 @@ public class PartnerDashboardController {
 			throws UserAlreadyExistsException {
 		log.info("Gold user= {} request to add new user! ", principal.getName());
 		return ResponseEntity.ok(userService.addUser(addUserRequest, principal.getName()));
+	}
+
+	@PutMapping("/users")
+	public ResponseEntity<?> updateUser(@RequestBody AddUserRequest addUserRequest, Principal principal)
+			throws UserFoundException, UserNotFoundException, BadRequestException {
+		log.info("Admin process to update user! ");
+		return ResponseEntity.ok(userService.updateUserAdmin(addUserRequest, principal.getName()));
 	}
 
 	// get all users below him in a list

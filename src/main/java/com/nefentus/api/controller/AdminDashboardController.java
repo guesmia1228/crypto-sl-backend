@@ -1,6 +1,7 @@
 package com.nefentus.api.controller;
 
 import com.nefentus.api.Errors.UserAlreadyExistsException;
+import com.nefentus.api.Errors.UserFoundException;
 import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.ClickService;
 import com.nefentus.api.Services.TransactionService;
@@ -80,6 +81,12 @@ public class AdminDashboardController {
 	public ResponseEntity<?> addUser(@RequestBody AddUserRequest addUserRequest) throws UserAlreadyExistsException {
 		log.info("Admin process to add new user! ");
 		return ResponseEntity.ok(userService.addUser(addUserRequest));
+	}
+
+	@PutMapping("/users")
+	public ResponseEntity<?> updateUser(@RequestBody AddUserRequest addUserRequest) throws UserFoundException {
+		log.info("Admin process to update user! ");
+		return ResponseEntity.ok(userService.updateUserAdmin(addUserRequest));
 	}
 
 	@PatchMapping("/users")
