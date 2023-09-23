@@ -16,7 +16,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDisplayAdminResponse {
-	private String fullname;
+	private String firstName;
+	private String lastName;
 	private Set<String> roles;
 	private String email;
 	private boolean activated;
@@ -25,7 +26,8 @@ public class UserDisplayAdminResponse {
 
 	public static UserDisplayAdminResponse fromUser(User user) {
 		UserDisplayAdminResponse response = new UserDisplayAdminResponse();
-		response.setFullname(user.getFirstName() + " " + user.getLastName());
+		response.setFirstName(user.getFirstName());
+		response.setLastName(user.getLastName());
 		response.setRoles(user.getRoles().stream()
 				.map(role -> role.getName().label.replace("ROLE_", "").replace("_", " ").toLowerCase())
 				.collect(Collectors.toSet()));
