@@ -2,7 +2,6 @@ package com.nefentus.api.Services.impl;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
@@ -17,18 +16,20 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 
 @Service
 @Slf4j
 public class S3ServiceImpl implements S3Service {
-
 	private final AmazonS3 s3client;
 	private final AWSProperties awsProperties;
 
 	@Autowired
 	public S3ServiceImpl(AWSProperties awsProperties) {
 		this.awsProperties = awsProperties;
+
+		System.setProperty("aws.accessKeyId", awsProperties.getS3().getAccessKey());
+		System.setProperty("aws.secretKey", awsProperties.getS3().getSecretKey());
+
 		this.s3client = AmazonS3ClientBuilder.standard().withRegion(awsProperties.getS3().getRegions()).build();
 	}
 
