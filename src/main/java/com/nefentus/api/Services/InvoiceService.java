@@ -34,13 +34,18 @@ public class InvoiceService {
 		Invoice invoice = new Invoice();
 		invoice.setCreatedAt(new Timestamp((new Date()).getTime()));
 		invoice.setPrice(request.getAmountUSD());
+		invoice.setName(request.getName());
+		invoice.setEmail(request.getEmail());
+		invoice.setCompany(request.getCompany());
+		invoice.setAddress(request.getAddress());
+		invoice.setTaxNumber(request.getTaxNumber());
 		invoice.setUser(user);
 
 		String invoiceLink = Id.getAlphaNumeric(24);
 		while (invoiceRepository.findByLink(invoiceLink).isPresent()) {
 			invoiceLink = Id.getAlphaNumeric(24);
 		}
-		log.info("New invocie id " + invoiceLink);
+		log.info("New invoice id " + invoiceLink);
 		invoice.setLink(invoiceLink);
 
 		invoiceRepository.save(invoice);

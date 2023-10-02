@@ -124,6 +124,11 @@
     inv_id             bigint auto_increment 
 	    primary key,
 	inv_link           varchar(63)    null,
+	inv_email          varchar(70)    null,
+	inv_name           varchar(120)   null,
+	inv_company        varchar(255)   null,
+	inv_address         varchar(255)   null,
+	inv_tax_number     varchar(255)   null,
     inv_created_at     datetime(6)    null,
 	inv_paid_at        datetime(6)    null,
 	inv_price          decimal(12, 2) null,
