@@ -16,22 +16,30 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDisplayAdminResponse {
+	private Long id;
 	private String firstName;
 	private String lastName;
 	private Set<String> roles;
 	private String email;
+	private String tel;
+	private String business;
+	private String s3Url;
 	private boolean activated;
 	private BigDecimal Income;
 	private Date createdAt;
 
 	public static UserDisplayAdminResponse fromUser(User user) {
 		UserDisplayAdminResponse response = new UserDisplayAdminResponse();
+		response.setId(user.getId());
 		response.setFirstName(user.getFirstName());
 		response.setLastName(user.getLastName());
 		response.setRoles(user.getRoles().stream()
 				.map(role -> role.getName().label.replace("ROLE_", "").replace("_", " ").toLowerCase())
 				.collect(Collectors.toSet()));
 		response.setEmail(user.getEmail());
+		response.setTel(user.getTel());
+		response.setBusiness(user.getBusiness());
+		response.setS3Url(user.getS3Url());
 		response.setActivated(user.getActive());
 		// Set the income field here based on your business logic
 		response.setIncome(BigDecimal.valueOf(0));
