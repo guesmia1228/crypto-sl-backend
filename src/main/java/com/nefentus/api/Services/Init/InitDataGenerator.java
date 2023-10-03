@@ -79,6 +79,7 @@ public class InitDataGenerator implements CommandLineRunner {
 					null,
 					null,
 					false,
+					false,
 					"GERMANY"
 
 			);
@@ -103,6 +104,7 @@ public class InitDataGenerator implements CommandLineRunner {
 					Set.of(),
 					null,
 					null,
+					false,
 					false,
 					"GERMANY");
 
@@ -131,6 +133,7 @@ public class InitDataGenerator implements CommandLineRunner {
 					"AAABSDACBASDDD",
 					Set.of(), null, null,
 					false,
+					false,
 					"GERMANY");
 
 			var goldRole = roleRepository.findByName(ERole.ROLE_BROKER);
@@ -153,6 +156,7 @@ public class InitDataGenerator implements CommandLineRunner {
 					"AAABSDACBASDDD",
 					Set.of(), null, null,
 					true,
+					false,
 					"GERMANY");
 			userRepository.save(diamondUser);
 			userRepository.save(goldUser);

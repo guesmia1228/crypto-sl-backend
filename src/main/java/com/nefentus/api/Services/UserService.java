@@ -54,6 +54,7 @@ public class UserService {
 	private final PasswordResetTokenService resetTokenService;
 	private final PasswordResetTokenRepository resetTokenRepository;
 	private final TotpManager totpManager;
+	private final OtpService otpService;
 	private final KycImageRepository kycImageRepository;
 	private final HierarchyRepository hierarchyRepository;
 	private final WalletRepository walletRepository;
@@ -467,7 +468,7 @@ public class UserService {
 
 		log.info("Found user with email= {}", authRequest.getEmail());
 		// LoginResponse erstellen
-		if (!user.isMfa()) {
+		if (!user.isMfa() && !user.isRequireOtp()) {
 			log.info("login success with return jwt");
 			return new LoginResponse(
 					jwtTokenProvider.generateToken(authentication, authRequest.rememberMe),
@@ -487,6 +488,7 @@ public class UserService {
 					user.getS3Url(),
 					user.getCountry(),
 					user.isRequireKYC(),
+					user.isRequireOtp(),
 					user.getId()
 
 			);
@@ -506,6 +508,7 @@ public class UserService {
 					user.getS3Url(),
 					user.getCountry(),
 					user.isRequireKYC(),
+					user.isRequireOtp(),
 					null);
 		}
 	}
@@ -585,6 +588,8 @@ public class UserService {
 		user.setFirstName(updatetUserRequest.getFirstName());
 		user.setLastName(updatetUserRequest.getLastName());
 		user.setTel(updatetUserRequest.getPhoneNumber());
+		user.setMfa(updatetUserRequest.isMfa());
+		user.setRequireOtp(updatetUserRequest.isRequireOtp());
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
@@ -707,6 +712,56 @@ public class UserService {
 		return totpManager.getUriForImage(user.getSecret(), user.getFirstName() + " " + user.getLastName());
 	}
 
+	public LoginResponse verifyOTP(String email,
+			Integer code,
+			boolean longToken)
+			throws UserNotFoundException,
+			BadRequestException,
+			InternalServerException {
+		User user = userRepository
+				.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException(String.format("email %s", email), HttpStatus.BAD_REQUEST));
+		if (!otpService.validateOTP(email, code)) {
+			log.error("Code is incorrect");
+			throw new BadRequestException("Code is incorrect", HttpStatus.BAD_REQUEST);
+		}
+
+		var optUser = Optional.of(user)
+				.map(CustomUserDetails::build)
+				.map(userDetailsToken -> new UsernamePasswordAuthenticationToken(
+						userDetailsToken, null, userDetailsToken.getAuthorities()))
+				.map(userDetailsToken -> jwtTokenProvider.generateToken(userDetailsToken, longToken))
+				.orElseThrow(() -> new InternalServerException("unable to generate access token"));
+
+		if (optUser.isEmpty()) {
+			log.error("User not found");
+			throw new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST);
+		}
+
+		return new LoginResponse(
+				optUser,
+				email,
+				user.getFirstName(),
+				user.getLastName(),
+				user.getAffiliateLink(),
+				Base64.getEncoder()
+						.encodeToString(user.getProfilepic() != null ? user.getProfilepic() : new byte[] {}),
+				user.getBusiness(),
+				user.getTel(),
+				user.getRoles().stream()
+						.map(Role::getName)
+						.map(Enum::name)
+						.toArray(String[]::new),
+				user.isMfa(),
+				user.getS3Url(),
+				user.getCountry(),
+				user.isRequireKYC(),
+				user.isRequireOtp(),
+				user.getId()
+		);
+
+	}
+
 	public LoginResponse verify(String email,
 			String code,
 			boolean longToken)
@@ -749,6 +804,7 @@ public class UserService {
 				user.getS3Url(),
 				user.getCountry(),
 				user.isRequireKYC(),
+				user.isRequireOtp(),
 				user.getId());
 
 	}
