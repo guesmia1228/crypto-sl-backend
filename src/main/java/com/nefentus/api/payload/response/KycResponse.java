@@ -10,4 +10,5 @@ import lombok.Setter;
 public class KycResponse {
     String url;
     boolean isVerify;
+    boolean required;
 }

@@ -6,8 +6,10 @@ import com.nefentus.api.Errors.UserNotFoundException;
 import com.nefentus.api.Services.ClickService;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.UserService;
+import com.nefentus.api.entities.KycImageType;
 import com.nefentus.api.payload.request.AddUserRequest;
 import com.nefentus.api.payload.request.ChangeUserStateRequest;
+import com.nefentus.api.payload.response.KycResponse;
 import com.nefentus.api.payload.response.UserDisplayAdminResponse;
 import com.nefentus.api.repositories.UserRepository;
 
@@ -15,6 +17,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.Principal;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,6 +74,44 @@ public class AdminDashboardController {
 				.collect(Collectors.toList());
 		return ResponseEntity.ok(userData);
 	}
+
+	@GetMapping("/users_kyc")
+	public ResponseEntity<?> getUsersWithKYC() {
+		log.info("Admin query all kyc users! ");
+		List<UserDisplayAdminResponse> userData = userRepository.findUsersWithKYC().stream()
+				.map(user -> {
+					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
+					response.setIncome(transactionService.getIncomeForUser(user));
+					return response;
+				})
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(userData);
+	}
+
+	// @GetMapping("/users_kyc")
+	// public ResponseEntity<?> getUsersWithKYC() {
+	// 	log.info("Admin query all users! ");
+	// 	Dictionary<UserDisplayAdminResponse, Dictionary<KycImageType, String>> userData = new Hashtable<>(); 
+	// 	var list = userRepository.findUsersWithKYC().stream()
+	// 			.map(user -> {
+	// 				UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
+	// 				response.setIncome(transactionService.getIncomeForUser(user));
+	// 				return response;
+	// 			})
+	// 			.collect(Collectors.toList());
+	// 	for (UserDisplayAdminResponse userDisplayAdminResponse : list) {
+	// 		Dictionary<KycImageType, String> kycImages = new Hashtable<KycImageType, String>();
+	// 		for(KycImageType kycImageType : KycImageType.values()) {
+	// 			KycResponse kycResponse = userService.getKycUrl(kycImageType, userDisplayAdminResponse.getId());
+	// 			String url = kycResponse.getUrl();
+	// 			if (url != null || !url.isEmpty()) {
+	// 				kycImages.put(kycImageType, url);
+	// 			}
+	// 		}
+	// 		userData.put(userDisplayAdminResponse, kycImages);
+	// 	}
+	// 	return ResponseEntity.ok(userData);
+	// }
 
 	@GetMapping("/clicks")
 	public ResponseEntity<?> getClicks() {
