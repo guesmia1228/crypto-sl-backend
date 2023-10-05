@@ -171,6 +171,19 @@ public class AuthenticationController {
 
 	}
 
+	@PostMapping("/deleteImage")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> deleteUserImage(Principal principal) {
+		log.info("Delete User image! ");
+
+		try {
+			return ResponseEntity.ok(userService.deleteProfileImage(principal.getName()));
+		} catch (UserNotFoundException e) {
+			log.error("User not found: " + principal.getName());
+			return ResponseEntity.badRequest().body("User not found");
+		}
+	}
+
 	@PostMapping("/signout")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> logoutUser() {

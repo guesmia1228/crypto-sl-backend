@@ -599,6 +599,22 @@ public class UserService {
 				"");
 	}
 
+	public boolean deleteProfileImage(String email)
+			throws UserNotFoundException {
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		// Delete image from S3
+		String s3key = user.getS3Url();
+		if (s3key != null && !s3key.isEmpty()) {
+			s3Service.delete(s3key);
+			user.setS3Url(null);
+			userRepository.save(user);
+		}
+
+		return true;
+	}
+
 	public void forgotPassword(String email)
 			throws UserNotFoundException,
 			EmailSendException {
