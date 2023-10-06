@@ -1,5 +1,7 @@
 package com.nefentus.api.Services;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +22,9 @@ public class OtpService {
      *
      * @param email - provided email (email in this case)
      * @return boolean value (true|false)
+     * @throws IOException
      */
-    public void generateOtp(String email)
+    public void generateOtp(String email) throws IOException
     {
         // generate otp
         Integer otpValue = otpGenerator.generateOTP(email);
@@ -32,7 +35,8 @@ public class OtpService {
 
         log.info("Generated OTP: {}", otpValue);
 
-        emailService.sendEmail(email, "Nefentus OTP Password", String.valueOf(otpValue));
+        var html = HtmlProvider.loadOTPPasswordMail(String.valueOf(otpValue));
+        emailService.sendEmail(email, "Nefentus OTP Password", html);
     }
 
     /**
