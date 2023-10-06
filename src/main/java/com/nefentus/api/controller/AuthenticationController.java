@@ -1,6 +1,7 @@
 package com.nefentus.api.controller;
 
 import com.nefentus.api.Errors.*;
+import com.nefentus.api.Services.OtpService;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.Services.WalletService;
 import com.nefentus.api.entities.KycImageType;
@@ -54,6 +55,7 @@ public class AuthenticationController {
 	UserService userService;
 	WalletService walletService;
 	KycImageRepository imageRepository;
+	OtpService otpService;
 
 	@GetMapping(value = "/checkJWTCookie")
 	@PreAuthorize("isAuthenticated()")
@@ -97,6 +99,10 @@ public class AuthenticationController {
 			loginResponse = userService.loginUser(authRequest, response);
 			// Make wallets (if not existing until now)
 			walletService.makeWallets(authRequest.getEmail(), authRequest.getPassword());
+
+			if(loginResponse.isRequireOtp) {
+				otpService.generateOtp(loginResponse.email);
+			}
 		} catch (BadCredentialsException e) {
 			log.error("Bad credentials for user: " + authRequest.getEmail());
 			return ResponseEntity.badRequest().body("Bad credentials");
@@ -237,6 +243,15 @@ public class AuthenticationController {
 		log.info("Handle request two factor from email= {} ", principal.getName());
 		var Uri = userService.setMfa(principal.getName(), payload.isActive());
 		return ResponseEntity.ok().body(new twoFAResponse(Uri));
+	}
+
+	@PostMapping("/verify/otp")
+	public ResponseEntity<?> verifyOTPCode(@RequestBody VerifyOTPCodeRequest verifyOtpCodeRequest)
+			throws UserNotFoundException, BadRequestException, InternalServerException {
+		log.info("Request to verify code from email= {} ", verifyOtpCodeRequest.getEmail());
+		var loginResponse = userService.verifyOTP(verifyOtpCodeRequest.getEmail(), verifyOtpCodeRequest.getCode(),
+				verifyOtpCodeRequest.isRememberMe());
+		return ResponseEntity.ok(loginResponse);
 	}
 
 	@PostMapping("/verify")

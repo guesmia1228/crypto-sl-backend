@@ -21,6 +21,7 @@ public class LoginResponse {
     public String profileImage;
     public String country;
     public boolean isRequireKyc;
+    public boolean isRequireOtp;
     public Long userId;
     //pic data
 }

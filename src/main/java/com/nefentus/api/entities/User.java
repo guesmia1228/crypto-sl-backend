@@ -98,6 +98,10 @@ public class User {
 	@JsonIgnore
 	private boolean isRequireKYC;
 
+	@Column(name = "is_require_otp")
+	@JsonIgnore
+	private boolean isRequireOtp;
+
 	@Column(name = "country")
 	private String country;
 }
