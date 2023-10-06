@@ -31,7 +31,6 @@
     s3_url              nvarchar(512) null,
 	country             varchar(512) null,
 	is_require_kyc      bit          not null,
-    is_require_otp      bit          not null,
     constraint UK6dotkott2kjsp8vw4d0m25fb7
         unique (email),
     constraint UK_opaau0844qqbnof1rnx2gevxt
