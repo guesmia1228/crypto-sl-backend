@@ -48,9 +48,9 @@ public class User {
 	@JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "kyc_image", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "kyc_image_id"))
-	private Set<KycImage> kyc_image = new HashSet<>();
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "kyc_image", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "id"))
+	private Set<KycImage> kycImage = new HashSet<>();
 
 	@JsonIgnore
 	@Column(name = "usr_active")

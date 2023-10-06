@@ -24,7 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Long countAllByActive(boolean active);
 
-    @Query("SELECT DISTINCT u FROM User u LEFT JOIN u.kyc_image k WHERE k.id IS NOT NULL")
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN u.kycImage k WHERE k.id IS NOT NULL")
     List<User> findUsersWithKYC();
 
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")

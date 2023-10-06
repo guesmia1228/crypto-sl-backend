@@ -75,18 +75,18 @@ public class AdminDashboardController {
 		return ResponseEntity.ok(userData);
 	}
 
-	@GetMapping("/users_kyc")
-	public ResponseEntity<?> getUsersWithKYC() {
-		log.info("Admin query all kyc users! ");
-		List<UserDisplayAdminResponse> userData = userRepository.findUsersWithKYC().stream()
-				.map(user -> {
-					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
-					response.setIncome(transactionService.getIncomeForUser(user));
-					return response;
-				})
-				.collect(Collectors.toList());
-		return ResponseEntity.ok(userData);
-	}
+	// @GetMapping("/users_kyc")
+	// public ResponseEntity<?> getUsersWithKYC() {
+	// 	log.info("Admin query all kyc users! ");
+	// 	List<UserDisplayAdminResponse> userData = userRepository.findUsersWithKYC().stream()
+	// 			.map(user -> {
+	// 				UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
+	// 				response.setIncome(transactionService.getIncomeForUser(user));
+	// 				return response;
+	// 			})
+	// 			.collect(Collectors.toList());
+	// 	return ResponseEntity.ok(userData);
+	// }
 
 	// @GetMapping("/users_kyc")
 	// public ResponseEntity<?> getUsersWithKYC() {

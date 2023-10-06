@@ -1,6 +1,6 @@
 package com.nefentus.api.payload.response;
 
-import com.nefentus.api.entities.KycImageType;
+import com.nefentus.api.entities.KycImage;
 import com.nefentus.api.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
@@ -23,7 +22,7 @@ public class UserDisplayAdminResponse {
 	private String lastName;
 	private Set<String> roles;
 	private String email;
-	private Dictionary<KycImageType, String> kycImages;
+	private Set<KycImage> kycImages;
 	private String tel;
 	private String business;
 	private String s3Url;
@@ -39,9 +38,7 @@ public class UserDisplayAdminResponse {
 		response.setRoles(user.getRoles().stream()
 				.map(role -> role.getName().label.replace("ROLE_", "").replace("_", " ").toLowerCase())
 				.collect(Collectors.toSet()));
-		// response.setKycImages(user.getKyc_image().stream()
-		// 		.map(kyc -> kyc.getType().replace("_", " ").toLowerCase())
-		// 		.collect(Collectors.toSet()));
+		// response.setKycImages(user.getKycImage());
 		response.setEmail(user.getEmail());
 		response.setTel(user.getTel());
 		response.setBusiness(user.getBusiness());
