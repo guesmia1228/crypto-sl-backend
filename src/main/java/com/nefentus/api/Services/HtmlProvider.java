@@ -25,6 +25,16 @@ public class HtmlProvider {
         }
     }
 
+    public static String loadHtmlEmailChange(String token) throws IOException {
+        ClassPathResource resource = new ClassPathResource("changeEmail.html");
+        InputStream inputStream = resource.getInputStream();
+        try {
+            return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replace("/StaticLoginLinkToChange", token);
+        } finally {
+            inputStream.close();
+        }
+    }
+
     public static String loadResetTokenMail(String token) throws IOException {
         ClassPathResource resource = new ClassPathResource("passwordToken.html");
         InputStream inputStream = resource.getInputStream();

@@ -599,6 +599,64 @@ public class UserService {
 				"");
 	}
 
+	public void changeEmail(String newEmail, String oldEmail)
+			throws UserNotFoundException,
+			EmailSendException {
+		User user = userRepository.findUserByEmail(oldEmail)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
+
+		String resetToken = passwordEncoder.encode(user.getEmail() + LocalDateTime.now().toString());
+		user.setResetToken(resetToken);
+		log.info("Found user with email= {}", oldEmail);
+		userRepository.save(user);
+
+		try {
+			log.info("Email change email send to user");
+			sendChangeEmail(oldEmail, resetToken);
+		} catch (Exception e) {
+			log.error("Failed to send email change email={}", newEmail);
+			throw new EmailSendException("Failed to send email change email", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	private void sendChangeEmail(String email, String token) {
+		try {
+			var html = HtmlProvider.loadHtmlEmailChange(token);
+			emailService.sendEmail(email, "Confirm email change!", html);
+		} catch (IOException e) {
+			log.error("sendEmailChangeEmail", e);
+		}
+	}
+
+	public UpdateResponse confirmEmail(ChangeEmailRequest changeEmailRequest, String email)
+		throws UserNotFoundException {
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		if(!changeEmailRequest.token.equals(user.getResetToken())){
+			log.info("Token provided"+changeEmailRequest.token);
+			log.info("Token in db"+user.getResetToken());
+			log.info(changeEmailRequest.token==user.getResetToken()? "true":"false");
+			throw new UserNotFoundException("Token not found", HttpStatus.BAD_REQUEST);
+		}
+		if(changeEmailRequest.newEmail.length()==0){
+			throw new UserNotFoundException("New email is empty", HttpStatus.BAD_REQUEST);
+		}
+		log.info("New email is: {}", changeEmailRequest.newEmail);
+		user.setEmail(changeEmailRequest.newEmail);
+		User savedUser = userRepository.save(user);
+		log.info("Successfully changed email for user with email= {}", savedUser.getEmail());
+		return new UpdateResponse(
+				savedUser.getEmail(),
+				savedUser.getEmail(),
+				savedUser.getFirstName(),
+				savedUser.getLastName(),
+				savedUser.getProfilePicturepath(),
+				savedUser.getBusiness(),
+				savedUser.getTel(),
+				"");
+	}
+
 	public void forgotPassword(String email)
 			throws UserNotFoundException,
 			EmailSendException {

@@ -171,6 +171,26 @@ public class AuthenticationController {
 
 	}
 
+	@PatchMapping("/change-email")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> changeEmail(@RequestBody String newEmail,
+			Principal principal) throws UserNotFoundException, EmailSendException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		userService.changeEmail(newEmail, email);
+		return ResponseEntity.ok(new MessageResponse("Email change email sent!"));
+	}
+
+	@PostMapping("/confirm-email")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> confirmEmail(@RequestBody ChangeEmailRequest changeEmailRequest,
+			Principal principal) throws UserNotFoundException, EmailSendException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		userService.confirmEmail(changeEmailRequest, email);
+		return ResponseEntity.ok(new MessageResponse("Email changed successfully!"));
+	}
+
 	@PostMapping("/signout")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> logoutUser() {
