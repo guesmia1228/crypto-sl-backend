@@ -540,6 +540,7 @@ public class UserService {
 	public KycResponse getKycUrl(KycImageType type, Long userId) {
 		Optional<KycImage> kycImageOpt = Optional
 				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, userId));
+
 		if (kycImageOpt.isPresent()) {
 			String url = s3Service.presignedURL(kycImageOpt.get().getS3Key());
 			return KycResponse.builder()
