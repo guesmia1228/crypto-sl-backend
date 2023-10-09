@@ -75,43 +75,38 @@ public class AdminDashboardController {
 		return ResponseEntity.ok(userData);
 	}
 
-	// @GetMapping("/users_kyc")
-	// public ResponseEntity<?> getUsersWithKYC() {
-	// 	log.info("Admin query all kyc users! ");
-	// 	List<UserDisplayAdminResponse> userData = userRepository.findUsersWithKYC().stream()
-	// 			.map(user -> {
-	// 				UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
-	// 				response.setIncome(transactionService.getIncomeForUser(user));
-	// 				return response;
-	// 			})
-	// 			.collect(Collectors.toList());
-	// 	return ResponseEntity.ok(userData);
-	// }
+	@GetMapping("/users_kyc")
+	public ResponseEntity<?> getUsersWithKYC() {
+		log.info("Admin query all kyc users! ");
+		List<UserDisplayAdminResponse> userData = userRepository.findUsersWithKYC().stream()
+				.map(user -> {
+					UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
+					response.setIncome(transactionService.getIncomeForUser(user));
+					return response;
+				})
+				.collect(Collectors.toList());
+		return ResponseEntity.ok(userData);
+	}
 
-	// @GetMapping("/users_kyc")
-	// public ResponseEntity<?> getUsersWithKYC() {
-	// 	log.info("Admin query all users! ");
-	// 	Dictionary<UserDisplayAdminResponse, Dictionary<KycImageType, String>> userData = new Hashtable<>(); 
-	// 	var list = userRepository.findUsersWithKYC().stream()
-	// 			.map(user -> {
-	// 				UserDisplayAdminResponse response = UserDisplayAdminResponse.fromUser(user);
-	// 				response.setIncome(transactionService.getIncomeForUser(user));
-	// 				return response;
-	// 			})
-	// 			.collect(Collectors.toList());
-	// 	for (UserDisplayAdminResponse userDisplayAdminResponse : list) {
-	// 		Dictionary<KycImageType, String> kycImages = new Hashtable<KycImageType, String>();
-	// 		for(KycImageType kycImageType : KycImageType.values()) {
-	// 			KycResponse kycResponse = userService.getKycUrl(kycImageType, userDisplayAdminResponse.getId());
-	// 			String url = kycResponse.getUrl();
-	// 			if (url != null || !url.isEmpty()) {
-	// 				kycImages.put(kycImageType, url);
-	// 			}
-	// 		}
-	// 		userData.put(userDisplayAdminResponse, kycImages);
-	// 	}
-	// 	return ResponseEntity.ok(userData);
-	// }
+	@PatchMapping("/accept_kyc/{id}")
+	public ResponseEntity<?> acceptKYC(@PathVariable Long id) {
+		log.info("Accept KYC");
+		try {
+			return ResponseEntity.ok(userService.acceptKYC(id));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
+		}
+	}
+
+	@PatchMapping("/decline_kyc/{id}")
+	public ResponseEntity<?> declineKYC(@PathVariable Long id) {
+		log.info("Accept KYC");
+		try {
+			return ResponseEntity.ok(userService.declineKYC(id));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
+		}
+	}
 
 	@GetMapping("/clicks")
 	public ResponseEntity<?> getClicks() {

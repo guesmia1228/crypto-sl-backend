@@ -903,4 +903,52 @@ public class UserService {
 
 		return parents;
 	}
+
+	public boolean acceptKYC(Long id) {
+		Optional<User> userOptional = userRepository.findById(id);
+		log.info("Found user with id= {}", id);
+		if (userOptional.isPresent()) {
+			for(KycImageType imageType: KycImageType.values()){
+				Optional<KycImage> kycImageOpt = Optional
+				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
+				if (kycImageOpt.isPresent()) {
+					if(kycImageOpt.get().getS3Key()==null){
+						continue;
+					}
+					if(kycImageOpt.get().getS3Key().length()==0 || kycImageOpt.get().getConfirmed()==true || kycImageOpt.get().getS3Key()==null){
+						continue;
+					}
+					kycImageOpt.get().setConfirmed(true);
+					kycImageRepository.save(kycImageOpt.get());
+                	log.info("KYC approved for user with id = {} and image type = {}", id, imageType);
+				} 
+			}
+			return true;
+		} else {
+        	log.error("User with id = {} not found!", id);
+		}
+		return false;
+	}	
+	
+	public boolean declineKYC(Long id) {
+		Optional<User> userOptional = userRepository.findById(id);
+		log.info("Found user with id= {}", id);
+		if (userOptional.isPresent()) {
+			for(KycImageType imageType: KycImageType.values()){
+				Optional<KycImage> kycImageOpt = Optional
+				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
+				if (kycImageOpt.isPresent()) {
+					if(kycImageOpt.get().getConfirmed()!=true){
+						kycImageRepository.delete(kycImageOpt.get());
+					}
+
+                	log.info("KYC deleted for user with id = {} and image type = {}", id, imageType);
+				} 
+			}
+			return true;
+		} else {
+        	log.error("User with id = {} not found!", id);
+		}
+		return false;
+	}
 }
