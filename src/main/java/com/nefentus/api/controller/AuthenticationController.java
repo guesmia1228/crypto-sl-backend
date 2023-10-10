@@ -72,7 +72,7 @@ public class AuthenticationController {
 
 	@PostMapping(value = "/register")
 	public ResponseEntity<?> register(@RequestBody SignUpRequest authRequest)
-			throws UserAlreadyExistsException, AuthenticationException {
+			throws UserAlreadyExistsException, AuthenticationException, BadRequestException {
 		log.info("Request to register new user! ");
 		User created = userService.registerNewUser(authRequest);
 

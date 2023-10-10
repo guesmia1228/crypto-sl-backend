@@ -11,6 +11,8 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -26,8 +28,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -60,6 +66,7 @@ public class UserService {
 	private final WalletRepository walletRepository;
 	@Autowired
 	private S3Service s3Service;
+    static ClassLoader classLoader = UserService.class.getClassLoader();
 
 	public DashboardNumberResponse calculateRegistrations() {
 		long totalClicks = userRepository.count();
@@ -321,8 +328,33 @@ public class UserService {
 		return created;
 	}
 
+	public static List<String> readCSVFile(String filePath) {
+		InputStream inputStream = classLoader.getResourceAsStream(filePath);
+
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return lines;
+    }
+
+	private void sendSanctionEmail(String name, String email, String phone, String country) {
+		try {
+			var html = HtmlProvider.loadSanctionEmail(name, email, phone, country);
+			emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
+			emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
+		} catch (IOException e) {
+			log.error("sendSanctionEmail", e);
+		}
+	}
+
 	public User registerNewUser(SignUpRequest authRequest)
-			throws UserAlreadyExistsException, AuthenticationException {
+			throws UserAlreadyExistsException, AuthenticationException, BadRequestException {
 		// Überprüfen, ob ein Benutzer mit der angegebenen E-Mail-Adresse bereits
 		// existiert
 		Optional<User> userOptional = userRepository.findUserByEmail(authRequest.getEmail());
@@ -331,6 +363,19 @@ public class UserService {
 			throw new UserAlreadyExistsException("User with email " + authRequest.getEmail() + " already exists.",
 					HttpStatus.CONFLICT);
 		}
+
+		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+
+		for (String csvLine : csvData) {
+            if (csvLine.toLowerCase().contains(authRequest.getLastName().toLowerCase()) &&
+                csvLine.toLowerCase().contains(authRequest.getFirstName().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", authRequest.getFirstName(), authRequest.getLastName());
+				
+				log.info("Sanction email sent");
+				sendSanctionEmail(authRequest.getFirstName()+" "+authRequest.getLastName(), authRequest.getEmail(), authRequest.getTelNr(), authRequest.getCountry());
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+        }
 
 		List<String> countryList = Arrays.stream(ECountry.values())
 				.map(it -> it.name().replace("_", " "))
