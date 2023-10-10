@@ -599,22 +599,43 @@ public class UserService {
 				"");
 	}
 
+	public static String generateRandomCode(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder code = new StringBuilder();
+
+        Random random = new Random();
+
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(characters.length());
+            char randomChar = characters.charAt(randomIndex);
+            code.append(randomChar);
+        }
+
+        return code.toString();
+    }
+
 	public void changeEmail(String newEmail, String oldEmail)
 			throws UserNotFoundException,
 			EmailSendException {
 		User user = userRepository.findUserByEmail(oldEmail)
 				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
 
-		String resetToken = passwordEncoder.encode(user.getEmail() + LocalDateTime.now().toString());
+		String resetToken = generateRandomCode(8);
 		user.setResetToken(resetToken);
 		log.info("Found user with email= {}", oldEmail);
 		userRepository.save(user);
+
+		Optional<User> usedEmail= userRepository.findUserByEmail(newEmail);
+
+		if(usedEmail.isPresent()){
+			throw new UserNotFoundException("Email is already used", HttpStatus.BAD_REQUEST);
+		}
 
 		try {
 			log.info("Email change email send to user");
 			sendChangeEmail(oldEmail, resetToken);
 		} catch (Exception e) {
-			log.error("Failed to send email change email={}", newEmail);
+			log.error("Failed to send email change email={}", oldEmail);
 			throw new EmailSendException("Failed to send email change email", HttpStatus.BAD_REQUEST);
 		}
 	}
