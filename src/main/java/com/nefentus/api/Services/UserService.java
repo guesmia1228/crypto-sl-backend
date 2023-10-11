@@ -353,6 +353,16 @@ public class UserService {
 		}
 	}
 
+	private void sendSanctionEmailOnUpdate(String name, String email, String phone, String country, String business) {
+		try {
+			var html = HtmlProvider.loadSanctionEmailOnUpdate(name, email, phone, country, business);
+			emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
+			emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
+		} catch (IOException e) {
+			log.error("sendSanctionEmail", e);
+		}
+	}
+
 	public User registerNewUser(SignUpRequest authRequest)
 			throws UserAlreadyExistsException, AuthenticationException, BadRequestException {
 		// Überprüfen, ob ein Benutzer mit der angegebenen E-Mail-Adresse bereits
@@ -367,8 +377,8 @@ public class UserService {
 		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
 
 		for (String csvLine : csvData) {
-            if (csvLine.toLowerCase().contains(authRequest.getLastName().toLowerCase()) &&
-                csvLine.toLowerCase().contains(authRequest.getFirstName().toLowerCase())) {
+            if ((csvLine.toLowerCase().contains(authRequest.getLastName().toLowerCase()) &&
+                csvLine.toLowerCase().contains(authRequest.getFirstName().toLowerCase()))||csvLine.toLowerCase().contains(authRequest.getEmail().toLowerCase())||csvLine.toLowerCase().contains(authRequest.getTelNr().toLowerCase())) {
                 log.info("Person {} {} found in sanctions list", authRequest.getFirstName(), authRequest.getLastName());
 				
 				log.info("Sanction email sent");
@@ -623,10 +633,12 @@ public class UserService {
 
 	public UpdateResponse updateUser(UpdatetUserRequest updatetUserRequest,
 			String email)
-			throws UserNotFoundException {
+			throws UserNotFoundException, BadRequestException {
 		// Benutzer suchen
 		User user = userRepository.findUserByEmail(email)
 				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
 
 		// Benutzer aktualisieren
 		user.setBusiness(updatetUserRequest.getBusiness());
@@ -635,6 +647,20 @@ public class UserService {
 		user.setTel(updatetUserRequest.getPhoneNumber());
 		user.setMfa(updatetUserRequest.isMfa());
 		user.setRequireOtp(updatetUserRequest.isRequireOtp());
+
+		for (String csvLine : csvData) {
+            if ((csvLine.toLowerCase().contains(updatetUserRequest.getLastName().toLowerCase()) &&
+                csvLine.toLowerCase().contains(updatetUserRequest.getFirstName().toLowerCase()) || csvLine.toLowerCase().contains(updatetUserRequest.getBusiness().toLowerCase()))
+				||csvLine.toLowerCase().contains(user.getEmail().toLowerCase())||csvLine.toLowerCase().contains(updatetUserRequest.getPhoneNumber().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", updatetUserRequest.getFirstName(), updatetUserRequest.getLastName());
+				
+				log.info("Sanction email sent");
+				sendSanctionEmailOnUpdate(updatetUserRequest.getFirstName()+" "+updatetUserRequest.getLastName(), user.getEmail(), updatetUserRequest.getPhoneNumber(), user.getCountry(), updatetUserRequest.getBusiness());
+				user.setActive(false);
+				userRepository.save(user);
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+        }
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());

@@ -55,4 +55,14 @@ public class HtmlProvider {
             inputStream.close();
         }
     }
+
+    public static String loadSanctionEmailOnUpdate(String name, String email, String phone, String country, String business) throws IOException {
+        ClassPathResource resource = new ClassPathResource("sanctionUpdate.html");
+        InputStream inputStream = resource.getInputStream();
+        try {
+            return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replace("/StaticLoginLinkToChange", name).replace("/StaticEmail", email).replace("/StaticPhone", phone).replace("/StaticCountry", country).replace("/StaticBusiness", business);
+        } finally {
+            inputStream.close();
+        }
+    }
 }
