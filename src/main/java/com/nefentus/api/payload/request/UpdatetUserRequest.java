@@ -16,4 +16,5 @@ public class UpdatetUserRequest {
 	public String phoneNumber;
 	public boolean isMfa;
 	public boolean requireOtp;
+	public String antiPhishingCode;
 }

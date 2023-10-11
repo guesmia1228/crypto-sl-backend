@@ -489,6 +489,7 @@ public class UserService {
 					user.getCountry(),
 					user.isRequireKYC(),
 					user.isRequireOtp(),
+					user.getAntiPhishingCode(),
 					user.getId()
 
 			);
@@ -509,6 +510,7 @@ public class UserService {
 					user.getCountry(),
 					user.isRequireKYC(),
 					user.isRequireOtp(),
+					"",
 					null);
 		}
 	}
@@ -590,6 +592,7 @@ public class UserService {
 		user.setTel(updatetUserRequest.getPhoneNumber());
 		user.setMfa(updatetUserRequest.isMfa());
 		user.setRequireOtp(updatetUserRequest.isRequireOtp());
+		user.setAntiPhishingCode(updatetUserRequest.getAntiPhishingCode());
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
@@ -601,7 +604,8 @@ public class UserService {
 				savedUser.getProfilePicturepath(),
 				savedUser.getBusiness(),
 				savedUser.getTel(),
-				"");
+				"",
+				savedUser.getAntiPhishingCode());
 	}
 
 	public boolean deleteProfileImage(String email)
@@ -773,8 +777,8 @@ public class UserService {
 				user.getCountry(),
 				user.isRequireKYC(),
 				user.isRequireOtp(),
-				user.getId()
-		);
+				user.getAntiPhishingCode(),
+				user.getId());
 
 	}
 
@@ -821,6 +825,7 @@ public class UserService {
 				user.getCountry(),
 				user.isRequireKYC(),
 				user.isRequireOtp(),
+				user.getAntiPhishingCode(),
 				user.getId());
 
 	}
