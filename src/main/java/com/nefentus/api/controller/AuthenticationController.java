@@ -161,6 +161,32 @@ public class AuthenticationController {
 				HttpStatus.OK);
 	}
 
+	@GetMapping("/{userId}/kyc-level")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<ResultObjectInfo<KycLevelResponse>> getKycLevel(@PathVariable Long userId,
+			Principal principal) throws UserNotFoundException, IOException {
+		log.info("Request to get KYC level");
+		Optional<User> user = userRepository.findById(userId);
+
+		KycLevelResponse kycLevel = KycLevelResponse.builder().build();
+		BigDecimal threshold = transactionService.getIncomeForUser(user.orElse(null));
+		if(threshold.compareTo(new BigDecimal("10000000")) > 0){
+			kycLevel.setKycLevel(3);
+		} else if(threshold.compareTo(new BigDecimal("1000000")) > 0){
+			kycLevel.setKycLevel(2);
+		} else if(threshold.compareTo(new BigDecimal("10000")) > 0){
+			kycLevel.setKycLevel(1);
+		} else {
+			kycLevel.setKycLevel(0);
+		}
+		return new ResponseEntity<>(
+				ResultObjectInfo.<KycLevelResponse>builder()
+						.data(kycLevel)
+						.message("success")
+						.build(),
+				HttpStatus.OK);
+	}
+
 	@PostMapping("/upload")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file,
