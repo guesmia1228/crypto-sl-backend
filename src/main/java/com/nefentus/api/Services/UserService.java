@@ -67,6 +67,7 @@ public class UserService {
 	@Autowired
 	private S3Service s3Service;
     static ClassLoader classLoader = UserService.class.getClassLoader();
+	CSVDataLoader CSVDataLoader = new CSVDataLoader();
 
 	public DashboardNumberResponse calculateRegistrations() {
 		long totalClicks = userRepository.count();
@@ -213,7 +214,7 @@ public class UserService {
 					HttpStatus.CONFLICT);
 		}
 
-		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+		List<String> csvData = CSVDataLoader.getCSVData();
 
 		for (String csvLine : csvData) {
             if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
@@ -259,7 +260,7 @@ public class UserService {
 					HttpStatus.CONFLICT);
 		}
 
-		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+		List<String> csvData = CSVDataLoader.getCSVData();
 
 		for (String csvLine : csvData) {
             if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
@@ -351,7 +352,7 @@ public class UserService {
 		userToUpdate.setRoles(setRoles(addUserRequest.getRoles()));
 		userToUpdate.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
-		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+		List<String> csvData = CSVDataLoader.getCSVData();
 
 		for (String csvLine : csvData) {
             if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
@@ -370,21 +371,6 @@ public class UserService {
 		User created = userRepository.save(userToUpdate);
 		return created;
 	}
-
-	public static List<String> readCSVFile(String filePath) {
-		InputStream inputStream = classLoader.getResourceAsStream(filePath);
-
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                lines.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return lines;
-    }
 
 	private void sendSanctionEmail(String name, String email, String phone, String country) {
 		try {
@@ -417,7 +403,8 @@ public class UserService {
 					HttpStatus.CONFLICT);
 		}
 
-		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+		List<String> csvData = CSVDataLoader.getCSVData();
+
 
 		for (String csvLine : csvData) {
             if ((csvLine.toLowerCase().contains(authRequest.getLastName().toLowerCase()) &&
@@ -682,7 +669,7 @@ public class UserService {
 		User user = userRepository.findUserByEmail(email)
 				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
 
-		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+		List<String> csvData = CSVDataLoader.getCSVData();
 
 		// Benutzer aktualisieren
 		user.setBusiness(updatetUserRequest.getBusiness());
