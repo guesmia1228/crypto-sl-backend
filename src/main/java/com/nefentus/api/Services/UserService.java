@@ -700,7 +700,7 @@ public class UserService {
 				savedUser.getProfilePicturepath(),
 				savedUser.getBusiness(),
 				savedUser.getTel(),
-				"");
+				"", email);
 	}
 
 	public void forgotPassword(String email)
