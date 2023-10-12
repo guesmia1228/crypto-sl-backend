@@ -139,20 +139,22 @@ public class AuthenticationController {
 		Optional<User> user = userRepository.findById(userId);
 
 		BigDecimal threshold = transactionService.getIncomeForUser(user.orElse(null));
-		if ((threshold.compareTo(new BigDecimal("10000")) > 0) &&
+
+		if ((threshold.compareTo(new BigDecimal("10000000")) > 0) &&
+				(type == KycImageType.UTILITY_BILL || type == KycImageType.ADRESS || type==KycImageType.PASSPORT || type==KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
+			kyc.setRequired(true);
+		}else if ((threshold.compareTo(new BigDecimal("1000000")) > 0) &&
+				(type == KycImageType.ADRESS || type == KycImageType.PASSPORT || type== KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
+			kyc.setRequired(true);
+		} else if ((threshold.compareTo(new BigDecimal("10000")) > 0) &&
             (type == KycImageType.PASSPORT ||
              type == KycImageType.PERSONAL_PICTURE ||
              type == KycImageType.COMPANY_REGISTRATION)) {
 			kyc.setRequired(true);
-		} else if ((threshold.compareTo(new BigDecimal("1000000")) > 0) &&
-				(type == KycImageType.ADRESS || type == KycImageType.PASSPORT || type== KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
-			kyc.setRequired(true);
-		} else if ((threshold.compareTo(new BigDecimal("10000000")) > 0) &&
-				(type == KycImageType.UTILITY_BILL || type == KycImageType.ADRESS || type==KycImageType.PASSPORT || type==KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
-			kyc.setRequired(true);
-		} else {
+		}else {
 			kyc.setRequired(false);
 		}
+
 		return new ResponseEntity<>(
 				ResultObjectInfo.<KycResponse>builder()
 						.data(kyc)
