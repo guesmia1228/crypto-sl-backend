@@ -33,6 +33,21 @@ public class Invoice {
 	@Column(name = "inv_price")
 	private BigDecimal price;
 
+	@Column(name = "inv_name")
+	private String name;
+
+	@Column(name = "inv_email")
+	private String email;
+
+	@Column(name = "inv_address")
+	private String address;
+
+	@Column(name = "inv_company")
+	private String company;
+
+	@Column(name = "inv_tax_number")
+	private String taxNumber;
+
 	@ManyToOne
 	@JoinColumn(name = "inv_user_id", referencedColumnName = "id")
 	private User user;

@@ -18,4 +18,5 @@ public class UpdateResponse {
     public String business;
     public String phoneNumber;
     public String username;
+    public String antiPhishingCode;
 }

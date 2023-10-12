@@ -45,4 +45,14 @@ public class HtmlProvider {
         }
     }
 
+    public static String loadOTPPasswordMail(String code) throws IOException {
+        ClassPathResource resource = new ClassPathResource("otpPassword.html");
+        InputStream inputStream = resource.getInputStream();
+        try {
+            return StreamUtils.copyToString(inputStream, Charset.defaultCharset()).replaceAll("OTP_CODE", code);
+        } finally {
+            inputStream.close();
+        }
+    }
+
 }
