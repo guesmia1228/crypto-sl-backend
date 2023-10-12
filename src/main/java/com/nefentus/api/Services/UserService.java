@@ -205,13 +205,26 @@ public class UserService {
 		return userRepository.count();
 	}
 
-	public User addUser(AddUserRequest addUserRequest) throws UserAlreadyExistsException {
+	public User addUser(AddUserRequest addUserRequest) throws UserAlreadyExistsException, BadRequestException {
 		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
 		if (userOptional.isPresent()) {
 			log.error("User with email " + addUserRequest.getEmail() + " already exists!");
 			throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists. ",
 					HttpStatus.CONFLICT);
 		}
+
+		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+
+		for (String csvLine : csvData) {
+            if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
+                csvLine.toLowerCase().contains(addUserRequest.getFirstName().toLowerCase()))||csvLine.toLowerCase().contains(addUserRequest.getEmail().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
+				
+				log.info("Sanction email sent");
+				sendSanctionEmail(addUserRequest.getFirstName()+" "+addUserRequest.getLastName(), addUserRequest.getEmail(), "", "");
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+        }
 
 		var user = new User();
 		user.setEmail(addUserRequest.getEmail());
@@ -239,12 +252,25 @@ public class UserService {
 		return created;
 	}
 
-	public User addUser(AddUserRequest addUserRequest, String email) throws UserAlreadyExistsException {
+	public User addUser(AddUserRequest addUserRequest, String email) throws UserAlreadyExistsException, BadRequestException {
 		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
 		if (userOptional.isPresent()) {
 			throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists.",
 					HttpStatus.CONFLICT);
 		}
+
+		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+
+		for (String csvLine : csvData) {
+            if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
+                csvLine.toLowerCase().contains(addUserRequest.getFirstName().toLowerCase()))||csvLine.toLowerCase().contains(addUserRequest.getEmail().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
+				
+				log.info("Sanction email sent");
+				sendSanctionEmail(addUserRequest.getFirstName()+" "+addUserRequest.getLastName(), addUserRequest.getEmail(), "", "");
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+        }
 
 		var admin = userRepository.findUserByEmail(email).get();
 
@@ -282,7 +308,7 @@ public class UserService {
 		return created;
 	}
 
-	public User updateUserAdmin(AddUserRequest addUserRequest) throws UserFoundException {
+	public User updateUserAdmin(AddUserRequest addUserRequest) throws UserFoundException, BadRequestException {
 		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
 		if (userOptional.isEmpty()) {
 			log.error("User with email " + addUserRequest.getEmail() + " does not exist!");
@@ -319,11 +345,28 @@ public class UserService {
 		}
 	}
 
-	public User updateUserWithAddRequest(AddUserRequest addUserRequest, User userToUpdate) {
+	public User updateUserWithAddRequest(AddUserRequest addUserRequest, User userToUpdate) throws BadRequestException {
 		userToUpdate.setFirstName(addUserRequest.getFirstName());
 		userToUpdate.setLastName(addUserRequest.getLastName());
 		userToUpdate.setRoles(setRoles(addUserRequest.getRoles()));
 		userToUpdate.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
+
+		List<String> csvData = readCSVFile("20231003-FULL-1_1.csv");
+
+		for (String csvLine : csvData) {
+            if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
+                csvLine.toLowerCase().contains(addUserRequest.getFirstName().toLowerCase()))
+				||csvLine.toLowerCase().contains(addUserRequest.getEmail().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
+				
+				log.info("Sanction email sent");
+				sendSanctionEmailOnUpdate(addUserRequest.getFirstName()+" "+addUserRequest.getLastName(), addUserRequest.getEmail().length()>0?addUserRequest.getEmail():"", userToUpdate.getTel().length()>0?userToUpdate.getTel():"" , "", userToUpdate.getBusiness().length()>0?userToUpdate.getBusiness():"");
+				userToUpdate.setActive(false);
+				userRepository.save(userToUpdate);
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+        }
+
 		User created = userRepository.save(userToUpdate);
 		return created;
 	}
