@@ -490,6 +490,7 @@ public class UserService {
 		if (userOptional.isPresent()) {
 			User user = userOptional.get();
 			user.setActive(true);
+			user.setToken(null);
 			userRepository.save(user);
 			log.info("Activate user Successful");
 			return user;
