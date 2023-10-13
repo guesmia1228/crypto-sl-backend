@@ -72,7 +72,7 @@ public class PartnerDashboardController {
 	// create a new user below him
 	@PostMapping("/users")
 	public ResponseEntity<?> getClicks(@RequestBody AddUserRequest addUserRequest, Principal principal)
-			throws UserAlreadyExistsException {
+			throws UserAlreadyExistsException, BadRequestException {
 		log.info("Gold user= {} request to add new user! ", principal.getName());
 		return ResponseEntity.ok(userService.addUser(addUserRequest, principal.getName()));
 	}

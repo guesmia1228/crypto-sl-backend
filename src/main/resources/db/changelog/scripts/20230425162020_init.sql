@@ -220,4 +220,3 @@
     constraint FKj3y3d0uo8vpnm9s9ydvxrmehg
         foreign key (user_id) references  users (id)
 );
-
