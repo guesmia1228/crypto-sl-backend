@@ -72,7 +72,7 @@ public class AuthenticationController {
 
 	@PostMapping(value = "/register")
 	public ResponseEntity<?> register(@RequestBody SignUpRequest authRequest)
-			throws UserAlreadyExistsException, AuthenticationException {
+			throws UserAlreadyExistsException, AuthenticationException, BadRequestException {
 		log.info("Request to register new user! ");
 		User created = userService.registerNewUser(authRequest);
 
@@ -169,7 +169,7 @@ public class AuthenticationController {
 	@PatchMapping("/update")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> updateUser(@RequestBody UpdatetUserRequest updatetUserRequest,
-			Principal principal) throws UserNotFoundException {
+			Principal principal) throws UserNotFoundException, BadRequestException {
 		String email = principal.getName();
 		log.info("Request update user from email= {}", email);
 		UpdateResponse updateResponse = userService.updateUser(updatetUserRequest, email);
