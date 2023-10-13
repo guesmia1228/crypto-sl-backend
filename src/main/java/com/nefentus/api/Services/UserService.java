@@ -575,6 +575,7 @@ public class UserService {
 					user.getCountry(),
 					user.isRequireKYC(),
 					user.isRequireOtp(),
+					user.getAntiPhishingCode(),
 					user.getId()
 
 			);
@@ -595,6 +596,7 @@ public class UserService {
 					user.getCountry(),
 					user.isRequireKYC(),
 					user.isRequireOtp(),
+					"",
 					null);
 		}
 	}
@@ -692,6 +694,7 @@ public class UserService {
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
         }
+		user.setAntiPhishingCode(updatetUserRequest.getAntiPhishingCode());
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
@@ -703,7 +706,8 @@ public class UserService {
 				savedUser.getProfilePicturepath(),
 				savedUser.getBusiness(),
 				savedUser.getTel(),
-				"");
+				"",
+				savedUser.getAntiPhishingCode());
 	}
 
 	public boolean deleteProfileImage(String email)
@@ -720,6 +724,85 @@ public class UserService {
 		}
 
 		return true;
+	}
+
+	public static String generateRandomCode(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder code = new StringBuilder();
+
+        Random random = new Random();
+
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(characters.length());
+            char randomChar = characters.charAt(randomIndex);
+            code.append(randomChar);
+        }
+
+        return code.toString();
+    }
+
+	public void changeEmail(String newEmail, String oldEmail)
+			throws UserNotFoundException,
+			EmailSendException {
+		User user = userRepository.findUserByEmail(oldEmail)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
+
+		String resetToken = generateRandomCode(8);
+		user.setResetToken(resetToken);
+		log.info("Found user with email= {}", oldEmail);
+		userRepository.save(user);
+
+		Optional<User> usedEmail= userRepository.findUserByEmail(newEmail);
+
+		if(usedEmail.isPresent()){
+			throw new UserNotFoundException("Email is already used", HttpStatus.BAD_REQUEST);
+		}
+
+		try {
+			log.info("Email change email send to user");
+			sendChangeEmail(oldEmail, resetToken);
+		} catch (Exception e) {
+			log.error("Failed to send email change email={}", oldEmail);
+			throw new EmailSendException("Failed to send email change email", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	private void sendChangeEmail(String email, String token) {
+		try {
+			var html = HtmlProvider.loadHtmlEmailChange(token);
+			emailService.sendEmail(email, "Confirm email change!", html);
+		} catch (IOException e) {
+			log.error("sendEmailChangeEmail", e);
+		}
+	}
+
+	public UpdateResponse confirmEmail(ChangeEmailRequest changeEmailRequest, String email)
+		throws UserNotFoundException {
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		if(!changeEmailRequest.token.equals(user.getResetToken())){
+			log.info("Token provided"+changeEmailRequest.token);
+			log.info("Token in db"+user.getResetToken());
+			log.info(changeEmailRequest.token==user.getResetToken()? "true":"false");
+			throw new UserNotFoundException("Token not found", HttpStatus.BAD_REQUEST);
+		}
+		if(changeEmailRequest.newEmail.length()==0){
+			throw new UserNotFoundException("New email is empty", HttpStatus.BAD_REQUEST);
+		}
+		log.info("New email is: {}", changeEmailRequest.newEmail);
+		user.setEmail(changeEmailRequest.newEmail);
+		User savedUser = userRepository.save(user);
+		log.info("Successfully changed email for user with email= {}", savedUser.getEmail());
+		return new UpdateResponse(
+				savedUser.getEmail(),
+				savedUser.getEmail(),
+				savedUser.getFirstName(),
+				savedUser.getLastName(),
+				savedUser.getProfilePicturepath(),
+				savedUser.getBusiness(),
+				savedUser.getTel(),
+				"", email);
 	}
 
 	public void forgotPassword(String email)
@@ -875,8 +958,8 @@ public class UserService {
 				user.getCountry(),
 				user.isRequireKYC(),
 				user.isRequireOtp(),
-				user.getId()
-		);
+				user.getAntiPhishingCode(),
+				user.getId());
 
 	}
 
@@ -923,6 +1006,7 @@ public class UserService {
 				user.getCountry(),
 				user.isRequireKYC(),
 				user.isRequireOtp(),
+				user.getAntiPhishingCode(),
 				user.getId());
 
 	}
