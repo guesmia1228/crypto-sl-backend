@@ -104,4 +104,7 @@ public class User {
 
 	@Column(name = "country")
 	private String country;
+
+	@Column(name = "anti_phishing_code")
+	private String antiPhishingCode;
 }

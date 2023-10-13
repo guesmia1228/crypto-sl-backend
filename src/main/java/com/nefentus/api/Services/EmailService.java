@@ -1,5 +1,9 @@
 package com.nefentus.api.Services;
 
+import com.nefentus.api.entities.User;
+import com.nefentus.api.repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -10,7 +14,10 @@ import javax.annotation.PostConstruct;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.InternetAddress;
 
+import java.util.Optional;
+
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 	@Value("${spring.mail.username}")
@@ -18,6 +25,8 @@ public class EmailService {
 
 	@Autowired
 	private JavaMailSender mailSender;
+
+	private final UserRepository userRepository;
 
 	@PostConstruct
 	public void initEmailService() {
@@ -31,6 +40,21 @@ public class EmailService {
 	@Async
 	public void sendEmail(String toEmail, String subject, String body) {
 		MimeMessage message = mailSender.createMimeMessage();
+
+		Optional<User> userOptional = userRepository.findUserByEmail(toEmail);
+		if (userOptional.isPresent()) {
+			log.error("User with email " + toEmail + " exists!");
+			var user = userOptional.get();
+			log.error("Anti Phishing Code: " + user.getAntiPhishingCode());
+
+			if (user.getAntiPhishingCode() == null || user.getAntiPhishingCode().isEmpty()) {
+				body = body.replace("anti-phishing-code", "");
+			} else {
+				body = body.replace("anti-phishing-code", "Anti Phishing Code: " + user.getAntiPhishingCode());
+			}
+		} else {
+			body = body.replace("anti-phishing-code", "");
+		}
 
 		try {
 			message.setFrom(new InternetAddress(username, "Nefentus"));
