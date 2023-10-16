@@ -66,8 +66,8 @@ public class UserService {
 	private final WalletRepository walletRepository;
 	@Autowired
 	private S3Service s3Service;
-    static ClassLoader classLoader = UserService.class.getClassLoader();
-	CSVDataLoader CSVDataLoader = new CSVDataLoader();
+	static ClassLoader classLoader = UserService.class.getClassLoader();
+	EUSanctionList sanctionList = new EUSanctionList();
 
 	public DashboardNumberResponse calculateRegistrations() {
 		long totalClicks = userRepository.count();
@@ -214,7 +214,7 @@ public class UserService {
 					HttpStatus.CONFLICT);
 		}
 
-		List<String> csvData = CSVDataLoader.getCSVData();
+		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
             if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
@@ -222,10 +222,11 @@ public class UserService {
                 log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
 				
 				log.info("Sanction email sent");
-				sendSanctionEmail(addUserRequest.getFirstName()+" "+addUserRequest.getLastName(), addUserRequest.getEmail(), "", "");
+				sendSanctionEmail(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
+						addUserRequest.getEmail(), "", "");
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
-        }
+		}
 
 		var user = new User();
 		user.setEmail(addUserRequest.getEmail());
@@ -253,14 +254,15 @@ public class UserService {
 		return created;
 	}
 
-	public User addUser(AddUserRequest addUserRequest, String email) throws UserAlreadyExistsException, BadRequestException {
+	public User addUser(AddUserRequest addUserRequest, String email)
+			throws UserAlreadyExistsException, BadRequestException {
 		Optional<User> userOptional = userRepository.findUserByEmail(addUserRequest.getEmail());
 		if (userOptional.isPresent()) {
 			throw new UserAlreadyExistsException("User with email " + addUserRequest.getEmail() + " already exists.",
 					HttpStatus.CONFLICT);
 		}
 
-		List<String> csvData = CSVDataLoader.getCSVData();
+		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
             if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
@@ -268,10 +270,11 @@ public class UserService {
                 log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
 				
 				log.info("Sanction email sent");
-				sendSanctionEmail(addUserRequest.getFirstName()+" "+addUserRequest.getLastName(), addUserRequest.getEmail(), "", "");
+				sendSanctionEmail(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
+						addUserRequest.getEmail(), "", "");
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
-        }
+		}
 
 		var admin = userRepository.findUserByEmail(email).get();
 
@@ -352,7 +355,7 @@ public class UserService {
 		userToUpdate.setRoles(setRoles(addUserRequest.getRoles()));
 		userToUpdate.setUpdatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
-		List<String> csvData = CSVDataLoader.getCSVData();
+		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
             if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
@@ -361,12 +364,15 @@ public class UserService {
                 log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
 				
 				log.info("Sanction email sent");
-				sendSanctionEmailOnUpdate(addUserRequest.getFirstName()+" "+addUserRequest.getLastName(), addUserRequest.getEmail().length()>0?addUserRequest.getEmail():"", userToUpdate.getTel().length()>0?userToUpdate.getTel():"" , "", userToUpdate.getBusiness().length()>0?userToUpdate.getBusiness():"");
+				sendSanctionEmailOnUpdate(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
+						addUserRequest.getEmail().length() > 0 ? addUserRequest.getEmail() : "",
+						userToUpdate.getTel().length() > 0 ? userToUpdate.getTel() : "", "",
+						userToUpdate.getBusiness().length() > 0 ? userToUpdate.getBusiness() : "");
 				userToUpdate.setActive(false);
 				userRepository.save(userToUpdate);
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
-        }
+		}
 
 		User created = userRepository.save(userToUpdate);
 		return created;
@@ -403,8 +409,7 @@ public class UserService {
 					HttpStatus.CONFLICT);
 		}
 
-		List<String> csvData = CSVDataLoader.getCSVData();
-
+		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
             if ((csvLine.contains(authRequest.getLastName().toLowerCase()) &&
@@ -412,10 +417,11 @@ public class UserService {
                 log.info("Person {} {} found in sanctions list", authRequest.getFirstName(), authRequest.getLastName());
 				
 				log.info("Sanction email sent");
-				sendSanctionEmail(authRequest.getFirstName()+" "+authRequest.getLastName(), authRequest.getEmail(), authRequest.getTelNr(), authRequest.getCountry());
+				sendSanctionEmail(authRequest.getFirstName() + " " + authRequest.getLastName(), authRequest.getEmail(),
+						authRequest.getTelNr(), authRequest.getCountry());
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
-        }
+		}
 
 		List<String> countryList = Arrays.stream(ECountry.values())
 				.map(it -> it.name().replace("_", " "))
@@ -631,6 +637,7 @@ public class UserService {
 	public KycResponse getKycUrl(KycImageType type, Long userId) {
 		Optional<KycImage> kycImageOpt = Optional
 				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(type, userId));
+
 		if (kycImageOpt.isPresent()) {
 			String url = s3Service.presignedURL(kycImageOpt.get().getS3Key());
 			return KycResponse.builder()
@@ -671,7 +678,7 @@ public class UserService {
 		User user = userRepository.findUserByEmail(email)
 				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
 
-		List<String> csvData = CSVDataLoader.getCSVData();
+		List<String> csvData = sanctionList.getCSVData();
 
 		// Benutzer aktualisieren
 		user.setBusiness(updatetUserRequest.getBusiness());
@@ -688,7 +695,9 @@ public class UserService {
                 log.info("Person {} {} found in sanctions list", updatetUserRequest.getFirstName(), updatetUserRequest.getLastName());
 
 				log.info("Sanction email sent");
-				sendSanctionEmailOnUpdate(updatetUserRequest.getFirstName()+" "+updatetUserRequest.getLastName(), user.getEmail(), updatetUserRequest.getPhoneNumber(), user.getCountry(), updatetUserRequest.getBusiness());
+				sendSanctionEmailOnUpdate(updatetUserRequest.getFirstName() + " " + updatetUserRequest.getLastName(),
+						user.getEmail(), updatetUserRequest.getPhoneNumber(), user.getCountry(),
+						updatetUserRequest.getBusiness());
 				user.setActive(false);
 				userRepository.save(user);
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
@@ -1160,5 +1169,53 @@ public class UserService {
 		}
 
 		return parents;
+	}
+
+	public boolean acceptKYC(Long id) {
+		Optional<User> userOptional = userRepository.findById(id);
+		log.info("Found user with id= {}", id);
+		if (userOptional.isPresent()) {
+			for(KycImageType imageType: KycImageType.values()){
+				Optional<KycImage> kycImageOpt = Optional
+				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
+				if (kycImageOpt.isPresent()) {
+					if(kycImageOpt.get().getS3Key()==null){
+						continue;
+					}
+					if(kycImageOpt.get().getS3Key().length()==0 || kycImageOpt.get().getConfirmed()==true || kycImageOpt.get().getS3Key()==null){
+						continue;
+					}
+					kycImageOpt.get().setConfirmed(true);
+					kycImageRepository.save(kycImageOpt.get());
+                	log.info("KYC approved for user with id = {} and image type = {}", id, imageType);
+				} 
+			}
+			return true;
+		} else {
+        	log.error("User with id = {} not found!", id);
+		}
+		return false;
+	}	
+	
+	public boolean declineKYC(Long id) {
+		Optional<User> userOptional = userRepository.findById(id);
+		log.info("Found user with id= {}", id);
+		if (userOptional.isPresent()) {
+			for(KycImageType imageType: KycImageType.values()){
+				Optional<KycImage> kycImageOpt = Optional
+				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
+				if (kycImageOpt.isPresent()) {
+					if(kycImageOpt.get().getConfirmed()!=true){
+						kycImageRepository.delete(kycImageOpt.get());
+					}
+
+                	log.info("KYC deleted for user with id = {} and image type = {}", id, imageType);
+				} 
+			}
+			return true;
+		} else {
+        	log.error("User with id = {} not found!", id);
+		}
+		return false;
 	}
 }
