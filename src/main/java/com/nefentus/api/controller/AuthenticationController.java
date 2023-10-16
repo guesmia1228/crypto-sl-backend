@@ -1,6 +1,7 @@
 package com.nefentus.api.controller;
 
 import com.nefentus.api.Errors.*;
+import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.OtpService;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.Services.WalletService;
@@ -9,6 +10,7 @@ import com.nefentus.api.entities.User;
 import com.nefentus.api.payload.request.*;
 import com.nefentus.api.payload.response.*;
 import com.nefentus.api.repositories.KycImageRepository;
+import com.nefentus.api.repositories.UserRepository;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -23,8 +25,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Base64;
+import java.util.Optional;
 
 /*
 Class Description:
@@ -55,6 +59,8 @@ public class AuthenticationController {
 	UserService userService;
 	WalletService walletService;
 	KycImageRepository imageRepository;
+	TransactionService transactionService;
+	private final UserRepository userRepository;
 	OtpService otpService;
 
 	@GetMapping(value = "/checkJWTCookie")
@@ -136,9 +142,54 @@ public class AuthenticationController {
 			Principal principal) throws UserNotFoundException, IOException {
 		log.info("Request to save upload KYC");
 		KycResponse kyc = userService.getKycUrl(type, userId);
+		Optional<User> user = userRepository.findById(userId);
+
+		BigDecimal threshold = transactionService.getIncomeForUser(user.orElse(null));
+
+		if ((threshold.compareTo(new BigDecimal("10000000")) > 0) &&
+				(type == KycImageType.UTILITY_BILL || type == KycImageType.ADRESS || type==KycImageType.PASSPORT || type==KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
+			kyc.setRequired(true);
+		}else if ((threshold.compareTo(new BigDecimal("1000000")) > 0) &&
+				(type == KycImageType.ADRESS || type == KycImageType.PASSPORT || type== KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
+			kyc.setRequired(true);
+		} else if ((threshold.compareTo(new BigDecimal("10000")) > 0) &&
+            (type == KycImageType.PASSPORT ||
+             type == KycImageType.PERSONAL_PICTURE ||
+             type == KycImageType.COMPANY_REGISTRATION)) {
+			kyc.setRequired(true);
+		}else {
+			kyc.setRequired(false);
+		}
+
 		return new ResponseEntity<>(
 				ResultObjectInfo.<KycResponse>builder()
 						.data(kyc)
+						.message("success")
+						.build(),
+				HttpStatus.OK);
+	}
+
+	@GetMapping("/{userId}/kyc-level")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<ResultObjectInfo<KycLevelResponse>> getKycLevel(@PathVariable Long userId,
+			Principal principal) throws UserNotFoundException, IOException {
+		log.info("Request to get KYC level");
+		Optional<User> user = userRepository.findById(userId);
+
+		KycLevelResponse kycLevel = KycLevelResponse.builder().build();
+		BigDecimal threshold = transactionService.getIncomeForUser(user.orElse(null));
+		if(threshold.compareTo(new BigDecimal("10000000")) > 0){
+			kycLevel.setKycLevel(3);
+		} else if(threshold.compareTo(new BigDecimal("1000000")) > 0){
+			kycLevel.setKycLevel(2);
+		} else if(threshold.compareTo(new BigDecimal("10000")) > 0){
+			kycLevel.setKycLevel(1);
+		} else {
+			kycLevel.setKycLevel(0);
+		}
+		return new ResponseEntity<>(
+				ResultObjectInfo.<KycLevelResponse>builder()
+						.data(kycLevel)
 						.message("success")
 						.build(),
 				HttpStatus.OK);
