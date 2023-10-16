@@ -24,6 +24,7 @@ public class CSVDataLoader {
             e.printStackTrace();
             // Handle the exception appropriately
         }
+        csvData.replaceAll(String::toLowerCase);
     }
 
     public List<String> getCSVData() {
