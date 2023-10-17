@@ -3,8 +3,12 @@ package com.nefentus.api.Services;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,8 +37,10 @@ public class OtpService {
 
 		log.info("Generated OTP: {}", otpValue);
 
-		var html = HtmlProvider.loadOTPPasswordMail(String.valueOf(otpValue));
-		emailService.sendEmail(email, "Confirm login to Nefentus", html);
+		// var html = HtmlProvider.loadOTPPasswordMail(String.valueOf(otpValue));
+		// emailService.sendEmail(email, "Confirm login to Nefentus", html);
+		Context context = ContextProvider.loadOTPPasswordMail(String.valueOf(otpValue));
+		emailService.sendEmailWithHtmlTemplate(email, "Confirm your one time password", "email-template", context);
 	}
 
 	/**

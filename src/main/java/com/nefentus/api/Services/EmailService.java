@@ -10,8 +10,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
 import javax.annotation.PostConstruct;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 
 import java.util.Optional;
@@ -27,6 +32,7 @@ public class EmailService {
 	private JavaMailSender mailSender;
 
 	private final UserRepository userRepository;
+    private final TemplateEngine templateEngine;
 
 	@PostConstruct
 	public void initEmailService() {
@@ -69,4 +75,39 @@ public class EmailService {
 
 		log.info("Email sent successfully to {}", toEmail);
 	}
+
+	@Async
+    public void sendEmailWithHtmlTemplate(String toEmail, String subject, String templateName, Context context) {
+        MimeMessage message = mailSender.createMimeMessage();
+        // MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+
+		Optional<User> userOptional = userRepository.findUserByEmail(toEmail);
+		if (userOptional.isPresent()) {
+			log.error("User with email " + toEmail + " exists!");
+			var user = userOptional.get();
+			log.error("Anti Phishing Code: " + user.getAntiPhishingCode());
+
+			if (user.getAntiPhishingCode() == null || user.getAntiPhishingCode().isEmpty()) {
+				context.setVariable("phishingCode", "");
+			} else {
+				context.setVariable("phishingCode", "Anti Phishing Code: " + user.getAntiPhishingCode());
+			}
+		} else {
+			context.setVariable("phishingCode", "");
+		}
+
+        try {
+			message.setFrom(new InternetAddress(username, "Nefentus"));
+			message.setRecipients(MimeMessage.RecipientType.TO, InternetAddress.parse(toEmail));
+			message.setSubject(subject);
+            String htmlContent = templateEngine.process(templateName, context);
+			message.setContent(htmlContent, "text/html; charset=utf-8");
+			mailSender.send(message);
+        } catch (Exception e) {
+			log.error("Email error", e);
+			return;
+        }
+
+		log.info("Email sent successfully to {}", toEmail);
+    }
 }

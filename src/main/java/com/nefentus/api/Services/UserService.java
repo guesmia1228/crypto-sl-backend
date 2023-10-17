@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.context.Context;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -787,8 +788,10 @@ public class UserService {
 
 	private void sendChangeEmail(String email, String token) {
 		try {
-			var html = HtmlProvider.loadHtmlEmailChange(token);
-			emailService.sendEmail(email, "Confirm email change!", html);
+			// var html = HtmlProvider.loadHtmlEmailChange(token);
+			// emailService.sendEmail(email, "Confirm email change!", html);
+			Context context = ContextProvider.loadHtmlEmailChange(token);
+			emailService.sendEmailWithHtmlTemplate(email, "Confirm email change!", "email-template", context);
 		} catch (IOException e) {
 			log.error("sendEmailChangeEmail", e);
 		}
@@ -1047,8 +1050,10 @@ public class UserService {
 	private void sendResetEmail(String email,
 			String token) {
 		try {
-			var html = HtmlProvider.loadResetTokenMail(token);
-			emailService.sendEmail(email, "Change your password", html);
+			// var html = HtmlProvider.loadResetTokenMail(token);
+			// emailService.sendEmail(email, "Change your password", html);
+			Context context = ContextProvider.loadResetTokenMail(token);
+			emailService.sendEmailWithHtmlTemplate(email, "Change your password", "email-template", context);
 		} catch (IOException e) {
 			log.error("sendResetEmail", e);
 		}
@@ -1058,8 +1063,10 @@ public class UserService {
 			String token) {
 
 		try {
-			var html = HtmlProvider.loadHtmlFileReset(token, appUrlPasswordResetEmail);
-			emailService.sendEmail(email, "Reset your password!", html);
+			// var html = HtmlProvider.loadHtmlFileReset(token, appUrlPasswordResetEmail);
+			// emailService.sendEmail(email, "Reset your password!", html);
+			Context context = ContextProvider.loadHtmlFileReset(token, appUrlPasswordResetEmail);
+			emailService.sendEmailWithHtmlTemplate(email, "Reset your password!", "email-template", context);
 		} catch (IOException e) {
 			log.error("sendResetPasswordEmail", e);
 		}
@@ -1069,8 +1076,10 @@ public class UserService {
 			String token) {
 
 		try {
-			var html = HtmlProvider.loadHtmlFile(token, appUrlConfirmationEmail);
-			emailService.sendEmail(email, "Please activate your account", html);
+			// var html = HtmlProvider.loadHtmlFile(token, appUrlConfirmationEmail);
+			// emailService.sendEmail(email, "Please activate your account", html);
+			Context context = ContextProvider.loadHtmlFile(token, appUrlConfirmationEmail);
+			emailService.sendEmailWithHtmlTemplate(email, "Please activate your account", "email-template", context);
 		} catch (IOException e) {
 			log.error("sendConfirmationEmail", e);
 		}
