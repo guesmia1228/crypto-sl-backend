@@ -112,6 +112,9 @@ public class AuthenticationController {
 		} catch (BadCredentialsException e) {
 			log.error("Bad credentials for user: " + authRequest.getEmail());
 			return ResponseEntity.badRequest().body("Bad credentials");
+		} catch (InactiveUserException e) {
+			log.error("Inactive user: " + authRequest.getEmail());
+			return ResponseEntity.badRequest().body("Inactive User");
 		} catch (UserNotFoundException e) {
 			log.error("User not found: " + authRequest.getEmail());
 			return ResponseEntity.badRequest().body("User not found");
