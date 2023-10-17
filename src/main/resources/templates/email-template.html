@@ -1,160 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
 
-    <title>[[${title}]]</title>
-    <style type="text/css">
-      * {
-        box-sizing: border-box;
-        padding: 0;
-        margin: 0;
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <title>[[${title}]]</title>
+  <style type="text/css">
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    /* media Query */
+    @media screen and (max-width: 414px) {
+      .headline {
+        font-size: 15px !important;
       }
 
-      body {
-        font-family: "Poppins", sans-serif;
+      .verify-para {
+        font-size: 12px !important;
+        line-height: 1.7 !important;
       }
 
-      a {
-        text-decoration: none;
+      .not-sign-up {
+        font-size: 11px !important;
+        line-height: 1.6 !important;
       }
+    }
+  </style>
+</head>
 
-      /* media Query */
-      @media screen and (max-width: 414px) {
-        .headline {
-          font-size: 15px !important;
-        }
-
-        .verify-para {
-          font-size: 12px !important;
-          line-height: 1.7 !important;
-        }
-
-        .not-sign-up {
-          font-size: 11px !important;
-          line-height: 1.6 !important;
-        }
-      }
-    </style>
-  </head>
-
-  <body style="margin: 0; padding: 0; background-color: #ffffff">
-    <center style="width: 100%; table-layout: fixed; background-color: #ffffff">
-      <div style="max-width: 100%">
-        <table
-          align="center"
-          style="
+<body style="margin: 0; padding: 0; background-color: #ffffff">
+  <center style="width: 100%; table-layout: fixed; background-color: #ffffff">
+    <div style="max-width: 100%">
+      <table align="center" style="
             margin: 0 auto;
             padding-top: 0px;
             width: 100%;
             max-width: 100%;
             border-spacing: 0;
             font-family: Poppins, sans-serif;
-          "
-        >
-          <!-- Logo -->
-          <tr>
-            <td class="header">
-              <table
-                style="
+          ">
+        <!-- Logo -->
+        <tr>
+          <td class="header">
+            <table style="
                   width: 100%;
                   border-spacing: 0;
                   text-align: center;
                   background-color: #000000;
                   padding-top: 8px;
                   padding-bottom: 8px;
-                "
-              >
-                <tr>
-                  <td class="logo">
-                    <img
-                      style="
+                ">
+              <tr>
+                <td class="logo">
+                  <img style="
                         max-width: 200px;
                         width: 100%;
                         object-fit: cover;
                         margin-top: 2rem;
                         margin-bottom: 2rem;
-                      "
-                      src="https://res.cloudinary.com/dkrcmuoxe/image/upload/v1679870143/nefentus2_rwhetd.png"
-                      alt="Logo"
-                    />
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Logo -->
+                      " src="https://res.cloudinary.com/dkrcmuoxe/image/upload/v1679870143/nefentus2_rwhetd.png"
+                    alt="Logo" />
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Logo -->
 
-          <!-- Section1 -->
-          <tr>
-            <td>
-              <table
-                style="
+        <!-- Section1 -->
+        <tr>
+          <td>
+            <table style="
                   width: 100%;
                   border-spacing: 0;
                   text-align: center;
                   margin: 0 auto;
-                "
-              >
-                <tr>
-                  <td>
-                    <h2
-                      class="headline"
-                      style="
+                ">
+              <tr>
+                <td>
+                  <h2 class="headline" style="
                         font-size: 19px;
                         margin-top: 40px;
                         margin-bottom: 15px;
                         font-weight: 500;
                         font-family: Poppins, sans-serif;
-                      "
-                    >
-                      [[${headline}]]
-                    </h2>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Section1 -->
+                      ">
+                    [[${headline}]]
+                  </h2>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Section1 -->
 
-          <!-- Line -->
-          <tr>
-            <td>
-              <table
-                style="
+        <!-- Line -->
+        <tr>
+          <td>
+            <table style="
                   width: 50%;
                   border-bottom: 1px solid #000000;
                   margin: 0 auto;
-                "
-              ></table>
-            </td>
-          </tr>
-          <!-- Line -->
+                "></table>
+          </td>
+        </tr>
+        <!-- Line -->
 
-          <!-- Section 2 -->
-          <tr>
-            <td>
-              <table
-                style="
+        <!-- Section 2 -->
+        <tr>
+          <td>
+            <table style="
                   width: 80%;
                   margin: 0 auto;
                   border-spacing: 0;
                   text-align: center;
-                "
-              >
-                <tr>
-                  <td>
-                    <p
-                      class="verify-para"
-                      style="
+                ">
+              <tr>
+                <td>
+                  <p class="verify-para" style="
                         font-size: 14px;
                         font-weight: 400;
                         margin-top: 20px;
@@ -162,33 +141,29 @@
                         font-family: Poppins, sans-serif;
                         padding-left: 5px;
                         padding-right: 5px;
-                      "
-                    >
-                      [[${text}]]
-                      <br />
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Section 2 -->
+                      ">
+                    [[${text}]]
+                    <br />
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Section 2 -->
 
-          <!-- Button -->
-          <tr>
-            <td>
-              <table
-                style="
+        <!-- Button -->
+        <tr>
+          <td>
+            <table style="
                   width: 100%;
                   border-spacing: 0;
                   text-align: center;
                   margin: 0 auto;
-                "
-              >
-                <tr>
-                  <td>
-                    <span
-                      style="
+                ">
+              <tr>
+                <td>
+                  <a style="
                         background: linear-gradient(
                           94.15deg,
                           rgb(7, 132, 181) -27.47%,
@@ -199,116 +174,107 @@
                         padding-left: 55px;
                         padding-right: 55px;
                         border-radius: 5px;
-                      "
-                      >
-                      <a style="color: #ffffff" th:href="@{buttonlink}">[[${buttontext}]]</a></span
-                    >
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Button -->
+                      " th:if="${buttonlink != null}" th:href="@{${buttonlink}}">
+                    <span style="color: #ffffff">[[${buttontext}]]</span></a>
 
-          <!-- Line -->
-          <tr>
-            <td>
-              <table
-                style="
+                  <a style="
+                          background: linear-gradient(
+                            94.15deg,
+                            rgb(7, 132, 181) -27.47%,
+                            rgb(102, 191, 222) 118.26%
+                          );
+                          padding-top: 12px;
+                          padding-bottom: 12px;
+                          padding-left: 55px;
+                          padding-right: 55px;
+                          border-radius: 5px;
+                        " th:unless="${buttonlink != null}">
+                    <span style="color: #ffffff">[[${buttontext}]]</span></a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Button -->
+
+        <!-- Line -->
+        <tr>
+          <td>
+            <table style="
                   width: 10%;
                   border-bottom: 1px solid #000000;
                   margin: 0 auto;
                   padding-top: 30px;
-                "
-              ></table>
-            </td>
-          </tr>
-          <!-- Line -->
+                "></table>
+          </td>
+        </tr>
+        <!-- Line -->
 
-          <!-- Anti Phishing Code -->
-          <tr>
-            <td>
-              <table
-                style="
+        <!-- Anti Phishing Code -->
+        <tr>
+          <td>
+            <table style="
                   width: 100%;
                   border-spacing: 0;
                   text-align: center;
                   margin: 20px auto;
-                "
-              >
-                <tr>
-                  <td>
-                    <p
-                      style="
+                ">
+              <tr>
+                <td>
+                  <p style="
                         font-family: Poppins, sans-serif;
                         font-size: 14px;
                         font-weight: 400;
-                      "
-                    >
-                      [[${phishingCode}]]
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Anti Phishing Code -->
+                      ">
+                    [[${phishingCode}]]
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Anti Phishing Code -->
 
-          <!-- Footer -->
-          <tr>
-            <td>
-              <table
-                style="
+        <!-- Footer -->
+        <tr>
+          <td>
+            <table style="
                   width: 100%;
                   border-spacing: 0;
                   text-align: center;
                   background-color: #000000;
                   padding-top: 5px;
                   padding-bottom: 20px;
-                "
-              >
-                <tr>
-                  <td>
-                    <p
-                      style="
+                ">
+              <tr>
+                <td>
+                  <p style="
                         font-size: 13px;
                         font-weight: 400;
                         margin-top: 20px;
                         margin-bottom: 20px;
                         font-family: Poppins, sans-serif;
                         color: #ffffff;
-                      "
-                    >
-                      Get the latest nefentus App for your phone
-                    </p>
-                    <a
-                      style="padding-right: 5px; padding-left: 5px"
-                      href="#"
-                      target="_blank"
-                    >
-                      <img
-                        src="https://res.cloudinary.com/dkrcmuoxe/image/upload/v1679870234/google-play_dwvmgz.png"
-                        alt=""
-                      />
-                    </a>
-                    <a
-                      style="padding-right: 5px; padding-left: 5px"
-                      href="#"
-                      target="_blank"
-                    >
-                      <img
-                        src="https://res.cloudinary.com/dkrcmuoxe/image/upload/v1679870269/app-store_y6mr24.png"
-                        alt=""
-                      />
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Footer -->
-        </table>
-      </div>
-    </center>
-  </body>
+                      ">
+                    Get the latest nefentus App for your phone
+                  </p>
+                  <a style="padding-right: 5px; padding-left: 5px" href="#" target="_blank">
+                    <img src="https://res.cloudinary.com/dkrcmuoxe/image/upload/v1679870234/google-play_dwvmgz.png"
+                      alt="" />
+                  </a>
+                  <a style="padding-right: 5px; padding-left: 5px" href="#" target="_blank">
+                    <img src="https://res.cloudinary.com/dkrcmuoxe/image/upload/v1679870269/app-store_y6mr24.png"
+                      alt="" />
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- Footer -->
+      </table>
+    </div>
+  </center>
+</body>
+
 </html>
