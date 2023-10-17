@@ -25,7 +25,9 @@ public class EUSanctionList {
 			e.printStackTrace();
 			// Handle the exception appropriately
 		}
+    	csvData.replaceAll(String::toLowerCase);
 	}
+
 
 	public List<String> getCSVData() {
 		if (csvData.isEmpty()) {

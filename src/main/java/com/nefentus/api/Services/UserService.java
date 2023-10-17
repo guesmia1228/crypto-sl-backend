@@ -217,12 +217,10 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-			if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
-					csvLine.toLowerCase().contains(addUserRequest.getFirstName().toLowerCase()))
-					|| csvLine.toLowerCase().contains(addUserRequest.getEmail().toLowerCase())) {
-				log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(),
-						addUserRequest.getLastName());
-
+            if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
+                csvLine.contains(addUserRequest.getFirstName().toLowerCase()))||csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
+				
 				log.info("Sanction email sent");
 				sendSanctionEmail(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
 						addUserRequest.getEmail(), "", "");
@@ -267,12 +265,10 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-			if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
-					csvLine.toLowerCase().contains(addUserRequest.getFirstName().toLowerCase()))
-					|| csvLine.toLowerCase().contains(addUserRequest.getEmail().toLowerCase())) {
-				log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(),
-						addUserRequest.getLastName());
-
+            if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
+                csvLine.contains(addUserRequest.getFirstName().toLowerCase()))||csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
+				
 				log.info("Sanction email sent");
 				sendSanctionEmail(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
 						addUserRequest.getEmail(), "", "");
@@ -362,12 +358,11 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-			if ((csvLine.toLowerCase().contains(addUserRequest.getLastName().toLowerCase()) &&
-					csvLine.toLowerCase().contains(addUserRequest.getFirstName().toLowerCase()))
-					|| csvLine.toLowerCase().contains(addUserRequest.getEmail().toLowerCase())) {
-				log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(),
-						addUserRequest.getLastName());
-
+            if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
+                csvLine.contains(addUserRequest.getFirstName().toLowerCase()))
+				||csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
+				
 				log.info("Sanction email sent");
 				sendSanctionEmailOnUpdate(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
 						addUserRequest.getEmail().length() > 0 ? addUserRequest.getEmail() : "",
@@ -417,12 +412,10 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-			if ((csvLine.toLowerCase().contains(authRequest.getLastName().toLowerCase()) &&
-					csvLine.toLowerCase().contains(authRequest.getFirstName().toLowerCase()))
-					|| csvLine.toLowerCase().contains(authRequest.getEmail().toLowerCase())
-					|| csvLine.toLowerCase().contains(authRequest.getTelNr().toLowerCase())) {
-				log.info("Person {} {} found in sanctions list", authRequest.getFirstName(), authRequest.getLastName());
-
+            if ((csvLine.contains(authRequest.getLastName().toLowerCase()) &&
+                csvLine.contains(authRequest.getFirstName().toLowerCase()))||csvLine.contains(authRequest.getEmail().toLowerCase())||csvLine.contains(authRequest.getTelNr().toLowerCase())) {
+                log.info("Person {} {} found in sanctions list", authRequest.getFirstName(), authRequest.getLastName());
+				
 				log.info("Sanction email sent");
 				sendSanctionEmail(authRequest.getFirstName() + " " + authRequest.getLastName(), authRequest.getEmail(),
 						authRequest.getTelNr(), authRequest.getCountry());
@@ -696,13 +689,10 @@ public class UserService {
 		user.setRequireOtp(updatetUserRequest.isRequireOtp());
 
 		for (String csvLine : csvData) {
-			if ((csvLine.toLowerCase().contains(updatetUserRequest.getLastName().toLowerCase()) &&
-					csvLine.toLowerCase().contains(updatetUserRequest.getFirstName().toLowerCase())
-					|| csvLine.toLowerCase().contains(updatetUserRequest.getBusiness().toLowerCase()))
-					|| csvLine.toLowerCase().contains(user.getEmail().toLowerCase())
-					|| csvLine.toLowerCase().contains(updatetUserRequest.getPhoneNumber().toLowerCase())) {
-				log.info("Person {} {} found in sanctions list", updatetUserRequest.getFirstName(),
-						updatetUserRequest.getLastName());
+            if (((csvLine.contains(updatetUserRequest.getLastName().toLowerCase()) &&
+                csvLine.contains(updatetUserRequest.getFirstName().toLowerCase()) && updatetUserRequest.getFirstName().length()>0 && updatetUserRequest.getLastName().length()>0) || (csvLine.contains(updatetUserRequest.getBusiness().toLowerCase()) && updatetUserRequest.getBusiness().length()>0))
+				||(csvLine.contains(user.getEmail().toLowerCase()) && user.getEmail().length()>0)||(csvLine.contains(updatetUserRequest.getPhoneNumber().toLowerCase()) && updatetUserRequest.getPhoneNumber().length()>0)) {
+                log.info("Person {} {} found in sanctions list", updatetUserRequest.getFirstName(), updatetUserRequest.getLastName());
 
 				log.info("Sanction email sent");
 				sendSanctionEmailOnUpdate(updatetUserRequest.getFirstName() + " " + updatetUserRequest.getLastName(),
@@ -712,7 +702,7 @@ public class UserService {
 				userRepository.save(user);
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
-		}
+        }
 		user.setAntiPhishingCode(updatetUserRequest.getAntiPhishingCode());
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
