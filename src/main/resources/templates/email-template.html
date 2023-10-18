@@ -145,6 +145,21 @@
                     [[${text}]]
                     <br />
                   </p>
+                  <span class="verify-para" style="
+                        font-size: 14px;
+                        font-weight: 700;
+                        margin-top: 20px;
+                        margin-bottom: 30px;
+                        font-family: Poppins, sans-serif;
+                        padding-left: 5px;
+                        padding-right: 5px;
+                        border: 2px solid black;
+                        border-radius: 1rem;
+                        margin: 5px;
+                      " th:if="${subtitle != null}">[[${subtitle}]]</span>
+                  <ul th:if="${subcontents != null}">
+                    <li th:each="subcontent : ${subcontents}" th:text="${subcontent}">Email: /StaticEmail</li>
+                  </ul>
                 </td>
               </tr>
             </table>
@@ -153,7 +168,7 @@
         <!-- Section 2 -->
 
         <!-- Button -->
-        <tr>
+        <tr th:unless="${buttonlink == null and buttontext == null}">
           <td>
             <table style="
                   width: 100%;

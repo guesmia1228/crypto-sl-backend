@@ -381,9 +381,12 @@ public class UserService {
 
 	private void sendSanctionEmail(String name, String email, String phone, String country) {
 		try {
-			var html = HtmlProvider.loadSanctionEmail(name, email, phone, country);
-			emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
-			emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
+			// var html = HtmlProvider.loadSanctionEmail(name, email, phone, country);
+			// emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
+			// emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
+			Context context = ContextProvider.loadSanctionEmail(name, email, phone, country);
+			emailService.sendEmailWithHtmlTemplate("office@nefentus.com", "Sanction Person!", "email-template", context);
+			emailService.sendEmailWithHtmlTemplate("steven@nefentus.com", "Sanction Person!", "email-template", context);
 		} catch (IOException e) {
 			log.error("sendSanctionEmail", e);
 		}
@@ -391,9 +394,12 @@ public class UserService {
 
 	private void sendSanctionEmailOnUpdate(String name, String email, String phone, String country, String business) {
 		try {
-			var html = HtmlProvider.loadSanctionEmailOnUpdate(name, email, phone, country, business);
-			emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
-			emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
+			// var html = HtmlProvider.loadSanctionEmailOnUpdate(name, email, phone, country, business);
+			// emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
+			// emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
+			Context context = ContextProvider.loadSanctionEmailOnUpdate(name, email, phone, country, business);
+			emailService.sendEmailWithHtmlTemplate("office@nefentus.com", "Sanction Person!", "email-template", context);
+			emailService.sendEmailWithHtmlTemplate("steven@nefentus.com", "Sanction Person!", "email-template", context);
 		} catch (IOException e) {
 			log.error("sendSanctionEmail", e);
 		}
