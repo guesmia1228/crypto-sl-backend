@@ -106,7 +106,7 @@ public class AuthenticationController {
 			// Make wallets (if not existing until now)
 			walletService.makeWallets(authRequest.getEmail(), authRequest.getPassword());
 
-			if(loginResponse.isHasOtp()) {
+			if (loginResponse.isHasOtp()) {
 				otpService.generateOtp(loginResponse.email);
 			}
 		} catch (BadCredentialsException e) {
@@ -150,17 +150,19 @@ public class AuthenticationController {
 		BigDecimal threshold = transactionService.getIncomeForUser(user.orElse(null));
 
 		if ((threshold.compareTo(new BigDecimal("10000000")) > 0) &&
-				(type == KycImageType.UTILITY_BILL || type == KycImageType.ADRESS || type==KycImageType.PASSPORT || type==KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
+				(type == KycImageType.UTILITY_BILL || type == KycImageType.ADRESS || type == KycImageType.PASSPORT
+						|| type == KycImageType.PERSONAL_PICTURE || type == KycImageType.COMPANY_REGISTRATION)) {
 			kyc.setRequired(true);
-		}else if ((threshold.compareTo(new BigDecimal("1000000")) > 0) &&
-				(type == KycImageType.ADRESS || type == KycImageType.PASSPORT || type== KycImageType.PERSONAL_PICTURE || type==KycImageType.COMPANY_REGISTRATION)) {
+		} else if ((threshold.compareTo(new BigDecimal("1000000")) > 0) &&
+				(type == KycImageType.ADRESS || type == KycImageType.PASSPORT || type == KycImageType.PERSONAL_PICTURE
+						|| type == KycImageType.COMPANY_REGISTRATION)) {
 			kyc.setRequired(true);
 		} else if ((threshold.compareTo(new BigDecimal("10000")) > 0) &&
-            (type == KycImageType.PASSPORT ||
-             type == KycImageType.PERSONAL_PICTURE ||
-             type == KycImageType.COMPANY_REGISTRATION)) {
+				(type == KycImageType.PASSPORT ||
+						type == KycImageType.PERSONAL_PICTURE ||
+						type == KycImageType.COMPANY_REGISTRATION)) {
 			kyc.setRequired(true);
-		}else {
+		} else {
 			kyc.setRequired(false);
 		}
 
@@ -181,11 +183,11 @@ public class AuthenticationController {
 
 		KycLevelResponse kycLevel = KycLevelResponse.builder().build();
 		BigDecimal threshold = transactionService.getIncomeForUser(user.orElse(null));
-		if(threshold.compareTo(new BigDecimal("10000000")) > 0){
+		if (threshold.compareTo(new BigDecimal("10000000")) > 0) {
 			kycLevel.setKycLevel(3);
-		} else if(threshold.compareTo(new BigDecimal("1000000")) > 0){
+		} else if (threshold.compareTo(new BigDecimal("1000000")) > 0) {
 			kycLevel.setKycLevel(2);
-		} else if(threshold.compareTo(new BigDecimal("10000")) > 0){
+		} else if (threshold.compareTo(new BigDecimal("10000")) > 0) {
 			kycLevel.setKycLevel(1);
 		} else {
 			kycLevel.setKycLevel(0);
@@ -310,7 +312,7 @@ public class AuthenticationController {
 		return ResponseEntity.ok(new MessageResponse("Password reset successful!"));
 	}
 
-	@PostMapping(value = "/2fa", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(value = "/setup/totp", produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> add2fa(@RequestBody twoFARequest payload, Principal principal)
 			throws UserNotFoundException {
@@ -328,7 +330,7 @@ public class AuthenticationController {
 		return ResponseEntity.ok(loginResponse);
 	}
 
-	@PostMapping("/verify")
+	@PostMapping("/verify/totp")
 	public ResponseEntity<?> verifyCode(@RequestBody VerifyCodeRequest verifyCodeRequest)
 			throws UserNotFoundException, BadRequestException, InternalServerException {
 		log.info("Request to verify code from email= {} ", verifyCodeRequest.getEmail());
@@ -346,6 +348,22 @@ public class AuthenticationController {
 			return ResponseEntity.ok(success);
 		} else {
 			return ResponseEntity.badRequest().body(success);
+		}
+	}
+
+	@PostMapping("/setup/getToken")
+	public ResponseEntity<?> getToken(Principal principal) throws UserNotFoundException, InternalServerException {
+		String email = principal.getName();
+		try {
+			String token = userService.generateJwtToken(email, false);
+			return ResponseEntity.ok(token);
+		} catch (UserNotFoundException e) {
+			log.error("User not found: " + email);
+			return ResponseEntity.badRequest().body("User not found");
+		} catch (Exception e) {
+			log.error("Error making wallets: " + e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.badRequest().body("Error making wallets");
 		}
 	}
 }
