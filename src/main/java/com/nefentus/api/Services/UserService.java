@@ -245,7 +245,7 @@ public class UserService {
 		user.setBusiness("");
 		user.setProfilePicturepath("");
 
-		user.setHasTotp(true);
+		user.setHasTotp(false);
 		user.setSecret(totpManager.generateSecret());
 
 		User created = userRepository.save(user);
@@ -301,7 +301,7 @@ public class UserService {
 		user.setBusiness("");
 		user.setProfilePicturepath("");
 
-		user.setHasTotp(true);
+		user.setHasTotp(false);
 		user.setSecret(totpManager.generateSecret());
 		
 		User created = userRepository.save(user);
@@ -462,7 +462,7 @@ public class UserService {
 			user.setRequireKYC(false);
 		}
 
-		user.setHasTotp(true);
+		user.setHasTotp(false);
 		user.setSecret(totpManager.generateSecret());
 
 		User created = userRepository.save(user);
@@ -1243,27 +1243,16 @@ public class UserService {
 		return false;
 	}
 
-	public String generateJwtToken(String email,
-			boolean longToken)
-			throws UserNotFoundException,
-			BadRequestException,
-			InternalServerException {
-		User user = userRepository
-				.findUserByEmail(email)
-				.orElseThrow(() -> new UserNotFoundException(String.format("email %s", email), HttpStatus.BAD_REQUEST));
-
-		var jwtToken = Optional.of(user)
-				.map(CustomUserDetails::build)
-				.map(userDetailsToken -> new UsernamePasswordAuthenticationToken(
-						userDetailsToken, null, userDetailsToken.getAuthorities()))
-				.map(userDetailsToken -> jwtTokenProvider.generateToken(userDetailsToken, longToken))
-				.orElseThrow(() -> new InternalServerException("unable to generate access token"));
-
-		if (jwtToken.isEmpty()) {
-			log.error("User not found");
+	public String getTotpToken(String email)
+			throws UserNotFoundException {
+		Optional<User> userOptional = userRepository.findUserByEmail(email);
+		if (userOptional.isEmpty()) {
+			log.error("User with email " + email + " does not exist!");
 			throw new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST);
 		}
 
-		return jwtToken;
+		var user = userOptional.get();
+
+		return user.getSecret();
 	}
 }

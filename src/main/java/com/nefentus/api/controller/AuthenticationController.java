@@ -351,19 +351,15 @@ public class AuthenticationController {
 		}
 	}
 
-	@PostMapping("/setup/getToken")
-	public ResponseEntity<?> getToken(Principal principal) throws UserNotFoundException, InternalServerException {
+	@PostMapping("/setup/getTotpToken")
+	public ResponseEntity<?> getTotpToken(Principal principal) throws UserNotFoundException {
 		String email = principal.getName();
 		try {
-			String token = userService.generateJwtToken(email, false);
+			String token = userService.getTotpToken(email);
 			return ResponseEntity.ok(token);
 		} catch (UserNotFoundException e) {
 			log.error("User not found: " + email);
 			return ResponseEntity.badRequest().body("User not found");
-		} catch (Exception e) {
-			log.error("Error making wallets: " + e.getMessage());
-			e.printStackTrace();
-			return ResponseEntity.badRequest().body("Error making wallets");
 		}
 	}
 }
