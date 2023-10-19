@@ -1031,11 +1031,12 @@ public class UserService {
 		log.info("Found user with email= {}", email);
 		return new LoginResponse(
 				optUser,
-				user.getEmail(),
+				email,
 				user.getFirstName(),
 				user.getLastName(),
 				user.getAffiliateLink(),
-				Base64.getEncoder().encodeToString(user.getProfilepic()),
+				Base64.getEncoder()
+						.encodeToString(user.getProfilepic() != null ? user.getProfilepic() : new byte[] {}),
 				user.getBusiness(),
 				user.getTel(),
 				user.getRoles().stream()
