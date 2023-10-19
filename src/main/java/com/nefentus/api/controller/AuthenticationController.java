@@ -106,7 +106,7 @@ public class AuthenticationController {
 			// Make wallets (if not existing until now)
 			walletService.makeWallets(authRequest.getEmail(), authRequest.getPassword());
 
-			if(loginResponse.isRequireOtp) {
+			if(loginResponse.isHasOtp()) {
 				otpService.generateOtp(loginResponse.email);
 			}
 		} catch (BadCredentialsException e) {

@@ -560,7 +560,7 @@ public class UserService {
 
 		log.info("Found user with email= {}", authRequest.getEmail());
 		// LoginResponse erstellen
-		if (!user.isMfa() && !user.isRequireOtp()) {
+		if (!user.isHasTotp() && !user.isHasOtp()) {
 			log.info("login success with return jwt");
 			return new LoginResponse(
 					jwtTokenProvider.generateToken(authentication, authRequest.rememberMe),
@@ -576,11 +576,11 @@ public class UserService {
 							.map(Role::getName)
 							.map(Enum::name)
 							.toArray(String[]::new),
-					user.isMfa(),
+					user.isHasTotp(),
 					user.getS3Url(),
 					user.getCountry(),
 					user.isRequireKYC(),
-					user.isRequireOtp(),
+					user.isHasOtp(),
 					user.getAntiPhishingCode(),
 					user.getId()
 
@@ -597,11 +597,11 @@ public class UserService {
 					"",
 					"",
 					new String[] {},
-					user.isMfa(),
+					user.isHasTotp(),
 					user.getS3Url(),
 					user.getCountry(),
 					user.isRequireKYC(),
-					user.isRequireOtp(),
+					user.isHasOtp(),
 					"",
 					null);
 		}
@@ -685,8 +685,8 @@ public class UserService {
 		user.setFirstName(updatetUserRequest.getFirstName());
 		user.setLastName(updatetUserRequest.getLastName());
 		user.setTel(updatetUserRequest.getPhoneNumber());
-		user.setMfa(updatetUserRequest.isMfa());
-		user.setRequireOtp(updatetUserRequest.isRequireOtp());
+		user.setHasTotp(updatetUserRequest.isHasTotp());
+		user.setHasOtp(updatetUserRequest.isHasTotp());
 
 		for (String csvLine : csvData) {
             if (((csvLine.contains(updatetUserRequest.getLastName().toLowerCase()) &&
@@ -913,7 +913,7 @@ public class UserService {
 		// 2FA-Status und geheimes Schlüssel aktualisieren, falls aktiviert
 
 		log.info("Found user with email= {}", email);
-		user.setMfa(isActive);
+		user.setHasTotp(isActive);
 		if (isActive) {
 			user.setSecret(totpManager.generateSecret());
 		}
@@ -962,11 +962,11 @@ public class UserService {
 						.map(Role::getName)
 						.map(Enum::name)
 						.toArray(String[]::new),
-				user.isMfa(),
+				user.isHasTotp(),
 				user.getS3Url(),
 				user.getCountry(),
 				user.isRequireKYC(),
-				user.isRequireOtp(),
+				user.isHasOtp(),
 				user.getAntiPhishingCode(),
 				user.getId());
 
@@ -1010,11 +1010,11 @@ public class UserService {
 						.map(Role::getName)
 						.map(Enum::name)
 						.toArray(String[]::new),
-				user.isMfa(),
+				user.isHasTotp(),
 				user.getS3Url(),
 				user.getCountry(),
 				user.isRequireKYC(),
-				user.isRequireOtp(),
+				user.isHasOtp(),
 				user.getAntiPhishingCode(),
 				user.getId());
 

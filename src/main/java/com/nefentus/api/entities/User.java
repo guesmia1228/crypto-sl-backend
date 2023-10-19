@@ -79,7 +79,8 @@ public class User {
 	private String profilePicturepath;
 	private String business;
 	@JsonIgnore
-	private boolean mfa;
+	@Column(name = "has_totp")
+	private boolean hasTotp;
 	@JsonIgnore
 	private String secret;
 
@@ -99,9 +100,9 @@ public class User {
 	@JsonIgnore
 	private boolean isRequireKYC;
 
-	@Column(name = "is_require_otp")
+	@Column(name = "has_otp")
 	@JsonIgnore
-	private boolean isRequireOtp;
+	private boolean hasOtp;
 
 	@Column(name = "country")
 	private String country;
