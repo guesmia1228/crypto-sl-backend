@@ -314,11 +314,18 @@ public class AuthenticationController {
 
 	@PostMapping(value = "/setup/totp", produces = MediaType.APPLICATION_JSON_VALUE)
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> add2fa(@RequestBody twoFARequest payload, Principal principal)
+	public ResponseEntity<?> setupTotp(@RequestBody twoFARequest payload, Principal principal)
 			throws UserNotFoundException {
-		log.info("Handle request two factor from email= {} ", principal.getName());
-		var Uri = userService.setMfa(principal.getName(), payload.isActive());
-		return ResponseEntity.ok().body(new twoFAResponse(Uri));
+		// log.info("Handle request two factor from email= {} ", principal.getName());
+		// var Uri = userService.setMfa(principal.getName(), payload.isActive());
+		// return ResponseEntity.ok().body(new twoFAResponse(Uri));
+		User user = userRepository.findUserByEmail(principal.getName())
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
+
+		log.info("Found user with email= {}", principal.getName());
+		user.setHasTotp(payload.isActive());
+		userRepository.save(user);
+		return ResponseEntity.ok().body("Success");
 	}
 
 	@PostMapping("/verify/otp")
