@@ -218,10 +218,12 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-            if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
-                csvLine.contains(addUserRequest.getFirstName().toLowerCase()))||csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
-                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
-				
+			if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
+					csvLine.contains(addUserRequest.getFirstName().toLowerCase()))
+					|| csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
+				log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(),
+						addUserRequest.getLastName());
+
 				log.info("Sanction email sent");
 				sendSanctionEmail(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
 						addUserRequest.getEmail(), "", "");
@@ -243,6 +245,10 @@ public class UserService {
 		user.setAffiliateLink(EmailHashGenerator.generateHash(user.getEmail()));
 		user.setBusiness("");
 		user.setProfilePicturepath("");
+
+		user.setHasTotp(false);
+		user.setSecret(totpManager.generateSecret());
+
 		User created = userRepository.save(user);
 
 		try {
@@ -266,10 +272,12 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-            if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
-                csvLine.contains(addUserRequest.getFirstName().toLowerCase()))||csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
-                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
-				
+			if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
+					csvLine.contains(addUserRequest.getFirstName().toLowerCase()))
+					|| csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
+				log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(),
+						addUserRequest.getLastName());
+
 				log.info("Sanction email sent");
 				sendSanctionEmail(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
 						addUserRequest.getEmail(), "", "");
@@ -293,6 +301,10 @@ public class UserService {
 		user.setAffiliateLink(EmailHashGenerator.generateHash(user.getEmail()));
 		user.setBusiness("");
 		user.setProfilePicturepath("");
+
+		user.setHasTotp(false);
+		user.setSecret(totpManager.generateSecret());
+		
 		User created = userRepository.save(user);
 
 		Hierarchy hierarchy = new Hierarchy();
@@ -359,11 +371,12 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-            if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
-                csvLine.contains(addUserRequest.getFirstName().toLowerCase()))
-				||csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
-                log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(), addUserRequest.getLastName());
-				
+			if ((csvLine.contains(addUserRequest.getLastName().toLowerCase()) &&
+					csvLine.contains(addUserRequest.getFirstName().toLowerCase()))
+					|| csvLine.contains(addUserRequest.getEmail().toLowerCase())) {
+				log.info("Person {} {} found in sanctions list", addUserRequest.getFirstName(),
+						addUserRequest.getLastName());
+
 				log.info("Sanction email sent");
 				sendSanctionEmailOnUpdate(addUserRequest.getFirstName() + " " + addUserRequest.getLastName(),
 						addUserRequest.getEmail().length() > 0 ? addUserRequest.getEmail() : "",
@@ -419,10 +432,12 @@ public class UserService {
 		List<String> csvData = sanctionList.getCSVData();
 
 		for (String csvLine : csvData) {
-            if ((csvLine.contains(authRequest.getLastName().toLowerCase()) &&
-                csvLine.contains(authRequest.getFirstName().toLowerCase()))||csvLine.contains(authRequest.getEmail().toLowerCase())||csvLine.contains(authRequest.getTelNr().toLowerCase())) {
-                log.info("Person {} {} found in sanctions list", authRequest.getFirstName(), authRequest.getLastName());
-				
+			if ((csvLine.contains(authRequest.getLastName().toLowerCase()) &&
+					csvLine.contains(authRequest.getFirstName().toLowerCase()))
+					|| csvLine.contains(authRequest.getEmail().toLowerCase())
+					|| csvLine.contains(authRequest.getTelNr().toLowerCase())) {
+				log.info("Person {} {} found in sanctions list", authRequest.getFirstName(), authRequest.getLastName());
+
 				log.info("Sanction email sent");
 				sendSanctionEmail(authRequest.getFirstName() + " " + authRequest.getLastName(), authRequest.getEmail(),
 						authRequest.getTelNr(), authRequest.getCountry());
@@ -453,6 +468,10 @@ public class UserService {
 		} else {
 			user.setRequireKYC(false);
 		}
+
+		user.setHasTotp(false);
+		user.setSecret(totpManager.generateSecret());
+
 		User created = userRepository.save(user);
 
 		// Affiliate erstellen und speichern, falls vorhanden
@@ -567,7 +586,7 @@ public class UserService {
 
 		log.info("Found user with email= {}", authRequest.getEmail());
 		// LoginResponse erstellen
-		if (!user.isMfa() && !user.isRequireOtp()) {
+		if (!user.isHasTotp() && !user.isHasOtp()) {
 			log.info("login success with return jwt");
 			return new LoginResponse(
 					jwtTokenProvider.generateToken(authentication, authRequest.rememberMe),
@@ -583,11 +602,11 @@ public class UserService {
 							.map(Role::getName)
 							.map(Enum::name)
 							.toArray(String[]::new),
-					user.isMfa(),
+					user.isHasTotp(),
 					user.getS3Url(),
 					user.getCountry(),
 					user.isRequireKYC(),
-					user.isRequireOtp(),
+					user.isHasOtp(),
 					user.getAntiPhishingCode(),
 					user.getId()
 
@@ -604,11 +623,11 @@ public class UserService {
 					"",
 					"",
 					new String[] {},
-					user.isMfa(),
+					user.isHasTotp(),
 					user.getS3Url(),
 					user.getCountry(),
 					user.isRequireKYC(),
-					user.isRequireOtp(),
+					user.isHasOtp(),
 					"",
 					null);
 		}
@@ -692,14 +711,18 @@ public class UserService {
 		user.setFirstName(updatetUserRequest.getFirstName());
 		user.setLastName(updatetUserRequest.getLastName());
 		user.setTel(updatetUserRequest.getPhoneNumber());
-		user.setMfa(updatetUserRequest.isMfa());
-		user.setRequireOtp(updatetUserRequest.isRequireOtp());
 
 		for (String csvLine : csvData) {
-            if (((csvLine.contains(updatetUserRequest.getLastName().toLowerCase()) &&
-                csvLine.contains(updatetUserRequest.getFirstName().toLowerCase()) && updatetUserRequest.getFirstName().length()>0 && updatetUserRequest.getLastName().length()>0) || (csvLine.contains(updatetUserRequest.getBusiness().toLowerCase()) && updatetUserRequest.getBusiness().length()>0))
-				||(csvLine.contains(user.getEmail().toLowerCase()) && user.getEmail().length()>0)||(csvLine.contains(updatetUserRequest.getPhoneNumber().toLowerCase()) && updatetUserRequest.getPhoneNumber().length()>0)) {
-                log.info("Person {} {} found in sanctions list", updatetUserRequest.getFirstName(), updatetUserRequest.getLastName());
+			if (((csvLine.contains(updatetUserRequest.getLastName().toLowerCase()) &&
+					csvLine.contains(updatetUserRequest.getFirstName().toLowerCase())
+					&& updatetUserRequest.getFirstName().length() > 0 && updatetUserRequest.getLastName().length() > 0)
+					|| (csvLine.contains(updatetUserRequest.getBusiness().toLowerCase())
+							&& updatetUserRequest.getBusiness().length() > 0))
+					|| (csvLine.contains(user.getEmail().toLowerCase()) && user.getEmail().length() > 0)
+					|| (csvLine.contains(updatetUserRequest.getPhoneNumber().toLowerCase())
+							&& updatetUserRequest.getPhoneNumber().length() > 0)) {
+				log.info("Person {} {} found in sanctions list", updatetUserRequest.getFirstName(),
+						updatetUserRequest.getLastName());
 
 				log.info("Sanction email sent");
 				sendSanctionEmailOnUpdate(updatetUserRequest.getFirstName() + " " + updatetUserRequest.getLastName(),
@@ -709,7 +732,7 @@ public class UserService {
 				userRepository.save(user);
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
-        }
+		}
 		user.setAntiPhishingCode(updatetUserRequest.getAntiPhishingCode());
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
@@ -743,19 +766,19 @@ public class UserService {
 	}
 
 	public static String generateRandomCode(int length) {
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder code = new StringBuilder();
+		String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		StringBuilder code = new StringBuilder();
 
-        Random random = new Random();
+		Random random = new Random();
 
-        for (int i = 0; i < length; i++) {
-            int randomIndex = random.nextInt(characters.length());
-            char randomChar = characters.charAt(randomIndex);
-            code.append(randomChar);
-        }
+		for (int i = 0; i < length; i++) {
+			int randomIndex = random.nextInt(characters.length());
+			char randomChar = characters.charAt(randomIndex);
+			code.append(randomChar);
+		}
 
-        return code.toString();
-    }
+		return code.toString();
+	}
 
 	public void changeEmail(String newEmail, String oldEmail)
 			throws UserNotFoundException,
@@ -768,9 +791,9 @@ public class UserService {
 		log.info("Found user with email= {}", oldEmail);
 		userRepository.save(user);
 
-		Optional<User> usedEmail= userRepository.findUserByEmail(newEmail);
+		Optional<User> usedEmail = userRepository.findUserByEmail(newEmail);
 
-		if(usedEmail.isPresent()){
+		if (usedEmail.isPresent()) {
 			throw new UserNotFoundException("Email is already used", HttpStatus.BAD_REQUEST);
 		}
 
@@ -795,17 +818,17 @@ public class UserService {
 	}
 
 	public UpdateResponse confirmEmail(ChangeEmailRequest changeEmailRequest, String email)
-		throws UserNotFoundException {
+			throws UserNotFoundException {
 		User user = userRepository.findUserByEmail(email)
 				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
 
-		if(!changeEmailRequest.token.equals(user.getResetToken())){
-			log.info("Token provided"+changeEmailRequest.token);
-			log.info("Token in db"+user.getResetToken());
-			log.info(changeEmailRequest.token==user.getResetToken()? "true":"false");
+		if (!changeEmailRequest.token.equals(user.getResetToken())) {
+			log.info("Token provided" + changeEmailRequest.token);
+			log.info("Token in db" + user.getResetToken());
+			log.info(changeEmailRequest.token == user.getResetToken() ? "true" : "false");
 			throw new UserNotFoundException("Token not found", HttpStatus.BAD_REQUEST);
 		}
-		if(changeEmailRequest.newEmail.length()==0){
+		if (changeEmailRequest.newEmail.length() == 0) {
 			throw new UserNotFoundException("New email is empty", HttpStatus.BAD_REQUEST);
 		}
 		log.info("New email is: {}", changeEmailRequest.newEmail);
@@ -922,7 +945,7 @@ public class UserService {
 		// 2FA-Status und geheimes Schlüssel aktualisieren, falls aktiviert
 
 		log.info("Found user with email= {}", email);
-		user.setMfa(isActive);
+		user.setHasTotp(isActive);
 		if (isActive) {
 			user.setSecret(totpManager.generateSecret());
 		}
@@ -971,11 +994,11 @@ public class UserService {
 						.map(Role::getName)
 						.map(Enum::name)
 						.toArray(String[]::new),
-				user.isMfa(),
+				user.isHasTotp(),
 				user.getS3Url(),
 				user.getCountry(),
 				user.isRequireKYC(),
-				user.isRequireOtp(),
+				user.isHasOtp(),
 				user.getAntiPhishingCode(),
 				user.getId());
 
@@ -1019,11 +1042,11 @@ public class UserService {
 						.map(Role::getName)
 						.map(Enum::name)
 						.toArray(String[]::new),
-				user.isMfa(),
+				user.isHasTotp(),
 				user.getS3Url(),
 				user.getCountry(),
 				user.isRequireKYC(),
-				user.isRequireOtp(),
+				user.isHasOtp(),
 				user.getAntiPhishingCode(),
 				user.getId());
 
@@ -1190,47 +1213,61 @@ public class UserService {
 		Optional<User> userOptional = userRepository.findById(id);
 		log.info("Found user with id= {}", id);
 		if (userOptional.isPresent()) {
-			for(KycImageType imageType: KycImageType.values()){
+			for (KycImageType imageType : KycImageType.values()) {
 				Optional<KycImage> kycImageOpt = Optional
-				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
+						.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
 				if (kycImageOpt.isPresent()) {
-					if(kycImageOpt.get().getS3Key()==null){
+					if (kycImageOpt.get().getS3Key() == null) {
 						continue;
 					}
-					if(kycImageOpt.get().getS3Key().length()==0 || kycImageOpt.get().getConfirmed()==true || kycImageOpt.get().getS3Key()==null){
+					if (kycImageOpt.get().getS3Key().length() == 0 || kycImageOpt.get().getConfirmed() == true
+							|| kycImageOpt.get().getS3Key() == null) {
 						continue;
 					}
 					kycImageOpt.get().setConfirmed(true);
 					kycImageRepository.save(kycImageOpt.get());
-                	log.info("KYC approved for user with id = {} and image type = {}", id, imageType);
-				} 
+					log.info("KYC approved for user with id = {} and image type = {}", id, imageType);
+				}
 			}
 			return true;
 		} else {
-        	log.error("User with id = {} not found!", id);
+			log.error("User with id = {} not found!", id);
 		}
 		return false;
-	}	
-	
+	}
+
 	public boolean declineKYC(Long id) {
 		Optional<User> userOptional = userRepository.findById(id);
 		log.info("Found user with id= {}", id);
 		if (userOptional.isPresent()) {
-			for(KycImageType imageType: KycImageType.values()){
+			for (KycImageType imageType : KycImageType.values()) {
 				Optional<KycImage> kycImageOpt = Optional
-				.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
+						.ofNullable(kycImageRepository.findKycImageByTypeAndUser_Id(imageType, id));
 				if (kycImageOpt.isPresent()) {
-					if(kycImageOpt.get().getConfirmed()!=true){
+					if (kycImageOpt.get().getConfirmed() != true) {
 						kycImageRepository.delete(kycImageOpt.get());
 					}
 
-                	log.info("KYC deleted for user with id = {} and image type = {}", id, imageType);
-				} 
+					log.info("KYC deleted for user with id = {} and image type = {}", id, imageType);
+				}
 			}
 			return true;
 		} else {
-        	log.error("User with id = {} not found!", id);
+			log.error("User with id = {} not found!", id);
 		}
 		return false;
+	}
+
+	public String getTotpToken(String email)
+			throws UserNotFoundException {
+		Optional<User> userOptional = userRepository.findUserByEmail(email);
+		if (userOptional.isEmpty()) {
+			log.error("User with email " + email + " does not exist!");
+			throw new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST);
+		}
+
+		var user = userOptional.get();
+
+		return user.getSecret();
 	}
 }

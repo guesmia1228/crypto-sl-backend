@@ -17,11 +17,11 @@ public class LoginResponse {
     public String business;
     public String phoneNumber;
     public String[] roles;
-    public boolean isMfa;
+    public boolean hasTotp;
     public String profileImage;
     public String country;
     public boolean isRequireKyc;
-    public boolean isRequireOtp;
+    public boolean hasOtp;
     public String antiPhishingCode;
     public Long userId;
     //pic data
