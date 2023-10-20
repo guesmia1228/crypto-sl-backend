@@ -247,6 +247,7 @@ public class UserService {
 		user.setProfilePicturepath("");
 
 		user.setHasTotp(false);
+		user.setHasOtp(false);
 		user.setSecret(totpManager.generateSecret());
 
 		User created = userRepository.save(user);
@@ -303,6 +304,7 @@ public class UserService {
 		user.setProfilePicturepath("");
 
 		user.setHasTotp(false);
+		user.setHasOtp(false);
 		user.setSecret(totpManager.generateSecret());
 		
 		User created = userRepository.save(user);
@@ -470,6 +472,7 @@ public class UserService {
 		}
 
 		user.setHasTotp(false);
+		user.setHasOtp(false);
 		user.setSecret(totpManager.generateSecret());
 
 		User created = userRepository.save(user);

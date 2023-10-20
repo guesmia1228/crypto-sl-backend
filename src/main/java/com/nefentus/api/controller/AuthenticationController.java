@@ -328,6 +328,19 @@ public class AuthenticationController {
 		return ResponseEntity.ok().body("Success");
 	}
 
+	@PostMapping(value = "/setup/otp", produces = MediaType.APPLICATION_JSON_VALUE)
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> setupOtp(@RequestBody twoFARequest payload, Principal principal)
+			throws UserNotFoundException {
+		User user = userRepository.findUserByEmail(principal.getName())
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
+
+		log.info("Found user with email= {}", principal.getName());
+		user.setHasOtp(payload.isActive());
+		userRepository.save(user);
+		return ResponseEntity.ok().body("Success");
+	}
+
 	@PostMapping("/verify/otp")
 	public ResponseEntity<?> verifyOTPCode(@RequestBody VerifyOTPCodeRequest verifyOtpCodeRequest)
 			throws UserNotFoundException, BadRequestException, InternalServerException {
