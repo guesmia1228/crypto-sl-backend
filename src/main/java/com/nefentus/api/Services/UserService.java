@@ -245,6 +245,11 @@ public class UserService {
 		user.setAffiliateLink(EmailHashGenerator.generateHash(user.getEmail()));
 		user.setBusiness("");
 		user.setProfilePicturepath("");
+		user.setMarketingUpdates(true);
+		user.setEmailNotifications(true);
+		user.setAppNotifications(true);
+		user.setNotificationLanguage("English");
+		user.setEnableInvoicing(true);
 
 		user.setHasTotp(false);
 		user.setHasOtp(false);
@@ -302,6 +307,11 @@ public class UserService {
 		user.setAffiliateLink(EmailHashGenerator.generateHash(user.getEmail()));
 		user.setBusiness("");
 		user.setProfilePicturepath("");
+		user.setMarketingUpdates(true);
+		user.setEmailNotifications(true);
+		user.setAppNotifications(true);
+		user.setNotificationLanguage("English");
+		user.setEnableInvoicing(true);
 
 		user.setHasTotp(false);
 		user.setHasOtp(false);
@@ -470,6 +480,11 @@ public class UserService {
 		user.setBusiness("");
 		user.setProfilePicturepath("");
 		user.setCountry(authRequest.getCountry());
+		user.setMarketingUpdates(true);
+		user.setEmailNotifications(true);
+		user.setAppNotifications(true);
+		user.setNotificationLanguage("English");
+		user.setEnableInvoicing(true);
 		if (countryList.contains(authRequest.getCountry().toUpperCase())) {
 			user.setRequireKYC(true);
 		} else {
