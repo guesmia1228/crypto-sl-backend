@@ -24,5 +24,10 @@ public class LoginResponse {
     public boolean hasOtp;
     public String antiPhishingCode;
     public Long userId;
+    public boolean marketingUpdates;
+    public boolean emailNotifications;
+    public boolean appNotifications;
+    public String notificationLanguage;
+    public boolean enableInvoicing;
     //pic data
 }

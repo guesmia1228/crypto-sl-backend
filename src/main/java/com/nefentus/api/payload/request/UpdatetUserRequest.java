@@ -14,5 +14,9 @@ public class UpdatetUserRequest {
 	public String lastName;
 	public String business;
 	public String phoneNumber;
-	public String antiPhishingCode;
+	public Boolean marketingUpdates;
+	public Boolean emailNotifications;
+	public Boolean appNotifications;
+	public String notificationLanguage;
+	public Boolean enableInvoicing;
 }

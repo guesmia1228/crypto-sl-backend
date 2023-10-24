@@ -306,7 +306,7 @@ public class UserService {
 		user.setHasTotp(false);
 		user.setHasOtp(false);
 		user.setSecret(totpManager.generateSecret());
-		
+
 		User created = userRepository.save(user);
 
 		Hierarchy hierarchy = new Hierarchy();
@@ -400,8 +400,10 @@ public class UserService {
 			// emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
 			// emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
 			Context context = ContextProvider.loadSanctionEmail(name, email, phone, country);
-			emailService.sendEmailWithHtmlTemplate("office@nefentus.com", "Sanction Person!", "email-template", context);
-			emailService.sendEmailWithHtmlTemplate("steven@nefentus.com", "Sanction Person!", "email-template", context);
+			emailService.sendEmailWithHtmlTemplate("office@nefentus.com", "Sanction Person!", "email-template",
+					context);
+			emailService.sendEmailWithHtmlTemplate("steven@nefentus.com", "Sanction Person!", "email-template",
+					context);
 		} catch (IOException e) {
 			log.error("sendSanctionEmail", e);
 		}
@@ -409,12 +411,15 @@ public class UserService {
 
 	private void sendSanctionEmailOnUpdate(String name, String email, String phone, String country, String business) {
 		try {
-			// var html = HtmlProvider.loadSanctionEmailOnUpdate(name, email, phone, country, business);
+			// var html = HtmlProvider.loadSanctionEmailOnUpdate(name, email, phone,
+			// country, business);
 			// emailService.sendEmail("office@nefentus.com", "Sanction Person!", html);
 			// emailService.sendEmail("steven@nefentus.com", "Sanction Person!", html);
 			Context context = ContextProvider.loadSanctionEmailOnUpdate(name, email, phone, country, business);
-			emailService.sendEmailWithHtmlTemplate("office@nefentus.com", "Sanction Person!", "email-template", context);
-			emailService.sendEmailWithHtmlTemplate("steven@nefentus.com", "Sanction Person!", "email-template", context);
+			emailService.sendEmailWithHtmlTemplate("office@nefentus.com", "Sanction Person!", "email-template",
+					context);
+			emailService.sendEmailWithHtmlTemplate("steven@nefentus.com", "Sanction Person!", "email-template",
+					context);
 		} catch (IOException e) {
 			log.error("sendSanctionEmail", e);
 		}
@@ -611,9 +616,12 @@ public class UserService {
 					user.isRequireKYC(),
 					user.isHasOtp(),
 					user.getAntiPhishingCode(),
-					user.getId()
-
-			);
+					user.getId(),
+					user.isMarketingUpdates(),
+					user.isEmailNotifications(),
+					user.isAppNotifications(),
+					user.getNotificationLanguage(),
+					user.isEnableInvoicing());
 		} else {
 			log.info("login success without return jwt");
 			return new LoginResponse(
@@ -632,7 +640,12 @@ public class UserService {
 					user.isRequireKYC(),
 					user.isHasOtp(),
 					"",
-					null);
+					null,
+					user.isMarketingUpdates(),
+					user.isEmailNotifications(),
+					user.isAppNotifications(),
+					"",
+					user.isEnableInvoicing());
 		}
 	}
 
@@ -736,7 +749,11 @@ public class UserService {
 				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
 			}
 		}
-		user.setAntiPhishingCode(updatetUserRequest.getAntiPhishingCode());
+		user.setMarketingUpdates(updatetUserRequest.getMarketingUpdates());
+		user.setEmailNotifications(updatetUserRequest.getEmailNotifications());
+		user.setAppNotifications(updatetUserRequest.getAppNotifications());
+		user.setNotificationLanguage(updatetUserRequest.getNotificationLanguage());
+		user.setEnableInvoicing(updatetUserRequest.getEnableInvoicing());
 		// Benutzer speichern und UpdateResponse zurückgeben
 		User savedUser = userRepository.save(user);
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
@@ -749,8 +766,227 @@ public class UserService {
 				savedUser.getBusiness(),
 				savedUser.getTel(),
 				"",
-				savedUser.getAntiPhishingCode());
+				savedUser.isMarketingUpdates(),
+				savedUser.isEmailNotifications(),
+				savedUser.isAppNotifications(),
+				savedUser.getNotificationLanguage(),
+				savedUser.isEnableInvoicing());
 	}
+
+	public String updateUserFirstName(UpdateUserFirstNameRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		List<String> csvData = sanctionList.getCSVData();
+
+		// Benutzer aktualisieren
+		user.setFirstName(updatetUserRequest.getFirstName());
+
+		for (String csvLine : csvData) {
+			if (((csvLine.contains(user.getLastName().toLowerCase()) &&
+					csvLine.contains(updatetUserRequest.getFirstName().toLowerCase())
+					&& updatetUserRequest.getFirstName().length() > 0 && user.getLastName().length() > 0)
+					|| (csvLine.contains(user.getEmail().toLowerCase()) && user.getEmail().length() > 0))) {
+				log.info("Person {} {} found in sanctions list", updatetUserRequest.getFirstName(),
+						user.getLastName());
+
+				log.info("Sanction email sent");
+				sendSanctionEmailOnUpdate(updatetUserRequest.getFirstName() + " " + user.getLastName(),
+						user.getEmail(), user.getTel(), user.getCountry(),
+						user.getBusiness());
+				user.setActive(false);
+				userRepository.save(user);
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+		}
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.getFirstName();
+	}
+
+	public String updateUserLastName(UpdateUserLastNameRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		List<String> csvData = sanctionList.getCSVData();
+
+		// Benutzer aktualisieren
+		user.setLastName(updatetUserRequest.getLastName());
+
+		for (String csvLine : csvData) {
+			if (((csvLine.contains(updatetUserRequest.getLastName().toLowerCase()) &&
+					csvLine.contains(user.getFirstName().toLowerCase())
+					&& user.getFirstName().length() > 0 && updatetUserRequest.getLastName().length() > 0)
+					|| (csvLine.contains(user.getEmail().toLowerCase()) && user.getEmail().length() > 0))) {
+				log.info("Person {} {} found in sanctions list", user.getFirstName(),
+						updatetUserRequest.getLastName());
+
+				log.info("Sanction email sent");
+				sendSanctionEmailOnUpdate(user.getFirstName() + " " + updatetUserRequest.getLastName(),
+						user.getEmail(), user.getTel(), user.getCountry(),
+						user.getBusiness());
+				user.setActive(false);
+				userRepository.save(user);
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+		}
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.getLastName();
+	}
+
+	public String updateUserBusiness(UpdateUserBusinessRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		List<String> csvData = sanctionList.getCSVData();
+
+		// Benutzer aktualisieren
+		user.setBusiness(updatetUserRequest.getBusiness());
+
+		for (String csvLine : csvData) {
+			if (((csvLine.contains(updatetUserRequest.getBusiness().toLowerCase())
+					&& updatetUserRequest.getBusiness().length() > 0))
+					|| (csvLine.contains(user.getEmail().toLowerCase()) && user.getEmail().length() > 0)) {
+
+				log.info("Sanction email sent");
+				sendSanctionEmailOnUpdate(user.getFirstName() + " " + user.getLastName(),
+						user.getEmail(), user.getTel(), user.getCountry(),
+						updatetUserRequest.getBusiness());
+				user.setActive(false);
+				userRepository.save(user);
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+		}
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.getBusiness();
+	}
+
+	public String updateUserPhoneNumber(UpdateUserPhoneNumberRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		List<String> csvData = sanctionList.getCSVData();
+
+		// Benutzer aktualisieren
+		user.setTel(updatetUserRequest.getPhoneNumber());
+
+		for (String csvLine : csvData) {
+			if ((csvLine.contains(user.getEmail().toLowerCase()) && user.getEmail().length() > 0)
+					|| (csvLine.contains(updatetUserRequest.getPhoneNumber().toLowerCase())
+							&& updatetUserRequest.getPhoneNumber().length() > 0)) {
+
+				log.info("Sanction email sent");
+				sendSanctionEmailOnUpdate(user.getFirstName() + " " + user.getLastName(),
+						user.getEmail(), updatetUserRequest.getPhoneNumber(), user.getCountry(),
+						user.getBusiness());
+				user.setActive(false);
+				userRepository.save(user);
+				throw new BadRequestException("Person found in sanctions list", HttpStatus.FORBIDDEN);
+			}
+		}
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.getTel();
+	}
+
+	public Boolean updateUserMarketingUpdates(UpdateUserMarketingUpdatesRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		// Benutzer aktualisieren
+		user.setMarketingUpdates(updatetUserRequest.getMarketingUpdates());
+
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.isMarketingUpdates();
+	}
+	
+	public Boolean updateUserEmailNotifications(UpdateUserEmailNotificationsRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		// Benutzer aktualisieren
+		user.setEmailNotifications(updatetUserRequest.getEmailNotifications());
+
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.isEmailNotifications();
+	}
+	
+	public Boolean updateUserAppNotifications(UpdateUserAppNotificationsRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		// Benutzer aktualisieren
+		user.setAppNotifications(updatetUserRequest.getAppNotifications());
+
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.isAppNotifications();
+	}
+	
+	public Boolean updateUserEnableInvoicing(UpdateUserEnableInvoicingRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		// Benutzer aktualisieren
+		user.setEnableInvoicing(updatetUserRequest.getEnableInvoicing());
+
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.isEnableInvoicing();
+	}
+	
+	public String updateUserNotificationLanguage(UpdateUserNotificationLanguageRequest updatetUserRequest,
+			String email)
+			throws UserNotFoundException, BadRequestException {
+		// Benutzer suchen
+		User user = userRepository.findUserByEmail(email)
+				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+		// Benutzer aktualisieren
+		user.setNotificationLanguage(updatetUserRequest.getNotificationLanguge());
+
+		// Benutzer speichern und UpdateResponse zurückgeben
+		User savedUser = userRepository.save(user);
+		log.info("Successful update User from user with email= {}", savedUser.getEmail());
+		return savedUser.getNotificationLanguage();
+	}
+
 
 	public boolean deleteProfileImage(String email)
 			throws UserNotFoundException {
@@ -846,7 +1082,12 @@ public class UserService {
 				savedUser.getProfilePicturepath(),
 				savedUser.getBusiness(),
 				savedUser.getTel(),
-				"", email);
+				"",
+				savedUser.isMarketingUpdates(),
+				savedUser.isEmailNotifications(),
+				savedUser.isAppNotifications(),
+				savedUser.getNotificationLanguage(),
+				savedUser.isEnableInvoicing());
 	}
 
 	public void forgotPassword(String email)
@@ -1003,7 +1244,12 @@ public class UserService {
 				user.isRequireKYC(),
 				user.isHasOtp(),
 				user.getAntiPhishingCode(),
-				user.getId());
+				user.getId(),
+				user.isMarketingUpdates(),
+				user.isEmailNotifications(),
+				user.isAppNotifications(),
+				user.getNotificationLanguage(),
+				user.isEnableInvoicing());
 
 	}
 
@@ -1052,7 +1298,12 @@ public class UserService {
 				user.isRequireKYC(),
 				user.isHasOtp(),
 				user.getAntiPhishingCode(),
-				user.getId());
+				user.getId(),
+				user.isMarketingUpdates(),
+				user.isEmailNotifications(),
+				user.isAppNotifications(),
+				user.getNotificationLanguage(),
+				user.isEnableInvoicing());
 
 	}
 
