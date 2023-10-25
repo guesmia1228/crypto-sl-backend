@@ -3,6 +3,7 @@ package com.nefentus.api.controller;
 import com.nefentus.api.Errors.*;
 import com.nefentus.api.Services.TransactionService;
 import com.nefentus.api.Services.OtpService;
+import com.nefentus.api.Services.TotpManager;
 import com.nefentus.api.Services.UserService;
 import com.nefentus.api.Services.WalletService;
 import com.nefentus.api.entities.KycImageType;
@@ -60,6 +61,7 @@ public class AuthenticationController {
 	WalletService walletService;
 	KycImageRepository imageRepository;
 	TransactionService transactionService;
+	TotpManager totpManager;
 	private final UserRepository userRepository;
 	OtpService otpService;
 
@@ -376,6 +378,14 @@ public class AuthenticationController {
 		String email = principal.getName();
 		try {
 			String token = userService.getTotpToken(email);
+			// For old accounts, the secret is not set.
+			// Create it and save it in the User such that it also works for old accounts.
+			if (token == null) {
+				User user = userRepository.findUserByEmail(email).get();
+				token = totpManager.generateSecret();
+				user.setSecret(token);
+				userRepository.save(user);
+			}
 			return ResponseEntity.ok(token);
 		} catch (UserNotFoundException e) {
 			log.error("User not found: " + email);
