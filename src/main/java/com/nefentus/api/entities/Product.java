@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.nefentus.api.entities.User;
 
 import java.sql.Timestamp;
@@ -35,6 +36,7 @@ public class Product {
 	// private Long user_id;
 	@ManyToOne
 	@JoinColumn(name = "prd_user_id", referencedColumnName = "id")
+	@JsonBackReference
 	private User user;
 
 	@Column(name = "prd_s3key")

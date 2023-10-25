@@ -15,9 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "users", uniqueConstraints = {
-		@UniqueConstraint(columnNames = "email")
-})
+@Table(name = "users", uniqueConstraints = { @UniqueConstraint(columnNames = "email") })
 @Getter
 @Setter
 @AllArgsConstructor
@@ -128,6 +126,5 @@ public class User {
 	@Column(name = "enable_invoicing")
 	@JsonIgnore
 	private boolean enableInvoicing;
-
 
 }

@@ -37,88 +37,33 @@ public class InitDataGenerator implements CommandLineRunner {
 		}
 
 		/*
-		 * if (roleRepository.findAll().size() == 0) {
-		 * var roleU = new Role(null, ERole.ROLE_USER);
-		 * var roleA = new Role(null, ERole.ROLE_ADMIN);
-		 * var roleAff = new Role(null, ERole.ROLE_AFFILIATE);
-		 * var roleV = new Role(null, ERole.ROLE_VENDOR);
-		 * var roleGP = new Role(null, ERole.ROLE_GOLD_PARTNER);
-		 * var roleDP = new Role(null, ERole.ROLE_DIAMOND_PARTNER);
-		 * var roleIBL = new Role(null, ERole.ROLE_IB_LEADER);
+		 * if (roleRepository.findAll().size() == 0) { var roleU = new Role(null,
+		 * ERole.ROLE_USER); var roleA = new Role(null, ERole.ROLE_ADMIN); var roleAff =
+		 * new Role(null, ERole.ROLE_AFFILIATE); var roleV = new Role(null,
+		 * ERole.ROLE_VENDOR); var roleGP = new Role(null, ERole.ROLE_GOLD_PARTNER); var
+		 * roleDP = new Role(null, ERole.ROLE_DIAMOND_PARTNER); var roleIBL = new
+		 * Role(null, ERole.ROLE_IB_LEADER);
 		 * 
-		 * roleRepository.save(roleU);
-		 * roleRepository.save(roleA);
-		 * roleRepository.save(roleAff);
-		 * roleRepository.save(roleV);
-		 * roleRepository.save(roleGP);
-		 * roleRepository.save(roleDP);
-		 * roleRepository.save(roleIBL);
-		 * }
+		 * roleRepository.save(roleU); roleRepository.save(roleA);
+		 * roleRepository.save(roleAff); roleRepository.save(roleV);
+		 * roleRepository.save(roleGP); roleRepository.save(roleDP);
+		 * roleRepository.save(roleIBL); }
 		 */
 
 		if (userRepository.findByRoleName(ERole.ROLE_ADMIN).isEmpty()) {
 			var adminRole = roleRepository.findByName(ERole.ROLE_ADMIN);
-			User admin = new User(null,
-					"steven@nefentus.com",
-					encoder.encode("8W%#P5oNkR+9XzJt&f$3"),
-					"Steven",
-					"Maindl",
-					"+4368110603393",
-					Set.of(adminRole.get()),
-					Set.of(),
-					true,
-					"",
-					Timestamp.valueOf(LocalDateTime.now()),
-					Timestamp.valueOf(LocalDateTime.now()),
-					"1",
-					"http://localhost:80/images/test.png",
-					"steven@nefentus.com",
-					"Nefentus",
-					false,
-					"AAABSDACBASDDD",
-					Set.of(),
-					null,
-					null,
-					false,
-					false,
-					"GERMANY",
-					"",
-					false,
-					false,
-					false,
-					"English",
-					false);
+			User admin = new User(null, "steven@nefentus.com", encoder.encode("8W%#P5oNkR+9XzJt&f$3"), "Steven",
+					"Maindl", "+4368110603393", Set.of(adminRole.get()), Set.of(), true, "",
+					Timestamp.valueOf(LocalDateTime.now()), Timestamp.valueOf(LocalDateTime.now()), "1",
+					"http://localhost:80/images/test.png", "steven@nefentus.com", "Nefentus", false, "AAABSDACBASDDD",
+					Set.of(), null, null, false, false, "GERMANY", "", false, false, false, "English", false);
 
-			User admin2 = new User(null,
-					"dev@nefentus.com",
-					encoder.encode("test123"),
-					"Dev",
-					"Nefentus",
-					"+4368110603393",
-					Set.of(adminRole.get()),
-					Set.of(),
-					true,
-					"",
-					Timestamp.valueOf(LocalDateTime.now()),
-					Timestamp.valueOf(LocalDateTime.now()),
-					"2",
-					"http://localhost:80/images/test.png",
-					"dev@nefentus.com",
-					"nefentus",
-					false,
-					"ASDASDASDFFJIQWLEKDMDFA",
-					Set.of(),
-					null,
-					null,
-					false,
-					false,
-					"GERMANY",
-					"",
-					false,
-					false,
-					false,
-					"English",
-					false);
+			User admin2 = new User(null, "dev@nefentus.com", encoder.encode("test123"), "Dev", "Nefentus",
+					"+4368110603393", Set.of(adminRole.get()), Set.of(), true, "",
+					Timestamp.valueOf(LocalDateTime.now()), Timestamp.valueOf(LocalDateTime.now()), "2",
+					"http://localhost:80/images/test.png", "dev@nefentus.com", "nefentus", false,
+					"ASDASDASDFFJIQWLEKDMDFA", Set.of(), null, null, false, false, "GERMANY", "", false, false, false,
+					"English", false);
 
 			userRepository.save(admin);
 			userRepository.save(admin2);
@@ -126,64 +71,18 @@ public class InitDataGenerator implements CommandLineRunner {
 
 		if (userRepository.findByRoleName(ERole.ROLE_SENIOR_BROKER).isEmpty()) {
 			var diamondRole = roleRepository.findByName(ERole.ROLE_SENIOR_BROKER);
-			User diamondUser = new User(null,
-					"diamond@example.com",
-					encoder.encode("password"),
-					"Diamond",
-					"User",
-					"+123456789",
-					Set.of(diamondRole.get()),
-					Set.of(),
-					true,
-					"",
-					Timestamp.valueOf(LocalDateTime.now()),
-					Timestamp.valueOf(LocalDateTime.now()),
-					"8888",
-					"http://localhost:80/images/test.png",
-					"diamond@example.com",
-					"Nefentus",
-					false,
-					"AAABSDACBASDDD",
-					Set.of(), null, null,
-					false,
-					false,
-					"GERMANY",
-					"",
-					false,
-					false,
-					false,
-					"English",
-					false);
+			User diamondUser = new User(null, "diamond@example.com", encoder.encode("password"), "Diamond", "User",
+					"+123456789", Set.of(diamondRole.get()), Set.of(), true, "", Timestamp.valueOf(LocalDateTime.now()),
+					Timestamp.valueOf(LocalDateTime.now()), "8888", "http://localhost:80/images/test.png",
+					"diamond@example.com", "Nefentus", false, "AAABSDACBASDDD", Set.of(), null, null, false, false,
+					"GERMANY", "", false, false, false, "English", false);
 
 			var goldRole = roleRepository.findByName(ERole.ROLE_BROKER);
-			User goldUser = new User(null,
-					"gold@example.com",
-					encoder.encode("password"),
-					"Gold",
-					"User",
-					"+123456789",
-					Set.of(goldRole.get()),
-					Set.of(),
-					true,
-					"",
-					Timestamp.valueOf(LocalDateTime.now()),
-					Timestamp.valueOf(LocalDateTime.now()),
-					"9999",
-					"http://localhost:80/images/test.png",
-					"gold@example.com",
-					"Nefentus",
-					false,
-					"AAABSDACBASDDD",
-					Set.of(), null, null,
-					true,
-					false,
-					"GERMANY",
-					"",
-					false,
-					false,
-					false,
-					"English",
-					false);
+			User goldUser = new User(null, "gold@example.com", encoder.encode("password"), "Gold", "User", "+123456789",
+					Set.of(goldRole.get()), Set.of(), true, "", Timestamp.valueOf(LocalDateTime.now()),
+					Timestamp.valueOf(LocalDateTime.now()), "9999", "http://localhost:80/images/test.png",
+					"gold@example.com", "Nefentus", false, "AAABSDACBASDDD", Set.of(), null, null, true, false,
+					"GERMANY", "", false, false, false, "English", false);
 			userRepository.save(diamondUser);
 			userRepository.save(goldUser);
 
