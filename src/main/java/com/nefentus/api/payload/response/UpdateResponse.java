@@ -18,5 +18,9 @@ public class UpdateResponse {
     public String business;
     public String phoneNumber;
     public String username;
-    public String antiPhishingCode;
+	public Boolean marketingUpdates;
+	public Boolean emailNotifications;
+	public Boolean appNotifications;
+	public String notificationLanguage;
+	public Boolean enableInvoicing;
 }

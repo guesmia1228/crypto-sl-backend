@@ -109,4 +109,25 @@ public class User {
 
 	@Column(name = "anti_phishing_code")
 	private String antiPhishingCode;
+
+	@Column(name = "marketing_updates")
+	@JsonIgnore
+	private boolean marketingUpdates;
+
+	@Column(name = "email_notifications")
+	@JsonIgnore
+	private boolean emailNotifications;
+
+	@Column(name = "app_notifications")
+	@JsonIgnore
+	private boolean appNotifications;
+
+	@Column(name = "notification_language")
+	private String notificationLanguage;
+
+	@Column(name = "enable_invoicing")
+	@JsonIgnore
+	private boolean enableInvoicing;
+
+
 }

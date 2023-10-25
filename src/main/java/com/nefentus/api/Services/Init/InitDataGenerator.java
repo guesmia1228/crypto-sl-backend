@@ -82,9 +82,12 @@ public class InitDataGenerator implements CommandLineRunner {
 					false,
 					false,
 					"GERMANY",
-					""
-
-			);
+					"",
+					false,
+					false,
+					false,
+					"English",
+					false);
 
 			User admin2 = new User(null,
 					"dev@nefentus.com",
@@ -110,7 +113,12 @@ public class InitDataGenerator implements CommandLineRunner {
 					false,
 					false,
 					"GERMANY",
-					"");
+					"",
+					false,
+					false,
+					false,
+					"English",
+					false);
 
 			userRepository.save(admin);
 			userRepository.save(admin2);
@@ -140,7 +148,12 @@ public class InitDataGenerator implements CommandLineRunner {
 					false,
 					false,
 					"GERMANY",
-					"");
+					"",
+					false,
+					false,
+					false,
+					"English",
+					false);
 
 			var goldRole = roleRepository.findByName(ERole.ROLE_BROKER);
 			User goldUser = new User(null,
@@ -165,7 +178,12 @@ public class InitDataGenerator implements CommandLineRunner {
 					true,
 					false,
 					"GERMANY",
-					"");
+					"",
+					false,
+					false,
+					false,
+					"English",
+					false);
 			userRepository.save(diamondUser);
 			userRepository.save(goldUser);
 

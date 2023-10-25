@@ -235,6 +235,96 @@ public class AuthenticationController {
 
 	}
 
+	@PatchMapping("/update/first-name")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserFirstName(@RequestBody UpdateUserFirstNameRequest updatetUserFirstNameRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		String firstName = userService.updateUserFirstName(updatetUserFirstNameRequest, email);
+		return ResponseEntity.ok(firstName);
+	}
+
+	@PatchMapping("/update/last-name")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserLastName(@RequestBody UpdateUserLastNameRequest updatetUserLastNameRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		String lastName = userService.updateUserLastName(updatetUserLastNameRequest, email);
+		return ResponseEntity.ok(lastName);
+	}
+
+	@PatchMapping("/update/business")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserBusiness(@RequestBody UpdateUserBusinessRequest updatetUserBusinessRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		String business = userService.updateUserBusiness(updatetUserBusinessRequest, email);
+		return ResponseEntity.ok(business);
+	}
+
+	@PatchMapping("/update/phone-number")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserPhoneNumber(@RequestBody UpdateUserPhoneNumberRequest updatetUserPhoneNumberRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		String firstName = userService.updateUserPhoneNumber(updatetUserPhoneNumberRequest, email);
+		return ResponseEntity.ok(firstName);
+	}
+
+	@PatchMapping("/update/marketing-updates")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserMarketingUpdates(@RequestBody UpdateUserMarketingUpdatesRequest updatetUserMarketingUpdatesRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		Boolean marketingUpdates = userService.updateUserMarketingUpdates(updatetUserMarketingUpdatesRequest, email);
+		return ResponseEntity.ok(marketingUpdates);
+	}
+
+	@PatchMapping("/update/email-notifications")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserEmailNotifications(@RequestBody UpdateUserEmailNotificationsRequest updatetUserEmailNotificationsRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		Boolean emailNotifications = userService.updateUserEmailNotifications(updatetUserEmailNotificationsRequest, email);
+		return ResponseEntity.ok(emailNotifications);
+	}
+
+	@PatchMapping("/update/app-notifications")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserAppNotifications(@RequestBody UpdateUserAppNotificationsRequest updatetUserAppNotificationsRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		Boolean appNotifications = userService.updateUserAppNotifications(updatetUserAppNotificationsRequest, email);
+		return ResponseEntity.ok(appNotifications);
+	}
+
+	@PatchMapping("/update/notification-language")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserNotificationLanguage(@RequestBody UpdateUserNotificationLanguageRequest updatetUserLanguageRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		String notificationLanguage = userService.updateUserNotificationLanguage(updatetUserLanguageRequest, email);
+		return ResponseEntity.ok(notificationLanguage);
+	} 
+
+	@PatchMapping("/update/enable-invoicing")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> updateUserEnableInvoicing(@RequestBody UpdateUserEnableInvoicingRequest updatetUserEnableInvoicingRequest,
+			Principal principal) throws UserNotFoundException, BadRequestException {
+		String email = principal.getName();
+		log.info("Request update user from email= {}", email);
+		Boolean enableInvoicing = userService.updateUserEnableInvoicing(updatetUserEnableInvoicingRequest, email);
+		return ResponseEntity.ok(enableInvoicing);
+	}
+
 	@PatchMapping("/change-email")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> changeEmail(@RequestBody String newEmail,
