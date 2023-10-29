@@ -253,7 +253,6 @@ public class UserService {
 
 		user.setHasTotp(false);
 		user.setHasOtp(false);
-		user.setSecret(totpManager.generateSecret());
 
 		User created = userRepository.save(user);
 
@@ -315,7 +314,6 @@ public class UserService {
 
 		user.setHasTotp(false);
 		user.setHasOtp(false);
-		user.setSecret(totpManager.generateSecret());
 
 		User created = userRepository.save(user);
 
@@ -493,7 +491,6 @@ public class UserService {
 
 		user.setHasTotp(false);
 		user.setHasOtp(false);
-		user.setSecret(totpManager.generateSecret());
 
 		User created = userRepository.save(user);
 
@@ -937,7 +934,7 @@ public class UserService {
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
 		return savedUser.isMarketingUpdates();
 	}
-	
+
 	public Boolean updateUserEmailNotifications(UpdateUserEmailNotificationsRequest updatetUserRequest,
 			String email)
 			throws UserNotFoundException, BadRequestException {
@@ -953,7 +950,7 @@ public class UserService {
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
 		return savedUser.isEmailNotifications();
 	}
-	
+
 	public Boolean updateUserAppNotifications(UpdateUserAppNotificationsRequest updatetUserRequest,
 			String email)
 			throws UserNotFoundException, BadRequestException {
@@ -969,7 +966,7 @@ public class UserService {
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
 		return savedUser.isAppNotifications();
 	}
-	
+
 	public Boolean updateUserEnableInvoicing(UpdateUserEnableInvoicingRequest updatetUserRequest,
 			String email)
 			throws UserNotFoundException, BadRequestException {
@@ -985,7 +982,7 @@ public class UserService {
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
 		return savedUser.isEnableInvoicing();
 	}
-	
+
 	public String updateUserNotificationLanguage(UpdateUserNotificationLanguageRequest updatetUserRequest,
 			String email)
 			throws UserNotFoundException, BadRequestException {
@@ -1001,7 +998,6 @@ public class UserService {
 		log.info("Successful update User from user with email= {}", savedUser.getEmail());
 		return savedUser.getNotificationLanguage();
 	}
-
 
 	public boolean deleteProfileImage(String email)
 			throws UserNotFoundException {
@@ -1193,24 +1189,6 @@ public class UserService {
 		userRepository.save(user);
 		log.info("Successful to set new password");
 		resetTokenRepository.delete(resetToken);
-	}
-
-	public String setMfa(String email,
-			boolean isActive)
-			throws UserNotFoundException {
-		// Benutzer suchen
-		User user = userRepository.findUserByEmail(email)
-				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
-		// 2FA-Status und geheimes Schlüssel aktualisieren, falls aktiviert
-
-		log.info("Found user with email= {}", email);
-		user.setHasTotp(isActive);
-		if (isActive) {
-			user.setSecret(totpManager.generateSecret());
-		}
-		userRepository.save(user);
-		log.info("Successful set Mfa");
-		return totpManager.getUriForImage(user.getSecret(), user.getFirstName() + " " + user.getLastName());
 	}
 
 	public LoginResponse verifyOTP(String email,
@@ -1526,18 +1504,5 @@ public class UserService {
 			log.error("User with id = {} not found!", id);
 		}
 		return false;
-	}
-
-	public String getTotpToken(String email)
-			throws UserNotFoundException {
-		Optional<User> userOptional = userRepository.findUserByEmail(email);
-		if (userOptional.isEmpty()) {
-			log.error("User with email " + email + " does not exist!");
-			throw new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST);
-		}
-
-		var user = userOptional.get();
-
-		return user.getSecret();
 	}
 }

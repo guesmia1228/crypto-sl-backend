@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Base64;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /*
@@ -267,7 +268,8 @@ public class AuthenticationController {
 
 	@PatchMapping("/update/phone-number")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> updateUserPhoneNumber(@RequestBody UpdateUserPhoneNumberRequest updatetUserPhoneNumberRequest,
+	public ResponseEntity<?> updateUserPhoneNumber(
+			@RequestBody UpdateUserPhoneNumberRequest updatetUserPhoneNumberRequest,
 			Principal principal) throws UserNotFoundException, BadRequestException {
 		String email = principal.getName();
 		log.info("Request update user from email= {}", email);
@@ -277,7 +279,8 @@ public class AuthenticationController {
 
 	@PatchMapping("/update/marketing-updates")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> updateUserMarketingUpdates(@RequestBody UpdateUserMarketingUpdatesRequest updatetUserMarketingUpdatesRequest,
+	public ResponseEntity<?> updateUserMarketingUpdates(
+			@RequestBody UpdateUserMarketingUpdatesRequest updatetUserMarketingUpdatesRequest,
 			Principal principal) throws UserNotFoundException, BadRequestException {
 		String email = principal.getName();
 		log.info("Request update user from email= {}", email);
@@ -287,17 +290,20 @@ public class AuthenticationController {
 
 	@PatchMapping("/update/email-notifications")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> updateUserEmailNotifications(@RequestBody UpdateUserEmailNotificationsRequest updatetUserEmailNotificationsRequest,
+	public ResponseEntity<?> updateUserEmailNotifications(
+			@RequestBody UpdateUserEmailNotificationsRequest updatetUserEmailNotificationsRequest,
 			Principal principal) throws UserNotFoundException, BadRequestException {
 		String email = principal.getName();
 		log.info("Request update user from email= {}", email);
-		Boolean emailNotifications = userService.updateUserEmailNotifications(updatetUserEmailNotificationsRequest, email);
+		Boolean emailNotifications = userService.updateUserEmailNotifications(updatetUserEmailNotificationsRequest,
+				email);
 		return ResponseEntity.ok(emailNotifications);
 	}
 
 	@PatchMapping("/update/app-notifications")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> updateUserAppNotifications(@RequestBody UpdateUserAppNotificationsRequest updatetUserAppNotificationsRequest,
+	public ResponseEntity<?> updateUserAppNotifications(
+			@RequestBody UpdateUserAppNotificationsRequest updatetUserAppNotificationsRequest,
 			Principal principal) throws UserNotFoundException, BadRequestException {
 		String email = principal.getName();
 		log.info("Request update user from email= {}", email);
@@ -307,17 +313,19 @@ public class AuthenticationController {
 
 	@PatchMapping("/update/notification-language")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> updateUserNotificationLanguage(@RequestBody UpdateUserNotificationLanguageRequest updatetUserLanguageRequest,
+	public ResponseEntity<?> updateUserNotificationLanguage(
+			@RequestBody UpdateUserNotificationLanguageRequest updatetUserLanguageRequest,
 			Principal principal) throws UserNotFoundException, BadRequestException {
 		String email = principal.getName();
 		log.info("Request update user from email= {}", email);
 		String notificationLanguage = userService.updateUserNotificationLanguage(updatetUserLanguageRequest, email);
 		return ResponseEntity.ok(notificationLanguage);
-	} 
+	}
 
 	@PatchMapping("/update/enable-invoicing")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<?> updateUserEnableInvoicing(@RequestBody UpdateUserEnableInvoicingRequest updatetUserEnableInvoicingRequest,
+	public ResponseEntity<?> updateUserEnableInvoicing(
+			@RequestBody UpdateUserEnableInvoicingRequest updatetUserEnableInvoicingRequest,
 			Principal principal) throws UserNotFoundException, BadRequestException {
 		String email = principal.getName();
 		log.info("Request update user from email= {}", email);
@@ -408,9 +416,6 @@ public class AuthenticationController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> setupTotp(@RequestBody twoFARequest payload, Principal principal)
 			throws UserNotFoundException {
-		// log.info("Handle request two factor from email= {} ", principal.getName());
-		// var Uri = userService.setMfa(principal.getName(), payload.isActive());
-		// return ResponseEntity.ok().body(new twoFAResponse(Uri));
 		User user = userRepository.findUserByEmail(principal.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.BAD_REQUEST));
 
@@ -466,20 +471,19 @@ public class AuthenticationController {
 	@PostMapping("/setup/getTotpToken")
 	public ResponseEntity<?> getTotpToken(Principal principal) throws UserNotFoundException {
 		String email = principal.getName();
+
+		User user;
 		try {
-			String token = userService.getTotpToken(email);
-			// For old accounts, the secret is not set.
-			// Create it and save it in the User such that it also works for old accounts.
-			if (token == null) {
-				User user = userRepository.findUserByEmail(email).get();
-				token = totpManager.generateSecret();
-				user.setSecret(token);
-				userRepository.save(user);
-			}
-			return ResponseEntity.ok(token);
-		} catch (UserNotFoundException e) {
+			user = userRepository.findUserByEmail(email).get();
+		} catch (NoSuchElementException e) {
 			log.error("User not found: " + email);
 			return ResponseEntity.badRequest().body("User not found");
 		}
+
+		String token = totpManager.generateSecret();
+		user.setSecret(token);
+		userRepository.save(user);
+
+		return ResponseEntity.ok(token);
 	}
 }
