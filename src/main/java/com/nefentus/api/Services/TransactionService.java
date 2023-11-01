@@ -109,9 +109,9 @@ public class TransactionService {
 		String sellerAddress = transactionInfo.get("sellerAddress").toString();
 		sellerAddress = web3Service.toChecksumAddress(sellerAddress);
 		Optional<Wallet> optWallet = walletRepository.findByAddress(sellerAddress);
-		// if (optWallet.isPresent()) {
-		// order.setSeller(optWallet.get().getOwner());
-		// }
+		if (optWallet.isPresent()) {
+			order.setSeller(optWallet.get().getOwner());
+		}
 
 		String currencyAddress = transactionInfo.get("currencyAddress") != null
 				? transactionInfo.get("currencyAddress").toString()

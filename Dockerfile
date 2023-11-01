@@ -1,5 +1,5 @@
 # base image to build a JRE
-FROM amazoncorretto:17.0.3-alpine as corretto-jdk
+FROM amazoncorretto:17.0.9-alpine as corretto-jdk
 
 # required for strip-debug to work
 RUN apk add --no-cache binutils
