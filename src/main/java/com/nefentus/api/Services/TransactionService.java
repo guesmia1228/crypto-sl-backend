@@ -182,8 +182,7 @@ public class TransactionService {
 	}
 
 	/**
-	 * Get total income (of the platform) per day
-	 * This is only called by the admins.
+	 * Get total income (of the platform) per day This is only called by the admins.
 	 * 
 	 * @return
 	 */

@@ -53,8 +53,7 @@ public class ProductService {
 	}
 
 	public Product upsertProduct(long productId, String name, String description, BigDecimal price, int stock,
-			String username)
-			throws ApiRequestException, IOException, UserNotFoundException {
+			String username) throws ApiRequestException, IOException, UserNotFoundException {
 		Optional<Product> optProduct = productRepository.findById(productId);
 
 		Product product;

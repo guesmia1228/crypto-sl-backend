@@ -9,6 +9,8 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "inv_invoice")
 @Getter
@@ -50,5 +52,6 @@ public class Invoice {
 
 	@ManyToOne
 	@JoinColumn(name = "inv_user_id", referencedColumnName = "id")
+	@JsonBackReference
 	private User user;
 }

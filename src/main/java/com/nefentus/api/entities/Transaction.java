@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import jakarta.persistence.FetchType;
 import java.sql.Timestamp;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Getter
 @Setter
