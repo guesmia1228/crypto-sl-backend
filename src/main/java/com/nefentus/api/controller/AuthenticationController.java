@@ -469,6 +469,7 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/setup/getTotpToken")
+	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<?> getTotpToken(Principal principal) throws UserNotFoundException {
 		String email = principal.getName();
 
@@ -485,5 +486,25 @@ public class AuthenticationController {
 		userRepository.save(user);
 
 		return ResponseEntity.ok(token);
+	}
+
+	@PostMapping("/setup/antiPhishingCode")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<?> setupAntiPishingCode(@RequestBody SetAntiPhishingCodeRequest payload, Principal principal)
+			throws UserNotFoundException {
+		String email = principal.getName();
+
+		User user;
+		try {
+			user = userRepository.findUserByEmail(email).get();
+		} catch (NoSuchElementException e) {
+			log.error("User not found: " + email);
+			return ResponseEntity.badRequest().body("User not found");
+		}
+
+		user.setAntiPhishingCode(payload.getCode());
+		userRepository.save(user);
+
+		return ResponseEntity.ok("Success");
 	}
 }
