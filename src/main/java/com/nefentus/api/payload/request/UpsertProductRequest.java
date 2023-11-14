@@ -15,5 +15,5 @@ public class UpsertProductRequest {
 	private String name;
 	private String description;
 	private BigDecimal price;
-	private Integer stock;
+	private Integer stock; // -1 means unlimited stock!
 }
