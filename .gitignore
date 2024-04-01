@@ -43,3 +43,5 @@ deployment-prod.yml
 
 hs_err*.log
 replay_pid*.log
+
+/node_modules
